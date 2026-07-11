@@ -1,3 +1,10 @@
 {
-  "weeks": ["2026-06-03", "2026-06-10"]
+  "weeks": ["2026-06-01", "2026-06-08", "2026-07-06"],
+  "interests": [
+    { "emoji": "🦸", "label": "Iron Man" },
+    { "emoji": "⛸️", "label": "Ice skating" },
+    { "emoji": "🛼", "label": "Rollerblading" },
+    { "emoji": "🛠️", "label": "Building & making" },
+    { "emoji": "🥁", "label": "Drums" }
+  ]
 }

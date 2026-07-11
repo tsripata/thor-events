@@ -3,119 +3,142 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0d0f14">
+<meta name="theme-color" content="#fff3e0">
 <title>Thor's Bangkok Adventures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0d0f14;
-    --card: #171a22;
-    --card2: #1e2230;
-    --text: #eceef2;
-    --muted: #9aa3b2;
+    --bg: #fff3e0;
+    --card: #ffffff;
+    --ink: #33302e;
+    --muted: #8a7f74;
     --red: #e23636;
-    --gold: #f0b429;
-    --line: #2a2f3d;
-    --radius: 16px;
+    --gold: #f5a623;
+    --line: #f3d9b8;
+    --shadow: 0 6px 0 rgba(51,48,46,.08);
+    --radius: 22px;
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Nunito", -apple-system, sans-serif; font-weight: 500;
     -webkit-font-smoothing: antialiased;
+    background-image: radial-gradient(rgba(226,54,54,.05) 2px, transparent 2px);
+    background-size: 26px 26px;
   }
-  header {
-    padding: 2.2rem 1.25rem 1rem; text-align: center;
-    background: radial-gradient(ellipse at top, rgba(226,54,54,.18), transparent 65%);
+  h1, h2, .picker-btn, .pick-badge, .cat-chip, .cal-head .month, .chip { font-family: "Fredoka", "Nunito", sans-serif; }
+
+  header { padding: 2.2rem 1.25rem .5rem; text-align: center; }
+  h1 { margin: 0; font-size: clamp(1.7rem, 4.5vw, 2.4rem); font-weight: 700; }
+  h1 .bolt { display: inline-block; transform: rotate(-8deg); }
+  .tagline { color: var(--muted); font-size: .95rem; margin: .4rem 0 0; font-weight: 700; }
+
+  /* interests */
+  .interests { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; padding: .9rem 1rem 0; max-width: 720px; margin: 0 auto; }
+  .interests .lbl { width: 100%; text-align: center; color: var(--muted); font-size: .8rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+  .chip {
+    background: var(--card); border: 2px solid var(--ink); border-radius: 999px;
+    padding: .38rem .85rem; font-size: .9rem; font-weight: 600; box-shadow: 0 3px 0 rgba(51,48,46,.15);
+    transform: rotate(-1deg);
   }
-  h1 { margin: 0; font-size: 1.7rem; letter-spacing: .3px; }
-  h1 .bolt { color: var(--gold); }
-  .tagline { color: var(--muted); font-size: .9rem; margin: .35rem 0 0; }
+  .chip:nth-child(odd) { transform: rotate(1.2deg); }
 
   /* week picker */
-  .picker-wrap { max-width: 640px; margin: 1rem auto 0; padding: 0 1rem; }
+  .picker-wrap { max-width: 480px; margin: 1.2rem auto 0; padding: 0 1rem; }
   .picker-btn {
     width: 100%; display: flex; align-items: center; justify-content: space-between;
-    background: var(--card); color: var(--text); border: 1px solid var(--line);
-    border-radius: var(--radius); padding: .85rem 1.1rem; font-size: 1rem; cursor: pointer;
+    background: var(--card); color: var(--ink); border: 3px solid var(--ink);
+    border-radius: var(--radius); padding: .85rem 1.1rem; font-size: 1.05rem; font-weight: 600;
+    cursor: pointer; box-shadow: var(--shadow);
   }
-  .picker-btn b { font-weight: 600; }
-  .picker-btn .chev { color: var(--muted); transition: transform .2s; }
+  .picker-btn .chev { transition: transform .2s; }
   .picker-btn.open .chev { transform: rotate(180deg); }
   .calendar {
-    display: none; background: var(--card); border: 1px solid var(--line);
-    border-radius: var(--radius); margin-top: .5rem; padding: .9rem; user-select: none;
+    display: none; background: var(--card); border: 3px solid var(--ink);
+    border-radius: var(--radius); margin-top: .6rem; padding: 1rem; user-select: none; box-shadow: var(--shadow);
   }
   .calendar.open { display: block; }
   .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .6rem; }
-  .cal-head .month { font-weight: 600; }
+  .cal-head .month { font-weight: 600; font-size: 1.05rem; }
   .cal-nav {
-    background: var(--card2); border: 1px solid var(--line); color: var(--text);
-    border-radius: 10px; width: 40px; height: 40px; font-size: 1.1rem; cursor: pointer;
+    background: var(--bg); border: 2px solid var(--ink); color: var(--ink);
+    border-radius: 12px; width: 42px; height: 42px; font-size: 1.15rem; cursor: pointer; font-weight: 700;
   }
-  .cal-nav:disabled { opacity: .3; }
+  .cal-nav:disabled { opacity: .25; }
   .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-  .cal-dow { text-align: center; font-size: .7rem; color: var(--muted); padding: .3rem 0; }
+  .cal-dow { text-align: center; font-size: .72rem; color: var(--muted); padding: .3rem 0; font-weight: 800; }
   .cal-day {
     aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-    font-size: .85rem; border-radius: 9px; color: var(--muted);
+    font-size: .9rem; border-radius: 12px; color: var(--muted); font-weight: 700;
   }
-  .cal-day.has {
-    background: rgba(240,180,41,.14); color: var(--gold); font-weight: 600; cursor: pointer;
-  }
-  .cal-day.sel { background: var(--red); color: #fff; }
-  .cal-hint { text-align: center; color: var(--muted); font-size: .75rem; margin-top: .6rem; }
+  .cal-day.has { background: #ffe3a3; color: #7a5200; cursor: pointer; border: 2px solid #f0c05a; }
+  .cal-day.sel { background: var(--red); color: #fff; border-color: var(--red); }
+  .cal-hint { text-align: center; color: var(--muted); font-size: .78rem; margin-top: .6rem; font-weight: 700; }
 
-  main { max-width: 640px; margin: 0 auto; padding: 1rem 1rem 4rem; }
+  main { max-width: 1100px; margin: 0 auto; padding: 1rem 1rem 4rem; }
   .intro {
-    background: linear-gradient(135deg, rgba(226,54,54,.12), rgba(240,180,41,.10));
-    border: 1px solid var(--line); border-radius: var(--radius);
-    padding: .9rem 1.1rem; margin: .75rem 0 0; font-size: .95rem;
+    background: #fff; border: 3px solid var(--ink); border-radius: var(--radius);
+    padding: 1rem 1.2rem; margin: .9rem auto 0; font-size: 1rem; max-width: 720px;
+    box-shadow: var(--shadow); font-weight: 700;
   }
-  .section-title { font-size: 1.15rem; margin: 1.8rem 0 .8rem; display: flex; align-items: center; gap: .5rem; }
-  .note { color: var(--muted); font-size: .9rem; background: var(--card); border: 1px dashed var(--line); border-radius: var(--radius); padding: .8rem 1rem; }
+  .section-title { font-size: 1.35rem; margin: 2rem 0 1rem; font-weight: 700; }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 1.1rem; }
+  @media (min-width: 700px)  { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1020px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+  .note {
+    color: var(--muted); font-size: .95rem; background: var(--card);
+    border: 2px dashed #d9c6a8; border-radius: var(--radius); padding: .9rem 1.1rem; font-weight: 700;
+  }
 
   .card {
-    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
-    overflow: hidden; margin-bottom: 1.1rem;
+    background: var(--card); border: 3px solid var(--ink); border-radius: var(--radius);
+    overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column;
+    transition: transform .15s;
   }
-  .hero { position: relative; height: 132px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .card:hover { transform: translateY(-3px) rotate(-.3deg); }
+  .hero { position: relative; height: 128px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-bottom: 3px solid var(--ink); }
   .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .hero .emoji { font-size: 3.2rem; filter: drop-shadow(0 4px 10px rgba(0,0,0,.4)); }
+  .hero .emoji { font-size: 3.4rem; transform: rotate(-6deg); filter: drop-shadow(0 4px 0 rgba(0,0,0,.15)); }
   .pick-badge {
-    position: absolute; top: 10px; left: 10px; background: var(--gold); color: #201700;
-    font-size: .72rem; font-weight: 700; padding: .28rem .6rem; border-radius: 999px;
+    position: absolute; top: 10px; left: 10px; background: var(--gold); color: #472f00;
+    font-size: .75rem; font-weight: 600; padding: .3rem .65rem; border-radius: 999px;
+    border: 2px solid var(--ink); transform: rotate(-3deg);
   }
   .cat-chip {
-    position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,.55); color: #fff;
-    font-size: .72rem; padding: .28rem .6rem; border-radius: 999px; backdrop-filter: blur(4px);
+    position: absolute; top: 10px; right: 10px; background: #fff; color: var(--ink);
+    font-size: .75rem; font-weight: 600; padding: .3rem .65rem; border-radius: 999px; border: 2px solid var(--ink);
   }
-  .body { padding: 1rem 1.1rem 1.1rem; }
-  .body h2 { margin: 0 0 .5rem; font-size: 1.08rem; line-height: 1.35; }
-  .meta { display: flex; flex-direction: column; gap: .3rem; font-size: .87rem; color: var(--muted); margin-bottom: .65rem; }
-  .meta span.price { color: var(--gold); font-weight: 600; }
-  .why { font-size: .92rem; line-height: 1.5; margin: 0 0 .6rem; }
+  .body { padding: 1rem 1.1rem 1.1rem; display: flex; flex-direction: column; flex: 1; }
+  .body h2 { margin: 0 0 .5rem; font-size: 1.12rem; line-height: 1.3; font-weight: 600; }
+  .meta { display: flex; flex-direction: column; gap: .3rem; font-size: .88rem; color: var(--muted); margin-bottom: .6rem; font-weight: 700; }
+  .meta .price { color: #b06e00; }
+  .why { font-size: .93rem; line-height: 1.55; margin: 0 0 .6rem; }
   .tip {
-    font-size: .85rem; line-height: 1.45; background: var(--card2);
-    border-left: 3px solid var(--gold); border-radius: 8px; padding: .6rem .8rem; margin: 0 0 .75rem;
+    font-size: .86rem; line-height: 1.5; background: #fff7dd;
+    border: 2px solid #f0c05a; border-radius: 12px; padding: .6rem .8rem; margin: 0 0 .75rem;
   }
   .videobox { margin: 0 0 .75rem; }
-  .videobox iframe { width: 100%; aspect-ratio: 16/9; border: 0; border-radius: 10px; }
-  .btns { display: flex; gap: .6rem; }
+  .videobox iframe { width: 100%; aspect-ratio: 16/9; border: 2px solid var(--ink); border-radius: 12px; }
+  .btns { display: flex; gap: .6rem; margin-top: auto; }
   .btn {
-    flex: 1; text-align: center; text-decoration: none; font-size: .9rem; font-weight: 600;
-    padding: .7rem .5rem; border-radius: 12px;
+    flex: 1; text-align: center; text-decoration: none; font-size: .92rem; font-weight: 800;
+    padding: .7rem .5rem; border-radius: 14px; border: 2px solid var(--ink);
   }
-  .btn.primary { background: var(--red); color: #fff; }
-  .btn.ghost { background: var(--card2); color: var(--text); border: 1px solid var(--line); }
-  .loading, .error { text-align: center; color: var(--muted); padding: 3rem 1rem; }
-  footer { text-align: center; color: var(--muted); font-size: .75rem; padding: 0 1rem 2.5rem; }
+  .btn.primary { background: var(--red); color: #fff; box-shadow: 0 3px 0 rgba(51,48,46,.25); }
+  .btn.ghost { background: #fff; color: var(--ink); box-shadow: 0 3px 0 rgba(51,48,46,.12); }
+  .loading, .error { text-align: center; color: var(--muted); padding: 3rem 1rem; font-weight: 700; }
+  footer { text-align: center; color: var(--muted); font-size: .8rem; padding: 0 1rem 2.5rem; font-weight: 700; }
 </style>
 </head>
 <body>
 <header>
   <h1><span class="bolt">⚡</span> Thor's Bangkok Adventures</h1>
-  <p class="tagline">Dad &amp; Thor's weekly activity picks — updated every Wednesday</p>
+  <p class="tagline">Dad &amp; Thor's weekly activity picks — fresh every Wednesday</p>
 </header>
+
+<div class="interests" id="interests"></div>
 
 <div class="picker-wrap">
   <button class="picker-btn" id="pickerBtn" aria-expanded="false">
@@ -129,7 +152,7 @@
       <button class="cal-nav" id="nextM" aria-label="Next month">›</button>
     </div>
     <div class="cal-grid" id="calGrid"></div>
-    <div class="cal-hint">Tap a highlighted week to see its activities</div>
+    <div class="cal-hint">Tap a highlighted week to see its adventures</div>
   </div>
 </div>
 
@@ -138,21 +161,23 @@
 
 <script>
 const CAT = {
-  music:     { emoji: "🥁", label: "Music",       grad: "linear-gradient(135deg,#5b2a86,#a4508b)" },
-  art:       { emoji: "🎨", label: "Art & Craft", grad: "linear-gradient(135deg,#b83280,#e8590c)" },
-  outdoor:   { emoji: "🌳", label: "Outdoor",     grad: "linear-gradient(135deg,#1e6b3a,#4fbf6b)" },
-  market:    { emoji: "🛍️", label: "Market",      grad: "linear-gradient(135deg,#8a5a00,#d9980d)" },
-  museum:    { emoji: "🏛️", label: "Museum",      grad: "linear-gradient(135deg,#1f4e8c,#3f8efc)" },
-  play:      { emoji: "🎭", label: "Play",        grad: "linear-gradient(135deg,#0b7285,#22b8cf)" },
-  sport:     { emoji: "⚽", label: "Sport",       grad: "linear-gradient(135deg,#c2410c,#fb923c)" },
-  science:   { emoji: "🔬", label: "Science",     grad: "linear-gradient(135deg,#0f5e63,#2dd4bf)" },
-  superhero: { emoji: "🦸", label: "Superhero",   grad: "linear-gradient(135deg,#7f1d1d,#e23636)" },
-  default:   { emoji: "⚡", label: "Fun",         grad: "linear-gradient(135deg,#7f1d1d,#f0b429)" }
+  music:     { emoji: "🥁", label: "Music",       grad: "linear-gradient(135deg,#b197fc,#e599f7)" },
+  art:       { emoji: "🎨", label: "Art & Craft", grad: "linear-gradient(135deg,#ffa8a8,#ffd43b)" },
+  outdoor:   { emoji: "🌳", label: "Outdoor",     grad: "linear-gradient(135deg,#8ce99a,#38d9a9)" },
+  market:    { emoji: "🛍️", label: "Market",      grad: "linear-gradient(135deg,#ffd8a8,#ffa94d)" },
+  museum:    { emoji: "🏛️", label: "Museum",      grad: "linear-gradient(135deg,#a5d8ff,#74c0fc)" },
+  play:      { emoji: "🎭", label: "Play",        grad: "linear-gradient(135deg,#99e9f2,#66d9e8)" },
+  sport:     { emoji: "⚽", label: "Sport",       grad: "linear-gradient(135deg,#ffc078,#ff922b)" },
+  science:   { emoji: "🔬", label: "Science",     grad: "linear-gradient(135deg,#96f2d7,#63e6be)" },
+  superhero: { emoji: "🦸", label: "Superhero",   grad: "linear-gradient(135deg,#ff8787,#f5a623)" },
+  skating:   { emoji: "⛸️", label: "Skating",     grad: "linear-gradient(135deg,#d0ebff,#91a7ff)" },
+  workshop:  { emoji: "🛠️", label: "Workshop",    grad: "linear-gradient(135deg,#ffe066,#ffa94d)" },
+  default:   { emoji: "⚡", label: "Fun",         grad: "linear-gradient(135deg,#ff8787,#ffd43b)" }
 };
 const SECTIONS = [
   ["weekend",  "🎉 This Weekend"],
   ["weekday",  "🌿 Weekday Gems"],
-  ["evergreen","🏡 Evergreen Options"]
+  ["evergreen","🏡 Anytime Favorites"]
 ];
 let weeks = [], selected = null, calCursor = null;
 
@@ -168,10 +193,18 @@ const ytId = u => { const m = (u||"").match(/(?:youtu\.be\/|v=|embed\/)([\w-]{11
 
 function weekCovering(date){
   for (const w of weeks) {
-    const a = parseD(w), b = new Date(a); b.setDate(b.getDate()+6);
+    const a = parseD(w), b = new Date(a); b.setDate(b.getDate()+6); b.setHours(23,59,59);
     if (date >= a && date <= b) return w;
   }
   return null;
+}
+
+function defaultWeek(){
+  const today = new Date(); today.setHours(12);
+  const cur = weekCovering(today);
+  if (cur) return cur;
+  const past = weeks.filter(w => parseD(w) <= today);
+  return past.length ? past[past.length-1] : weeks[weeks.length-1];
 }
 
 function renderCalendar(){
@@ -181,12 +214,12 @@ function renderCalendar(){
   $("prevM").disabled = new Date(y, m, 0) < new Date(first.getFullYear(), first.getMonth(), 1);
   $("nextM").disabled = new Date(y, m+1, 1) > new Date(last.getFullYear(), last.getMonth()+1, 6);
   const grid = $("calGrid");
-  grid.innerHTML = ["S","M","T","W","T","F","S"].map(d=>`<div class="cal-dow">${d}</div>`).join("");
-  const startPad = new Date(y, m, 1).getDay();
+  grid.innerHTML = ["M","T","W","T","F","S","S"].map(d=>`<div class="cal-dow">${d}</div>`).join("");
+  const startPad = (new Date(y, m, 1).getDay() + 6) % 7; /* Monday-first */
   const days = new Date(y, m+1, 0).getDate();
   for (let i=0;i<startPad;i++) grid.insertAdjacentHTML("beforeend","<div></div>");
   for (let d=1; d<=days; d++){
-    const date = new Date(y, m, d);
+    const date = new Date(y, m, d, 12);
     const wk = weekCovering(date);
     const cls = "cal-day" + (wk ? " has" : "") + (wk === selected ? " sel" : "");
     grid.insertAdjacentHTML("beforeend", `<div class="${cls}" ${wk?`data-wk="${wk}"`:""}>${d}</div>`);
@@ -247,25 +280,34 @@ async function selectWeek(wk){
       const items = (data.activities||[]).filter(a => a.section === key);
       if (!items.length && !(key === "weekday" && data.weekday_note)) continue;
       html += `<h2 class="section-title">${title}</h2>`;
-      if (key === "weekday" && data.weekday_note && !items.length)
+      if (key === "weekday" && data.weekday_note && !items.length){
         html += `<div class="note">${esc(data.weekday_note)}</div>`;
-      html += items.map(card).join("");
+      }
+      if (items.length) html += `<div class="grid">${items.map(card).join("")}</div>`;
     }
     main.innerHTML = html || `<div class="error">No activities recorded for this week.</div>`;
-    window.scrollTo({top:0, behavior:"smooth"});
+    if (window.scrollY > 200) window.scrollTo({top:0, behavior:"smooth"});
   } catch(e){
     main.innerHTML = `<div class="error">Couldn't load this week's data. Pull to refresh?</div>`;
   }
+}
+
+function renderInterests(list){
+  if (!list || !list.length) return;
+  $("interests").innerHTML =
+    `<span class="lbl">Thor's current obsessions</span>` +
+    list.map(i => `<span class="chip">${esc(i.emoji)} ${esc(i.label)}</span>`).join("");
 }
 
 (async function init(){
   try {
     const idx = await (await fetch(`data/index.json?v=${Date.now()}`)).json();
     weeks = idx.weeks.sort();
+    renderInterests(idx.interests);
     $("pickerBtn").addEventListener("click", () => toggleCal());
     $("prevM").addEventListener("click", () => { calCursor.setMonth(calCursor.getMonth()-1); renderCalendar(); });
     $("nextM").addEventListener("click", () => { calCursor.setMonth(calCursor.getMonth()+1); renderCalendar(); });
-    await selectWeek(weeks[weeks.length-1]);
+    await selectWeek(defaultWeek());
   } catch(e){
     $("main").innerHTML = `<div class="error">Couldn't load the adventure list.</div>`;
     $("pickerLabel").textContent = "—";
