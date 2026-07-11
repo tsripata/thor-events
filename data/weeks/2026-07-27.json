@@ -1,0 +1,55 @@
+{
+  "week_of": "2026-07-27",
+  "start": "2026-07-27",
+  "end": "2026-08-02",
+  "label": "July 27 – August 2, 2026",
+  "intro": "A holiday week! Asalha Bucha (Wed) and Khao Phansa (Thu) mean days off and candlelit temples.",
+  "weekday_note": null,
+  "activities": [
+    {
+      "title": "Asalha Bucha at Wat Pho or Wat Arun",
+      "section": "weekday",
+      "category": "outdoor",
+      "date": "Wednesday July 29 (public holiday)",
+      "time": "Morning or evening candle ceremony",
+      "location": "Wat Pho / Wat Arun",
+      "price": "Temple entry fees",
+      "why": "A day off school and work! Big temples hold beautiful ceremonies — evening candlelight processions are genuinely magical for a 5-year-old. Cross the river by boat for bonus adventure points.",
+      "tip": "Khao Phansa (Buddhist Lent) starts Thursday July 30 — some venues run holiday hours all week.",
+      "link": "https://www.timeanddate.com/holidays/thailand/asalha-bucha",
+      "image": null,
+      "video": null,
+      "pick": true
+    },
+    {
+      "title": "Holiday-Week Workshop Day",
+      "section": "weekday",
+      "category": "workshop",
+      "date": "Wed–Thu July 29–30",
+      "time": "Bookable sessions",
+      "location": "theCOMMONS Thonglor / Clay Circle Samyan",
+      "price": "Check venues",
+      "why": "Two weekday holidays = prime time for a chocolate-making or pottery session without taking time off. Book early — holiday slots fill fast.",
+      "tip": null,
+      "link": "https://claycirclebkk.com/",
+      "image": null,
+      "video": null,
+      "pick": false
+    },
+    {
+      "title": "Weekend picks coming soon",
+      "section": "weekend",
+      "category": "play",
+      "date": "Sat–Sun August 1–2",
+      "time": null,
+      "location": "Bangkok",
+      "price": null,
+      "why": "Listings for this weekend aren't published yet — the Wednesday searches will fill this in with fresh picks.",
+      "tip": null,
+      "link": null,
+      "image": null,
+      "video": null,
+      "pick": false
+    }
+  ]
+}

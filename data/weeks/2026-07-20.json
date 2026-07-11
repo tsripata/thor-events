@@ -1,0 +1,40 @@
+{
+  "week_of": "2026-07-20",
+  "start": "2026-07-20",
+  "end": "2026-07-26",
+  "label": "July 20–26, 2026",
+  "intro": "Last week for the Neo Land art festival — and a good week to book a workshop. More picks land after Wednesday's search.",
+  "weekday_note": "Event listings for this week are still being published — the Wednesday update will fill this in. Meanwhile: a chocolate or pottery session is always a good weekday plan.",
+  "activities": [
+    {
+      "title": "Neo Land Festival — final week",
+      "section": "weekend",
+      "category": "museum",
+      "date": "Daily until July 31",
+      "time": "Mall hours",
+      "location": "ICONSIAM",
+      "price": "Free entry",
+      "why": "Last full weekend before the immersive Thai art festival wraps up — if you haven't wandered it with Thor yet, now's the time.",
+      "tip": "Pair with ice cream by the river outside ICONSIAM.",
+      "link": "https://thethaiger.com/guides/best-of/things-to-do/things-to-do-bangkok-july-10-to-12",
+      "image": null,
+      "video": null,
+      "pick": true
+    },
+    {
+      "title": "Ice Skating Morning at Sub-Zero",
+      "section": "weekend",
+      "category": "skating",
+      "date": "Sat or Sun",
+      "time": "From ~11am",
+      "location": "Sub-Zero Ice Skate Club, Ekkamai",
+      "price": "From ~100 THB kids + rental",
+      "why": "A quieter weekend without big events is the perfect time for Thor's first proper ice-skating lesson — the academy coaches handle tiny beginners daily.",
+      "tip": "Arrive at opening for the emptiest ice.",
+      "link": "https://www.subzeroiceskate.com/?lang=en",
+      "image": null,
+      "video": null,
+      "pick": false
+    }
+  ]
+}
