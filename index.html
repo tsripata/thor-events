@@ -3,28 +3,274 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Thor Events</title>
+<meta name="theme-color" content="#0d0f14">
+<title>Thor's Bangkok Adventures</title>
 <style>
-  body { font-family: -apple-system, "Segoe UI", sans-serif; margin: 0; background: #0f1115; color: #e8eaed; }
-  header { padding: 4rem 2rem 2rem; text-align: center; }
-  h1 { margin: 0; font-size: 2.5rem; }
-  p.tagline { color: #9aa0a6; }
-  main { max-width: 720px; margin: 0 auto; padding: 1rem 2rem 4rem; }
-  .event { background: #1a1d24; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
-  .event h2 { margin: 0 0 .25rem; font-size: 1.2rem; }
-  .event .meta { color: #9aa0a6; font-size: .9rem; }
+  :root {
+    --bg: #0d0f14;
+    --card: #171a22;
+    --card2: #1e2230;
+    --text: #eceef2;
+    --muted: #9aa3b2;
+    --red: #e23636;
+    --gold: #f0b429;
+    --line: #2a2f3d;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    padding: 2.2rem 1.25rem 1rem; text-align: center;
+    background: radial-gradient(ellipse at top, rgba(226,54,54,.18), transparent 65%);
+  }
+  h1 { margin: 0; font-size: 1.7rem; letter-spacing: .3px; }
+  h1 .bolt { color: var(--gold); }
+  .tagline { color: var(--muted); font-size: .9rem; margin: .35rem 0 0; }
+
+  /* week picker */
+  .picker-wrap { max-width: 640px; margin: 1rem auto 0; padding: 0 1rem; }
+  .picker-btn {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    background: var(--card); color: var(--text); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: .85rem 1.1rem; font-size: 1rem; cursor: pointer;
+  }
+  .picker-btn b { font-weight: 600; }
+  .picker-btn .chev { color: var(--muted); transition: transform .2s; }
+  .picker-btn.open .chev { transform: rotate(180deg); }
+  .calendar {
+    display: none; background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); margin-top: .5rem; padding: .9rem; user-select: none;
+  }
+  .calendar.open { display: block; }
+  .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .6rem; }
+  .cal-head .month { font-weight: 600; }
+  .cal-nav {
+    background: var(--card2); border: 1px solid var(--line); color: var(--text);
+    border-radius: 10px; width: 40px; height: 40px; font-size: 1.1rem; cursor: pointer;
+  }
+  .cal-nav:disabled { opacity: .3; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-dow { text-align: center; font-size: .7rem; color: var(--muted); padding: .3rem 0; }
+  .cal-day {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    font-size: .85rem; border-radius: 9px; color: var(--muted);
+  }
+  .cal-day.has {
+    background: rgba(240,180,41,.14); color: var(--gold); font-weight: 600; cursor: pointer;
+  }
+  .cal-day.sel { background: var(--red); color: #fff; }
+  .cal-hint { text-align: center; color: var(--muted); font-size: .75rem; margin-top: .6rem; }
+
+  main { max-width: 640px; margin: 0 auto; padding: 1rem 1rem 4rem; }
+  .intro {
+    background: linear-gradient(135deg, rgba(226,54,54,.12), rgba(240,180,41,.10));
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: .9rem 1.1rem; margin: .75rem 0 0; font-size: .95rem;
+  }
+  .section-title { font-size: 1.15rem; margin: 1.8rem 0 .8rem; display: flex; align-items: center; gap: .5rem; }
+  .note { color: var(--muted); font-size: .9rem; background: var(--card); border: 1px dashed var(--line); border-radius: var(--radius); padding: .8rem 1rem; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    overflow: hidden; margin-bottom: 1.1rem;
+  }
+  .hero { position: relative; height: 132px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hero .emoji { font-size: 3.2rem; filter: drop-shadow(0 4px 10px rgba(0,0,0,.4)); }
+  .pick-badge {
+    position: absolute; top: 10px; left: 10px; background: var(--gold); color: #201700;
+    font-size: .72rem; font-weight: 700; padding: .28rem .6rem; border-radius: 999px;
+  }
+  .cat-chip {
+    position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,.55); color: #fff;
+    font-size: .72rem; padding: .28rem .6rem; border-radius: 999px; backdrop-filter: blur(4px);
+  }
+  .body { padding: 1rem 1.1rem 1.1rem; }
+  .body h2 { margin: 0 0 .5rem; font-size: 1.08rem; line-height: 1.35; }
+  .meta { display: flex; flex-direction: column; gap: .3rem; font-size: .87rem; color: var(--muted); margin-bottom: .65rem; }
+  .meta span.price { color: var(--gold); font-weight: 600; }
+  .why { font-size: .92rem; line-height: 1.5; margin: 0 0 .6rem; }
+  .tip {
+    font-size: .85rem; line-height: 1.45; background: var(--card2);
+    border-left: 3px solid var(--gold); border-radius: 8px; padding: .6rem .8rem; margin: 0 0 .75rem;
+  }
+  .videobox { margin: 0 0 .75rem; }
+  .videobox iframe { width: 100%; aspect-ratio: 16/9; border: 0; border-radius: 10px; }
+  .btns { display: flex; gap: .6rem; }
+  .btn {
+    flex: 1; text-align: center; text-decoration: none; font-size: .9rem; font-weight: 600;
+    padding: .7rem .5rem; border-radius: 12px;
+  }
+  .btn.primary { background: var(--red); color: #fff; }
+  .btn.ghost { background: var(--card2); color: var(--text); border: 1px solid var(--line); }
+  .loading, .error { text-align: center; color: var(--muted); padding: 3rem 1rem; }
+  footer { text-align: center; color: var(--muted); font-size: .75rem; padding: 0 1rem 2.5rem; }
 </style>
 </head>
 <body>
 <header>
-  <h1>⚡ Thor Events</h1>
-  <p class="tagline">Upcoming events — site under construction</p>
+  <h1><span class="bolt">⚡</span> Thor's Bangkok Adventures</h1>
+  <p class="tagline">Dad &amp; Thor's weekly activity picks — updated every Wednesday</p>
 </header>
-<main>
-  <div class="event">
-    <h2>First event coming soon</h2>
-    <div class="meta">Check back shortly</div>
+
+<div class="picker-wrap">
+  <button class="picker-btn" id="pickerBtn" aria-expanded="false">
+    <span>📅 <b id="pickerLabel">Loading…</b></span>
+    <span class="chev">▾</span>
+  </button>
+  <div class="calendar" id="calendar">
+    <div class="cal-head">
+      <button class="cal-nav" id="prevM" aria-label="Previous month">‹</button>
+      <div class="month" id="calMonth"></div>
+      <button class="cal-nav" id="nextM" aria-label="Next month">›</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-hint">Tap a highlighted week to see its activities</div>
   </div>
-</main>
+</div>
+
+<main id="main"><div class="loading">Loading adventures…</div></main>
+<footer>Built by Dad's robot assistant 🤖 · New picks land every Wednesday</footer>
+
+<script>
+const CAT = {
+  music:     { emoji: "🥁", label: "Music",       grad: "linear-gradient(135deg,#5b2a86,#a4508b)" },
+  art:       { emoji: "🎨", label: "Art & Craft", grad: "linear-gradient(135deg,#b83280,#e8590c)" },
+  outdoor:   { emoji: "🌳", label: "Outdoor",     grad: "linear-gradient(135deg,#1e6b3a,#4fbf6b)" },
+  market:    { emoji: "🛍️", label: "Market",      grad: "linear-gradient(135deg,#8a5a00,#d9980d)" },
+  museum:    { emoji: "🏛️", label: "Museum",      grad: "linear-gradient(135deg,#1f4e8c,#3f8efc)" },
+  play:      { emoji: "🎭", label: "Play",        grad: "linear-gradient(135deg,#0b7285,#22b8cf)" },
+  sport:     { emoji: "⚽", label: "Sport",       grad: "linear-gradient(135deg,#c2410c,#fb923c)" },
+  science:   { emoji: "🔬", label: "Science",     grad: "linear-gradient(135deg,#0f5e63,#2dd4bf)" },
+  superhero: { emoji: "🦸", label: "Superhero",   grad: "linear-gradient(135deg,#7f1d1d,#e23636)" },
+  default:   { emoji: "⚡", label: "Fun",         grad: "linear-gradient(135deg,#7f1d1d,#f0b429)" }
+};
+const SECTIONS = [
+  ["weekend",  "🎉 This Weekend"],
+  ["weekday",  "🌿 Weekday Gems"],
+  ["evergreen","🏡 Evergreen Options"]
+];
+let weeks = [], selected = null, calCursor = null;
+
+const $ = id => document.getElementById(id);
+const parseD = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); };
+const fmtWeek = s => {
+  const a = parseD(s), b = new Date(a); b.setDate(b.getDate()+6);
+  const f = d => d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  return `Week of ${f(a)} – ${f(b)}`;
+};
+const esc = s => (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ytId = u => { const m = (u||"").match(/(?:youtu\.be\/|v=|embed\/)([\w-]{11})/); return m ? m[1] : null; };
+
+function weekCovering(date){
+  for (const w of weeks) {
+    const a = parseD(w), b = new Date(a); b.setDate(b.getDate()+6);
+    if (date >= a && date <= b) return w;
+  }
+  return null;
+}
+
+function renderCalendar(){
+  const y = calCursor.getFullYear(), m = calCursor.getMonth();
+  $("calMonth").textContent = calCursor.toLocaleDateString("en-US",{month:"long",year:"numeric"});
+  const first = parseD(weeks[0]), last = parseD(weeks[weeks.length-1]);
+  $("prevM").disabled = new Date(y, m, 0) < new Date(first.getFullYear(), first.getMonth(), 1);
+  $("nextM").disabled = new Date(y, m+1, 1) > new Date(last.getFullYear(), last.getMonth()+1, 6);
+  const grid = $("calGrid");
+  grid.innerHTML = ["S","M","T","W","T","F","S"].map(d=>`<div class="cal-dow">${d}</div>`).join("");
+  const startPad = new Date(y, m, 1).getDay();
+  const days = new Date(y, m+1, 0).getDate();
+  for (let i=0;i<startPad;i++) grid.insertAdjacentHTML("beforeend","<div></div>");
+  for (let d=1; d<=days; d++){
+    const date = new Date(y, m, d);
+    const wk = weekCovering(date);
+    const cls = "cal-day" + (wk ? " has" : "") + (wk === selected ? " sel" : "");
+    grid.insertAdjacentHTML("beforeend", `<div class="${cls}" ${wk?`data-wk="${wk}"`:""}>${d}</div>`);
+  }
+  grid.querySelectorAll(".cal-day.has").forEach(el =>
+    el.addEventListener("click", () => { selectWeek(el.dataset.wk); toggleCal(false); }));
+}
+
+function toggleCal(open){
+  const cal = $("calendar"), btn = $("pickerBtn");
+  const willOpen = open !== undefined ? open : !cal.classList.contains("open");
+  cal.classList.toggle("open", willOpen);
+  btn.classList.toggle("open", willOpen);
+  btn.setAttribute("aria-expanded", willOpen);
+  if (willOpen) { calCursor = parseD(selected); calCursor.setDate(1); renderCalendar(); }
+}
+
+function card(a){
+  const c = CAT[a.category] || CAT.default;
+  const maps = a.location ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location + " Bangkok")}` : null;
+  const vid = ytId(a.video);
+  const hero = a.image
+    ? `<img src="${esc(a.image)}" alt="" loading="lazy" onerror="this.style.display='none'">`
+    : `<div class="emoji">${c.emoji}</div>`;
+  return `<article class="card">
+    <div class="hero" style="background:${c.grad}">
+      ${hero}
+      ${a.pick ? `<span class="pick-badge">⭐ Dad's Pick</span>` : ""}
+      <span class="cat-chip">${c.emoji} ${c.label}</span>
+    </div>
+    <div class="body">
+      <h2>${esc(a.title)}</h2>
+      <div class="meta">
+        ${a.date ? `<span>📅 ${esc(a.date)}${a.time ? " · " + esc(a.time) : ""}</span>` : ""}
+        ${a.location ? `<span>📍 ${esc(a.location)}</span>` : ""}
+        ${a.price ? `<span class="price">💰 ${esc(a.price)}</span>` : ""}
+      </div>
+      ${a.why ? `<p class="why">${esc(a.why)}</p>` : ""}
+      ${a.tip ? `<p class="tip">💡 ${esc(a.tip)}</p>` : ""}
+      ${vid ? `<div class="videobox"><iframe src="https://www.youtube-nocookie.com/embed/${vid}" allowfullscreen loading="lazy"></iframe></div>` : ""}
+      <div class="btns">
+        ${a.link ? `<a class="btn primary" href="${esc(a.link)}" target="_blank" rel="noopener">Event page ↗</a>` : ""}
+        ${maps ? `<a class="btn ghost" href="${maps}" target="_blank" rel="noopener">📍 Map</a>` : ""}
+      </div>
+    </div>
+  </article>`;
+}
+
+async function selectWeek(wk){
+  selected = wk;
+  $("pickerLabel").textContent = fmtWeek(wk);
+  const main = $("main");
+  main.innerHTML = `<div class="loading">Loading adventures…</div>`;
+  try {
+    const data = await (await fetch(`data/weeks/${wk}.json?v=${Date.now()}`)).json();
+    let html = data.intro ? `<div class="intro">⚡ ${esc(data.intro)}</div>` : "";
+    for (const [key, title] of SECTIONS){
+      const items = (data.activities||[]).filter(a => a.section === key);
+      if (!items.length && !(key === "weekday" && data.weekday_note)) continue;
+      html += `<h2 class="section-title">${title}</h2>`;
+      if (key === "weekday" && data.weekday_note && !items.length)
+        html += `<div class="note">${esc(data.weekday_note)}</div>`;
+      html += items.map(card).join("");
+    }
+    main.innerHTML = html || `<div class="error">No activities recorded for this week.</div>`;
+    window.scrollTo({top:0, behavior:"smooth"});
+  } catch(e){
+    main.innerHTML = `<div class="error">Couldn't load this week's data. Pull to refresh?</div>`;
+  }
+}
+
+(async function init(){
+  try {
+    const idx = await (await fetch(`data/index.json?v=${Date.now()}`)).json();
+    weeks = idx.weeks.sort();
+    $("pickerBtn").addEventListener("click", () => toggleCal());
+    $("prevM").addEventListener("click", () => { calCursor.setMonth(calCursor.getMonth()-1); renderCalendar(); });
+    $("nextM").addEventListener("click", () => { calCursor.setMonth(calCursor.getMonth()+1); renderCalendar(); });
+    await selectWeek(weeks[weeks.length-1]);
+  } catch(e){
+    $("main").innerHTML = `<div class="error">Couldn't load the adventure list.</div>`;
+    $("pickerLabel").textContent = "—";
+  }
+})();
+</script>
 </body>
 </html>
