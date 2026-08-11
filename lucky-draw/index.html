@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>จับรางวัล — Lucky Draw</title>
+<style>
+:root{
+  --bg:#0b1020; --bg2:#141b35; --card:#1b2444; --line:#2c3763;
+  --gold:#ffd24a; --gold2:#ffb020; --txt:#f2f5ff; --dim:#93a0c8;
+  --ok:#31c48d; --no:#f0616d; --accent:#5b8cff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{
+  background:radial-gradient(1200px 700px at 50% -10%,#26325e 0%,var(--bg) 60%);
+  color:var(--txt);
+  font-family:'Sarabun','Noto Sans Thai',Tahoma,'Leelawadee UI',sans-serif;
+  display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden;
+}
+button{font-family:inherit;cursor:pointer;border:none;border-radius:10px;transition:.15s}
+button:disabled{opacity:.35;cursor:not-allowed}
+select,input{font-family:inherit;border-radius:10px;border:1px solid var(--line);
+  background:var(--bg2);color:var(--txt);padding:10px 12px;font-size:15px}
+.btn{background:var(--card);color:var(--txt);border:1px solid var(--line);padding:10px 16px;font-size:15px}
+.btn:hover:not(:disabled){background:#243059}
+.btn-primary{background:linear-gradient(180deg,var(--gold),var(--gold2));color:#3a2600;font-weight:700}
+.btn-primary:hover:not(:disabled){filter:brightness(1.08)}
+.btn-ok{background:var(--ok);color:#04231a;font-weight:700}
+.btn-no{background:var(--no);color:#2a0407;font-weight:700}
+.muted{color:var(--dim)}
+.hidden{display:none !important}
+
+/* ---------- header ---------- */
+header{display:flex;align-items:center;gap:16px;padding:10px 18px;
+  border-bottom:1px solid var(--line);background:rgba(11,16,32,.75);backdrop-filter:blur(8px);
+  position:sticky;top:0;z-index:50;flex-wrap:wrap}
+header h1{font-size:19px;margin:0;font-weight:700;letter-spacing:.3px}
+header h1 span{color:var(--gold)}
+.pill{background:var(--card);border:1px solid var(--line);border-radius:999px;
+  padding:5px 14px;font-size:14px;white-space:nowrap}
+.pill b{color:var(--gold)}
+.spacer{flex:1}
+
+/* ---------- setup ---------- */
+#setup{max-width:860px;margin:32px auto;padding:26px;background:var(--card);
+  border:1px solid var(--line);border-radius:16px}
+#setup h2{margin:0 0 6px;font-size:22px}
+.field{margin:16px 0}
+.field label{display:block;font-size:14px;color:var(--dim);margin-bottom:6px}
+.field input{width:100%}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row .field{flex:1;min-width:220px}
+.note{font-size:13px;color:var(--dim);line-height:1.65}
+#loadMsg{margin-top:14px;font-size:14px;min-height:22px;line-height:1.6}
+.err{color:var(--no)}
+.good{color:var(--ok)}
+details{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+summary{cursor:pointer;color:var(--dim);font-size:14px}
+textarea{width:100%;min-height:130px;background:var(--bg2);color:var(--txt);
+  border:1px solid var(--line);border-radius:10px;padding:10px;font-family:ui-monospace,monospace;font-size:13px;margin-top:10px}
+
+/* ---------- preview / freeze ---------- */
+#preview{max-width:980px;margin:0 auto 40px;padding:0 18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+.card h3{margin:0 0 12px;font-size:17px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{color:var(--dim);font-weight:600;font-size:13px}
+td.num,th.num{text-align:center;width:90px}
+.warn{background:#3a2a10;border:1px solid #7a5a1a;color:#ffd88a;
+  padding:12px 14px;border-radius:10px;font-size:14px;margin-bottom:14px;line-height:1.6}
+
+/* ---------- stage ---------- */
+#stage{flex:1;display:flex;flex-direction:column;padding:14px 20px 0;min-height:0}
+#prizeBanner{text-align:center;margin-bottom:10px}
+#prizeName{font-size:clamp(28px,4.4vw,56px);font-weight:800;color:var(--gold);
+  line-height:1.15;text-shadow:0 0 34px rgba(255,210,74,.35)}
+#prizeSub{font-size:15px;color:var(--dim);margin-top:4px}
+#reels{flex:1;display:grid;gap:12px;align-content:center;justify-content:center;
+  padding:8px 0 14px;min-height:0}
+.reel{background:linear-gradient(180deg,#101735,#182148);border:2px solid var(--line);
+  border-radius:14px;overflow:hidden;position:relative;box-shadow:inset 0 0 40px rgba(0,0,0,.55)}
+.reel.landed{border-color:var(--gold);box-shadow:0 0 26px rgba(255,210,74,.3),inset 0 0 30px rgba(255,210,74,.07)}
+.reel::before,.reel::after{content:'';position:absolute;left:0;right:0;height:26%;z-index:3;pointer-events:none}
+.reel::before{top:0;background:linear-gradient(180deg,#0d1330 0%,transparent 100%)}
+.reel::after{bottom:0;background:linear-gradient(0deg,#0d1330 0%,transparent 100%)}
+.strip{will-change:transform}
+.item{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:0 10px;overflow:hidden}
+.item .nm{font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.item .mt{color:var(--dim);margin-top:4px;white-space:nowrap}
+.reel.landed .item .nm{color:var(--gold)}
+.slotmark{position:absolute;left:8px;top:6px;z-index:4;font-size:12px;color:var(--dim);
+  background:rgba(0,0,0,.4);border-radius:6px;padding:2px 7px}
+
+/* ---------- controls ---------- */
+#controls{border-top:1px solid var(--line);background:rgba(11,16,32,.9);
+  backdrop-filter:blur(8px);padding:12px 18px;display:flex;gap:10px;
+  align-items:center;flex-wrap:wrap;position:sticky;bottom:0;z-index:40}
+#controls select{min-width:280px;font-size:16px}
+#spinBtn{padding:14px 34px;font-size:19px}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:86px;z-index:100;
+  background:#000d;border:1px solid var(--line);padding:11px 20px;border-radius:10px;
+  font-size:15px;opacity:0;transition:.25s;pointer-events:none}
+#toast.show{opacity:1}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:90}
+
+/* ---------- results ---------- */
+#resultsPanel{position:fixed;top:0;right:0;bottom:0;width:min(460px,92vw);
+  background:var(--bg2);border-left:1px solid var(--line);z-index:60;
+  transform:translateX(100%);transition:.25s;overflow-y:auto;padding:20px}
+#resultsPanel.open{transform:none}
+#resultsPanel h3{margin-top:0}
+.rgroup{margin-bottom:18px}
+.rgroup h4{margin:0 0 6px;font-size:15px;color:var(--gold)}
+.rline{display:flex;justify-content:space-between;gap:10px;font-size:14px;
+  padding:5px 0;border-bottom:1px dashed var(--line)}
+.st-present{color:var(--ok)} .st-absent{color:var(--no)} .st-none{color:var(--dim)}
+@media print{body{background:#fff;color:#000}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎁 จับรางวัล <span id="hdrEvent"></span></h1>
+  <span class="pill" id="pillPool">ผู้เข้าร่วม <b>—</b></span>
+  <span class="pill" id="pillPrize">รางวัล <b>—</b></span>
+  <span class="pill hidden" id="pillFrozen"></span>
+  <span class="spacer"></span>
+  <button class="btn" id="resultsBtn">📋 ผลรางวัล</button>
+  <button class="btn" id="fsBtn">⛶ เต็มจอ</button>
+</header>
+
+<!-- ============ SETUP ============ -->
+<section id="setup">
+  <h2>ตั้งค่า</h2>
+  <p class="note">อ่านรายชื่อจาก Google Sheet โดยตรง — ไม่มีการเขียนกลับไปที่ Google</p>
+
+  <div class="field">
+    <label>Sheet ID (ส่วนยาวใน URL ระหว่าง /d/ กับ /edit)</label>
+    <input id="inSheet" value="1Z0fg03PqXRkHUvxk9VOnHNTXxpv33ku5nD82znZYcHg">
+  </div>
+  <div class="row">
+    <div class="field"><label>ชื่อแท็บรางวัล</label><input id="inPrizeTab" value="Prizes"></div>
+    <div class="field"><label>ชื่อแท็บรายชื่อผู้สมัคร</label><input id="inRespTab" value="Form Responses 1"></div>
+  </div>
+  <div class="field"><label>ชื่องาน (แสดงบนหัวจอ)</label><input id="inEvent" value="งานโรงเรียน 2569"></div>
+
+  <div class="row" style="margin-top:20px">
+    <button class="btn-primary btn" id="loadBtn">โหลดข้อมูลจาก Google Sheet</button>
+    <button class="btn" id="resumeBtn">กู้คืนงานที่ค้างไว้</button>
+  </div>
+  <div id="loadMsg"></div>
+
+  <details>
+    <summary>สำรอง — วางรายชื่อเอง (ใช้เมื่อเน็ตมีปัญหา)</summary>
+    <p class="note">วางข้อมูลแบบ CSV บรรทัดละคน: <code>ชื่อ,รุ่น,ห้อง</code> (บรรทัดหัวตารางใส่ได้ ระบบจะข้ามให้)</p>
+    <textarea id="pasteBox" placeholder="สมชาย ใจดี,รุ่น 12,ป.1/2&#10;สมหญิง รักเรียน,รุ่น 12,ป.1/1"></textarea>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="pasteBtn">ใช้รายชื่อที่วาง</button>
+      <label class="btn" style="display:inline-block">
+        เลือกไฟล์ CSV<input type="file" id="fileIn" accept=".csv,text/csv" class="hidden">
+      </label>
+    </div>
+  </details>
+</section>
+
+<!-- ============ PREVIEW / FREEZE ============ -->
+<section id="preview" class="hidden">
+  <div id="warnBox"></div>
+  <div class="card">
+    <h3>ตรวจสอบรายชื่อ</h3>
+    <div class="row" style="gap:26px;font-size:16px">
+      <div>ผู้สมัครทั้งหมด <b id="pvRaw">0</b> รายการ</div>
+      <div>ซ้ำ/ตัดออก <b id="pvDup">0</b></div>
+      <div>เข้าร่วมจับรางวัล <b id="pvNet" style="color:var(--gold)">0</b> คน</div>
+    </div>
+    <div id="dupList" class="note" style="margin-top:10px"></div>
+  </div>
+  <div class="card">
+    <h3>รายการรางวัล</h3>
+    <table><thead><tr><th>ลำดับ</th><th>รางวัล</th><th class="num">จำนวน</th><th>ผู้สนับสนุน</th></tr></thead>
+    <tbody id="pvPrizes"></tbody></table>
+    <div style="margin-top:10px;font-size:15px">รวม <b id="pvQty" style="color:var(--gold)">0</b> รางวัล</div>
+  </div>
+  <div class="card" style="text-align:center">
+    <p class="note" style="font-size:15px">กดปุ่มนี้เมื่อปิดรับสมัครแล้ว ระบบจะสุ่มผู้ได้รับรางวัล<b>ทั้งหมดในครั้งเดียว</b><br>
+      และบันทึกผลไว้ทันที การหมุนบนเวทีเป็นเพียงการเปิดเผยผลที่สุ่มไว้แล้ว</p>
+    <button class="btn-primary btn" id="freezeBtn" style="padding:15px 40px;font-size:19px;margin-top:6px">
+      🔒 ปิดรับรายชื่อ &amp; สุ่มรางวัล</button>
+    <div style="margin-top:12px"><button class="btn" id="backToSetup">← กลับไปแก้ไขการตั้งค่า</button></div>
+  </div>
+</section>
+
+<!-- ============ STAGE ============ -->
+<section id="stage" class="hidden">
+  <div id="prizeBanner">
+    <div id="prizeName">เลือกรางวัลด้านล่าง</div>
+    <div id="prizeSub"></div>
+  </div>
+  <div id="reels"></div>
+</section>
+
+<div id="controls" class="hidden">
+  <select id="prizeSel"></select>
+  <button class="btn-primary" id="spinBtn">🎰 หมุน</button>
+  <button class="btn" id="instantBtn">แสดงผลทันที</button>
+  <button class="btn" id="undoBtn">↩ ยกเลิกครั้งล่าสุด</button>
+  <span class="spacer"></span>
+  <button class="btn" id="exportBtn">⬇ CSV ผลรางวัล</button>
+</div>
+
+<aside id="resultsPanel">
+  <div style="display:flex;align-items:center">
+    <h3 style="flex:1">📋 ผลรางวัล</h3>
+    <button class="btn" id="closeResults">ปิด</button>
+  </div>
+  <div id="resultsBody"></div>
+</aside>
+
+<canvas id="confetti"></canvas>
+<div id="toast"></div>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const LS='luckydraw_v1';
+let S=null;              // application state
+let raw={prizes:[],regs:[],dups:[]};
+let spinning=false;
+
+/* ================= utilities ================= */
+function toast(m,ms=2400){const t=$('toast');t.textContent=m;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms);}
+
+function parseCSV(text){
+  const rows=[];let row=[],f='',q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){f+='"';i++;} else q=false; } else f+=c; }
+    else if(c==='"')q=true;
+    else if(c===','){row.push(f);f='';}
+    else if(c==='\n'){row.push(f);rows.push(row);row=[];f='';}
+    else if(c!=='\r')f+=c;
+  }
+  if(f!==''||row.length){row.push(f);rows.push(row);}
+  return rows.map(r=>r.map(x=>x.trim()));
+}
+
+// cryptographically strong integer in [0,n)
+function rnd(n){
+  if(n<=0)return 0;
+  const lim=Math.floor(0xFFFFFFFF/n)*n;const a=new Uint32Array(1);
+  let v;do{crypto.getRandomValues(a);v=a[0];}while(v>=lim);
+  return v%n;
+}
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+function gvizURL(id,tab){
+  return 'https://docs.google.com/spreadsheets/d/'+encodeURIComponent(id)+
+         '/gviz/tq?tqx=out:csv&headers=0&sheet='+encodeURIComponent(tab)+'&_='+Date.now();
+}
+function dl(name,text){
+  const b=new Blob(['﻿'+text],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;
+  document.body.appendChild(a);a.click();a.remove();
+}
+const keyOf=p=>p.n+'|'+p.r+'|'+p.h;
+
+/* ================= parsing ================= */
+// Prizes: locate the header row containing prize_id, then read rows below it.
+function parsePrizes(rows){
+  let h=-1;
+  for(let i=0;i<rows.length;i++)
+    if(rows[i].some(c=>c.toLowerCase().includes('prize_id'))){h=i;break;}
+  if(h<0)throw new Error('ไม่พบหัวตาราง prize_id ในแท็บรางวัล');
+  const cols={};
+  rows[h].forEach((c,i)=>{const k=c.toLowerCase();
+    ['prize_id','prize_name_th','qty','sponsor','order'].forEach(n=>{
+      if(k.includes(n)&&cols[n]===undefined)cols[n]=i;});});
+  // A blank header cell must not kill the column — fall back to its normal position.
+  const DEF={prize_id:0,prize_name_th:1,qty:2,sponsor:3,order:4};
+  parsePrizes.missing=[];
+  Object.keys(DEF).forEach(k=>{
+    if(cols[k]===undefined){cols[k]=DEF[k];parsePrizes.missing.push(k);}});
+  const out=[];
+  for(let i=h+1;i<rows.length;i++){
+    const r=rows[i];
+    const name=(r[cols.prize_name_th]||'').trim();
+    const qty=parseInt(r[cols.qty],10);
+    if(!name||!Number.isFinite(qty)||qty<1)continue;   // skips blanks + the total row
+    out.push({id:(r[cols.prize_id]||('P'+(out.length+1))).trim(),name,qty,
+      sponsor:(r[cols.sponsor]||'').trim(),
+      order:parseInt(r[cols.order],10)||(out.length+1)});
+  }
+  out.sort((a,b)=>a.order-b.order);
+  // guarantee unique ids
+  const seen={};out.forEach((p,i)=>{if(seen[p.id])p.id=p.id+'_'+i;seen[p.id]=1;});
+  return out;
+}
+
+// Registrations: find the header row with ชื่อ, map ชื่อ/รุ่น/ห้อง by name.
+function parseRegs(rows){
+  let h=-1;
+  for(let i=0;i<rows.length;i++)
+    if(rows[i].some(c=>c==='ชื่อ'||c.toLowerCase()==='name')){h=i;break;}
+  let ci={n:0,r:1,h:2};
+  if(h>=0){
+    rows[h].forEach((c,i)=>{
+      if(c==='ชื่อ'||c.toLowerCase()==='name')ci.n=i;
+      if(c==='รุ่น'||c.toLowerCase()==='year')ci.r=i;
+      if(c==='ห้อง'||c.toLowerCase()==='room'||c.toLowerCase()==='class')ci.h=i;});
+  }else h=-1;
+  const out=[];
+  for(let i=h+1;i<rows.length;i++){
+    const r=rows[i];if(!r)continue;
+    const n=(r[ci.n]||'').trim();
+    if(!n)continue;
+    out.push({n,r:(r[ci.r]||'').trim(),h:(r[ci.h]||'').trim()});
+  }
+  return out;
+}
+function dedupe(list){
+  const seen={},keep=[],dups=[];
+  list.forEach(p=>{const k=keyOf(p);if(seen[k]){dups.push(p);}else{seen[k]=1;keep.push(p);}});
+  return {keep,dups};
+}
+
+/* ================= loading ================= */
+async function loadAll(){
+  const id=$('inSheet').value.trim(),pt=$('inPrizeTab').value.trim(),rt=$('inRespTab').value.trim();
+  if(!id)return setMsg('กรุณาใส่ Sheet ID','err');
+  setMsg('กำลังโหลด…');
+  try{
+    const [pr,rr]=await Promise.all([
+      fetch(gvizURL(id,pt)).then(r=>{if(!r.ok)throw new Error('แท็บ "'+pt+'" HTTP '+r.status);return r.text()}),
+      fetch(gvizURL(id,rt)).then(r=>{if(!r.ok)throw new Error('แท็บ "'+rt+'" HTTP '+r.status);return r.text()})
+    ]);
+    raw.prizes=parsePrizes(parseCSV(pr));
+    const d=dedupe(parseRegs(parseCSV(rr)));
+    raw.regs=d.keep;raw.dups=d.dups;raw.rawCount=d.keep.length+d.dups.length;
+    setMsg('โหลดสำเร็จ','good');
+    showPreview();
+  }catch(e){
+    setMsg('โหลดไม่สำเร็จ: '+e.message+
+      '<br><span class="note">ตรวจสอบว่า Sheet ตั้งค่าเป็น “ผู้ที่มีลิงก์ → ผู้อ่าน” และชื่อแท็บสะกดตรงกัน '+
+      'หากเปิดไฟล์แบบ double-click แล้วยังไม่ได้ ให้ใช้ช่อง “วางรายชื่อเอง” ด้านล่าง</span>','err');
+  }
+}
+function setMsg(h,c){const m=$('loadMsg');m.innerHTML=h;m.className=c||'';}
+
+function usePasted(text){
+  if(!raw.prizes.length)return toast('ต้องโหลดรายการรางวัลจาก Sheet ก่อน');
+  const rows=parseCSV(text).filter(r=>r.some(c=>c));
+  const list=rows.filter(r=>!(r[0]==='ชื่อ')).map(r=>({n:(r[0]||'').trim(),r:(r[1]||'').trim(),h:(r[2]||'').trim()}))
+    .filter(p=>p.n);
+  if(!list.length)return toast('ไม่พบรายชื่อในข้อความที่วาง');
+  const d=dedupe(list);raw.regs=d.keep;raw.dups=d.dups;raw.rawCount=list.length;
+  toast('ใช้รายชื่อที่วาง '+d.keep.length+' คน');showPreview();
+}
+
+/* ================= preview ================= */
+function showPreview(){
+  $('setup').classList.add('hidden');$('preview').classList.remove('hidden');
+  $('pvRaw').textContent=raw.rawCount||raw.regs.length;
+  $('pvDup').textContent=raw.dups.length;
+  $('pvNet').textContent=raw.regs.length;
+  $('dupList').innerHTML=raw.dups.length
+    ? 'ตัดออกเพราะซ้ำ (ชื่อ+รุ่น+ห้อง เหมือนกัน): '+raw.dups.slice(0,12).map(p=>p.n).join(' · ')+
+      (raw.dups.length>12?' …และอีก '+(raw.dups.length-12):'')
+    : '';
+  const tot=raw.prizes.reduce((s,p)=>s+p.qty,0);
+  $('pvPrizes').innerHTML=raw.prizes.map(p=>
+    `<tr><td>${p.order}</td><td>${esc(p.name)}</td><td class="num">${p.qty}</td><td>${esc(p.sponsor)}</td></tr>`).join('');
+  $('pvQty').textContent=tot;
+  const w=[];
+  if(!raw.regs.length)w.push('ยังไม่มีรายชื่อผู้สมัครเลย');
+  if(!raw.prizes.length)w.push('อ่านรายการรางวัลไม่ได้เลย — ตรวจสอบว่าแท็บ Prizes มีคอลัมน์ '+
+    '<b>prize_name_th</b> (ชื่อรางวัล) และ <b>qty</b> (จำนวน เป็นตัวเลขมากกว่า 0)');
+  else if((parsePrizes.missing||[]).length)w.push('หัวตารางบางคอลัมน์ว่าง ('+parsePrizes.missing.join(', ')+
+    ') — ใช้ตำแหน่งคอลัมน์มาตรฐานแทน (A=prize_id, B=ชื่อ, C=จำนวน, D=ผู้สนับสนุน, E=ลำดับ) '+
+    'กรุณาตรวจสอบตารางด้านล่างว่าถูกต้อง');
+  if(tot>raw.regs.length)w.push(`จำนวนรางวัล (${tot}) มากกว่าผู้เข้าร่วม (${raw.regs.length}) — บางรางวัลจะไม่มีผู้รับ`);
+  $('warnBox').innerHTML=w.length?`<div class="warn">⚠ ${w.join('<br>')}</div>`:'';
+  $('freezeBtn').disabled=!raw.regs.length||!raw.prizes.length;
+  updHeader();
+}
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ================= freeze + allocate ================= */
+function freeze(){
+  const pool=raw.regs.slice();
+  const bag=shuffle(pool);               // one uniform shuffle, drawn off the top
+  const alloc={};let i=0;
+  raw.prizes.forEach(p=>{
+    alloc[p.id]=[];
+    for(let k=0;k<p.qty&&i<bag.length;k++){const w=bag[i++];alloc[p.id].push({...w,status:null});}
+  });
+  S={event:$('inEvent').value.trim()||'งานโรงเรียน',
+     sheetId:$('inSheet').value.trim(),prizeTab:$('inPrizeTab').value.trim(),respTab:$('inRespTab').value.trim(),
+     frozenAt:new Date().toISOString(),pool,prizes:raw.prizes,alloc,
+     revealed:{},history:[],dupCount:raw.dups.length};
+  save();
+  dl('allocation_'+stamp()+'.csv',csvAll());   // immediate audit trail
+  toast('สุ่มเรียบร้อย — บันทึกไฟล์ผลไว้แล้ว',3500);
+  enterStage();
+}
+function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'_'+p(d.getHours())+p(d.getMinutes());}
+function save(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
+
+/* ================= stage ================= */
+function enterStage(){
+  $('setup').classList.add('hidden');$('preview').classList.add('hidden');
+  $('stage').classList.remove('hidden');$('controls').classList.remove('hidden');
+  buildPrizeSel();updHeader();renderResults();
+  const next=S.prizes.find(p=>!S.revealed[p.id]);
+  if(next){$('prizeSel').value=next.id;showPrize(next.id);}
+}
+function updHeader(){
+  $('hdrEvent').textContent=S?S.event:($('inEvent').value||'');
+  $('pillPool').innerHTML='ผู้เข้าร่วม <b>'+(S?S.pool.length:raw.regs.length)+'</b> คน';
+  const ps=S?S.prizes:raw.prizes;
+  $('pillPrize').innerHTML='รางวัล <b>'+ps.reduce((s,p)=>s+p.qty,0)+'</b> ชิ้น';
+  if(S){const d=new Date(S.frozenAt);
+    $('pillFrozen').classList.remove('hidden');
+    $('pillFrozen').innerHTML='🔒 ปิดรับ '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+}
+function buildPrizeSel(){
+  $('prizeSel').innerHTML=S.prizes.map(p=>{
+    const done=S.revealed[p.id]?'✓ ':'';
+    return `<option value="${p.id}">${done}${esc(p.name)} (${p.qty} รางวัล)</option>`;}).join('');
+}
+function curPrize(){return S.prizes.find(p=>p.id===$('prizeSel').value);}
+
+function showPrize(id){
+  const p=S.prizes.find(x=>x.id===id);if(!p)return;
+  $('prizeName').textContent=p.name;
+  $('prizeSub').textContent=(p.sponsor?'โดย '+p.sponsor+' · ':'')+p.qty+' รางวัล';
+  if(S.revealed[id])renderLanded(p); else renderIdle(p);
+  $('spinBtn').disabled=!!S.revealed[id];
+  $('instantBtn').disabled=!!S.revealed[id];
+}
+function gridFor(n){
+  const g=$('reels');
+  const cols=n<=1?1:n<=2?2:n<=4?2:n<=6?3:n<=9?3:n<=12?4:5;
+  g.style.gridTemplateColumns=`repeat(${cols},minmax(0,1fr))`;
+  const rows=Math.ceil(n/cols);
+  const h=Math.max(74,Math.min(210,Math.floor((window.innerHeight-320)/rows)));
+  return {cols,h};
+}
+function reelHTML(n,item,h){
+  const nf=Math.max(15,Math.min(40,Math.floor(h*0.30)));
+  const mf=Math.max(11,Math.floor(nf*0.52));
+  return `<div class="item" style="height:${h}px">
+      <div class="nm" style="font-size:${nf}px">${esc(item.n)}</div>
+      <div class="mt" style="font-size:${mf}px">${esc(item.r)}${item.r&&item.h?' · ':''}${esc(item.h)}</div>
+    </div>`;
+}
+function renderIdle(p){
+  const n=(S.alloc[p.id]||[]).length;
+  const {h}=gridFor(n||1);
+  if(!n){$('reels').innerHTML='<div class="warn">รางวัลนี้ไม่มีผู้รับ (ผู้เข้าร่วมไม่พอ)</div>';return;}
+  $('reels').innerHTML=Array.from({length:n},(_,i)=>
+    `<div class="reel" id="reel${i}" style="height:${h}px">
+       <div class="slotmark">#${i+1}</div>
+       <div class="strip" id="strip${i}">${reelHTML(i,{n:'? ? ?',r:'',h:''},h)}</div>
+     </div>`).join('');
+}
+function renderLanded(p){
+  const ws=S.alloc[p.id]||[];const n=ws.length;
+  if(!n){$('reels').innerHTML='<div class="warn">รางวัลนี้ไม่มีผู้รับ (ผู้เข้าร่วมไม่พอ)</div>';return;}
+  const {h}=gridFor(n);
+  $('reels').innerHTML=ws.map((w,i)=>
+    `<div class="reel landed" style="height:${h}px">
+       <div class="slotmark">#${i+1}</div>
+       <div class="strip">${reelHTML(i,w,h)}</div>
+     </div>`).join('');
+}
+
+/* ---------- the slot machine ---------- */
+function spin(instant){
+  if(spinning)return;
+  const p=curPrize();if(!p||S.revealed[p.id])return;
+  const ws=S.alloc[p.id]||[];
+  if(!ws.length){S.revealed[p.id]=true;S.history.push(p.id);save();buildPrizeSel();showPrize(p.id);return;}
+  if(instant){finish(p);return;}
+
+  spinning=true;$('spinBtn').disabled=true;$('instantBtn').disabled=true;
+  const {h}=gridFor(ws.length);
+  renderIdle(p);
+  const pool=S.pool;
+  let done=0;
+  ws.forEach((w,i)=>{
+    const strip=$('strip'+i);
+    const N=26+rnd(10);
+    let html='';
+    for(let k=0;k<N;k++)html+=reelHTML(i,pool[rnd(pool.length)],h);
+    html+=reelHTML(i,w,h);
+    strip.innerHTML=html;
+    const dist=N*h;
+    strip.style.transform='translateY(0)';
+    const dur=2100+i*260+rnd(400);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      strip.style.transition=`transform ${dur}ms cubic-bezier(.12,.72,.16,1)`;
+      strip.style.transform=`translateY(-${dist}px)`;
+    }));
+    setTimeout(()=>{
+      $('reel'+i).classList.add('landed');
+      if(++done===ws.length){spinning=false;finish(p);}
+    },dur+40);
+  });
+}
+function finish(p){
+  S.revealed[p.id]=true;S.history.push(p.id);save();
+  buildPrizeSel();$('prizeSel').value=p.id;showPrize(p.id);renderResults();
+  boom();spinning=false;
+}
+function undo(){
+  if(spinning)return toast('รอให้หมุนเสร็จก่อน');
+  const last=S.history.pop();
+  if(!last)return toast('ไม่มีรายการให้ยกเลิก');
+  delete S.revealed[last];
+  (S.alloc[last]||[]).forEach(w=>w.status=null);
+  save();buildPrizeSel();$('prizeSel').value=last;showPrize(last);renderResults();
+  toast('ยกเลิกการเปิดรางวัล "'+(S.prizes.find(p=>p.id===last)||{}).name+'" แล้ว');
+}
+
+/* ---------- results + export ---------- */
+function renderResults(){
+  $('resultsBody').innerHTML=S.prizes.map(p=>{
+    const ws=S.alloc[p.id]||[];
+    if(!S.revealed[p.id])return `<div class="rgroup"><h4>${esc(p.name)}</h4>
+      <div class="rline st-none"><span>ยังไม่เปิด</span><span>${p.qty} รางวัล</span></div></div>`;
+    return `<div class="rgroup"><h4>${esc(p.name)}</h4>`+
+      (ws.length?ws.map((w,i)=>`<div class="rline"><span>${esc(w.n)}</span>
+        <span class="muted">${esc(w.r)} ${esc(w.h)}</span></div>`).join('')
+        :'<div class="rline st-none"><span>ไม่มีผู้รับ</span><span></span></div>')+'</div>';
+  }).join('');
+}
+function csvAll(){
+  const L=['รางวัล,ชื่อ,รุ่น,ห้อง'];
+  const q=s=>'"'+String(s||'').replace(/"/g,'""')+'"';
+  S.prizes.forEach(p=>(S.alloc[p.id]||[]).forEach(w=>
+    L.push([p.name,w.n,w.r,w.h].map(q).join(','))));
+  return L.join('\n');
+}
+function boom(){
+  const c=$('confetti'),x=c.getContext('2d');
+  c.width=innerWidth;c.height=innerHeight;
+  const cols=['#ffd24a','#ff8f3a','#5b8cff','#31c48d','#f0616d','#ffffff'];
+  const ps=Array.from({length:130},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*0.5,
+    r:4+Math.random()*6,vy:2.2+Math.random()*3.4,vx:-1.4+Math.random()*2.8,
+    a:Math.random()*6.28,va:-.15+Math.random()*.3,c:cols[Math.floor(Math.random()*cols.length)]}));
+  let f=0;
+  (function loop(){
+    x.clearRect(0,0,c.width,c.height);f++;
+    ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.a+=p.va;
+      x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;
+      x.fillRect(-p.r/2,-p.r/2,p.r,p.r*.6);x.restore();});
+    if(f<190)requestAnimationFrame(loop);else x.clearRect(0,0,c.width,c.height);
+  })();
+}
+
+/* ================= wiring ================= */
+$('loadBtn').onclick=loadAll;
+$('pasteBtn').onclick=()=>usePasted($('pasteBox').value);
+$('fileIn').onchange=e=>{const f=e.target.files[0];if(!f)return;
+  const rd=new FileReader();rd.onload=()=>usePasted(rd.result);rd.readAsText(f,'utf-8');};
+$('backToSetup').onclick=()=>{$('preview').classList.add('hidden');$('setup').classList.remove('hidden');};
+$('freezeBtn').onclick=()=>{
+  if(!confirm('ยืนยันปิดรับรายชื่อ '+raw.regs.length+' คน และสุ่มรางวัลทั้งหมด?\nหลังจากนี้รายชื่อจะไม่เปลี่ยนอีก'))return;
+  freeze();};
+$('prizeSel').onchange=()=>showPrize($('prizeSel').value);
+$('spinBtn').onclick=()=>spin(false);
+$('instantBtn').onclick=()=>spin(true);
+$('undoBtn').onclick=undo;
+$('exportBtn').onclick=()=>dl('winners_'+stamp()+'.csv',csvAll());
+$('resultsBtn').onclick=()=>$('resultsPanel').classList.toggle('open');
+$('closeResults').onclick=()=>$('resultsPanel').classList.remove('open');
+$('fsBtn').onclick=()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();
+$('resumeBtn').onclick=()=>{
+  const j=localStorage.getItem(LS);
+  if(!j)return toast('ไม่พบงานที่ค้างไว้ในเครื่องนี้');
+  S=JSON.parse(j);enterStage();toast('กู้คืนแล้ว');};
+addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+  if(e.code==='Space'&&!$('controls').classList.contains('hidden')){e.preventDefault();spin(false);}
+  if(e.key==='z'&&(e.ctrlKey||e.metaKey)){e.preventDefault();undo();}});
+addEventListener('resize',()=>{if(S&&!$('stage').classList.contains('hidden'))showPrize($('prizeSel').value);});
+addEventListener('beforeunload',e=>{if(S&&Object.keys(S.revealed).length<S.prizes.length){e.preventDefault();e.returnValue='';}});
+
+// auto-offer resume
+(function(){const j=localStorage.getItem(LS);
+  if(j){try{const s=JSON.parse(j);
+    setMsg('พบงานที่ค้างไว้ (ปิดรับเมื่อ '+new Date(s.frozenAt).toLocaleString('th-TH')+
+      ', ผู้เข้าร่วม '+s.pool.length+' คน) — กด “กู้คืนงานที่ค้างไว้” เพื่อทำต่อ','good');}catch(e){}}})();
+</script>
+</body>
+</html>
