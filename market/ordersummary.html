@@ -132,6 +132,7 @@ tfoot td{border-top:2px solid var(--ink);border-bottom:none;padding-top:12px;fon
 .slip img{display:block;width:100%;height:auto;background:#f0f0ec;min-height:60px}
 .slip .cap{font-size:12px;color:var(--dim);margin-top:5px;display:block}
 .slip .missing{border:1px dashed var(--rule);padding:18px 8px;color:var(--dim);font-size:13px}
+.slip .noimg{border:1px dashed var(--rule);padding:22px 8px;color:var(--amber);font-size:13px;background:#fdfdfb}
 .slipstat{font-size:13px;color:var(--dim)}
 .slipstat.bad{color:var(--amber);font-weight:600}
 .multi{font-size:12.5px;color:var(--amber);margin-top:6px}
@@ -755,7 +756,7 @@ function slipHtml(slips){
     ? `<a href="https://drive.google.com/file/d/${s.id}/view" target="_blank" rel="noopener">
          <img class="slipimg" loading="lazy" alt="สลิปโอนเงิน แถว ${s.row}"
               data-id="${s.id}" data-try="0" src="${SLIP_HOSTS[0](s.id)}">
-         <span class="cap">แถว ${s.row} · กดเพื่อเปิดเต็ม</span>
+         <span class="cap">แถว ${s.row} · เปิดใน Drive</span>
        </a>`
     : `<div class="missing">ลิงก์สลิปอ่านไม่ออก (แถว ${s.row})</div>`).join("");
 }
@@ -779,8 +780,10 @@ function wireSlips(){
 
   const giveUp = img => {
     fail++; report();
-    const a = img.closest("a");
-    if (a) a.innerHTML = `<span class="cap">เปิดสลิปใน Drive</span>`;
+    const ph = document.createElement("div");
+    ph.className = "noimg";
+    ph.textContent = "รูปไม่ขึ้น";
+    img.replaceWith(ph);
   };
 
   for (const img of imgs) {
@@ -979,7 +982,7 @@ document.getElementById("printBtn").addEventListener("click", () => window.print
 document.getElementById("search").addEventListener("input", applySearch);
 document.getElementById("setCup").addEventListener("change", () => STATE && render());
 document.getElementById("showSlips").addEventListener("change", e => {
-  document.querySelectorAll(".slipimg").forEach(i => { i.style.display = e.target.checked ? "" : "none"; });
+  document.querySelectorAll(".slipimg,.noimg").forEach(i => { i.style.display = e.target.checked ? "" : "none"; });
 });
 
 load();
