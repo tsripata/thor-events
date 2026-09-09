@@ -103,11 +103,17 @@ tfoot td{border-top:2px solid var(--ink);border-bottom:none;padding-top:12px;fon
 .toolbar input[type=search]{font:inherit;padding:8px 12px;border:1px solid var(--rule);
   border-radius:2px;background:#fff;color:var(--ink);min-width:230px}
 .toolbar label{font-size:14px;color:var(--dim);display:flex;gap:6px;align-items:center;cursor:pointer}
-.buyer{border-top:1px solid var(--rule);padding:18px 0;display:grid;
-  grid-template-columns:1fr 210px;gap:22px}
+.buyer{border-top:1px solid var(--rule);padding:18px 0}
 .buyer:first-of-type{border-top:2px solid var(--ink)}
 .buyer h3{margin:0;font-size:17px;font-weight:700}
-.buyer .meta{color:var(--dim);font-size:13.5px;margin:2px 0 10px}
+.buyer .meta{color:var(--dim);font-size:13.5px;margin:2px 0 0}
+.order{display:grid;grid-template-columns:1fr 210px;gap:22px;margin-top:14px}
+.order + .order{border-top:1px dashed var(--rule);padding-top:14px}
+.order-head{font-size:12.5px;color:var(--dim);margin-bottom:7px}
+.order-head b{color:var(--ink);font-weight:600}
+.grand{margin-top:14px;border-top:2px solid var(--ink);padding-top:9px;
+  display:flex;font-weight:700;font-size:16px}
+.grand span:last-child{margin-left:auto}
 .buyer .meta b{color:var(--ink);font-weight:600}
 .lines{margin:0;padding:0;list-style:none;font-size:14.5px}
 .lines li{display:flex;gap:10px;padding:3px 0}
@@ -118,9 +124,9 @@ tfoot td{border-top:2px solid var(--ink);border-bottom:none;padding-top:12px;fon
 .lines li.sub .q{font-weight:500;color:var(--dim)}
 .lines li.subhead{padding-left:30px;padding-top:7px;font-size:12.5px;color:var(--dim)}
 .lines li.subhead .txt{border-bottom:1px solid var(--rule);flex:1;padding-bottom:2px}
-.buyer .sum{margin-top:10px;font-weight:700;font-size:15px;border-top:1px solid var(--rule);
+.order .sum{margin-top:10px;font-weight:600;font-size:15px;border-top:1px solid var(--rule);
   padding-top:8px;display:flex}
-.buyer .sum span:last-child{margin-left:auto}
+.order .sum span:last-child{margin-left:auto}
 .slip{text-align:center}
 .slip a{display:block;border:1px solid var(--rule);background:#fff;padding:6px;text-decoration:none}
 .slip img{display:block;width:100%;height:auto;background:#f0f0ec;min-height:60px}
@@ -148,7 +154,7 @@ details.raw table{margin-top:12px;font-size:13.5px}
 footer{padding:28px 0 60px;color:var(--dim);font-size:13px;border-top:1px solid var(--rule)}
 
 @media (max-width:720px){
-  .buyer{grid-template-columns:1fr}
+  .order{grid-template-columns:1fr}
   .slip{max-width:230px}
   .money .v{font-size:22px}
   th.n,td.n{padding-left:8px}
@@ -157,7 +163,7 @@ footer{padding:28px 0 60px;color:var(--dim);font-size:13px;border-top:1px solid 
   body{background:#fff;font-size:11.5pt}
   .actions,.toolbar,#reload,.act{display:none !important}
   section{border-bottom:none;padding:14px 0;break-inside:avoid}
-  .buyer{break-inside:avoid}
+  .buyer,.order{break-inside:avoid}
   .slip img{max-height:150px;object-fit:contain}
 }
 </style>
@@ -450,6 +456,7 @@ function buildOrders(grid, map){
     const o = {
       sheetRow: r + 2,
       name, phone: g("phone"), phoneKey: digits(g("phone")) || ("noname:" + name),
+      timestamp: g("timestamp"),
       nickname: g("nickname"), batch: g("batch"), house: g("house"),
       pickup: g("pickup"), slipId: driveId(g("slip")), slipRaw: g("slip"),
       sets: 0, setAmount: 0, combos: [], lines: [], setLines: [],
@@ -655,6 +662,34 @@ function groupByPhone(orders){
   return g;
 }
 
+function orderLines(o, setIncludesCup){
+  const lines = [];
+
+  if (o.sets || o.combos.length) {
+    lines.push({ setline:true, q:o.sets || o.combos.length,
+                 text:"เซตปิคนิคพร้อมลุย", amt:o.setAmount || null });
+
+    o.combos.forEach((c, i) => {
+      if (o.combos.length > 1) lines.push({ subhead:true, q:"", text:`ชุดที่ ${i + 1}` });
+      const ids = [c.box, c.flask, c.tote].filter(Boolean);
+      if (setIncludesCup) ids.push("cup");
+      if (ids.length) for (const id of ids) lines.push({ sub:true, q:1, text:labelOf(id) });
+      else lines.push({ sub:true, q:1, text:c.raw });
+    });
+  }
+
+  for (const l of o.lines) lines.push({ q:l.qty, text:labelOf(l.id), amt:l.amount });
+  return lines;
+}
+
+function lineHtml(lines){
+  return lines.map(l =>
+    `<li class="${l.setline ? "setline" : ""}${l.sub ? " sub" : ""}${l.subhead ? " subhead" : ""}">
+       <span class="q">${l.q === "" ? "" : l.q}</span>
+       <span class="txt">${esc(l.text)}</span>
+       ${l.amt != null ? `<span class="amt">${num(l.amt)}</span>` : ""}</li>`).join("");
+}
+
 function renderBuyers(orders, setIncludesCup){
   const groups = groupByPhone(orders);
   const keys = Object.keys(groups).sort((a, b) =>
@@ -663,52 +698,37 @@ function renderBuyers(orders, setIncludesCup){
   document.getElementById("buyerCount").textContent = `${num(keys.length)} คน`;
 
   const html = keys.map(k => {
-    const list = groups[k];
-    const head = list[0];
-    const lines = [];
-    let amount = 0, sets = 0;
+    const list  = groups[k].slice().sort((a, b) => a.sheetRow - b.sheetRow);
+    const head  = list[0];
+    const multi = list.length > 1;
+    const grand = list.reduce((s, o) => s + o.amount, 0);
 
-    for (const o of list) {
-      amount += o.amount; sets += o.sets;
-
-      if (o.sets || o.combos.length) {
-        lines.push({ setline:true, q:o.sets || o.combos.length,
-                     text:"เซตปิคนิคพร้อมลุย", amt:o.setAmount || null });
-
-        o.combos.forEach((c, i) => {
-          if (o.combos.length > 1) lines.push({ subhead:true, q:"", text:`ชุดที่ ${i + 1}` });
-          const ids = [c.box, c.flask, c.tote].filter(Boolean);
-          if (setIncludesCup) ids.push("cup");
-          if (ids.length) for (const id of ids) lines.push({ sub:true, q:1, text:labelOf(id) });
-          else lines.push({ sub:true, q:1, text:c.raw });
-        });
-      }
-
-      for (const l of o.lines) lines.push({ q:l.qty, text:labelOf(l.id), amt:l.amount });
-    }
-
-    const pickups = [...new Set(list.map(o => o.pickup).filter(Boolean))];
-    const slips = list.map(o => ({ id:o.slipId, row:o.sheetRow, raw:o.slipRaw })).filter(s => s.id || s.raw);
+    const orders_html = list.map((o, i) => {
+      const when = o.timestamp ? ` · ${esc(o.timestamp)}` : "";
+      const pick = o.pickup ? ` · รับของ <b>${esc(o.pickup)}</b>` : "";
+      const label = multi
+        ? `<b>ครั้งที่ ${i + 1}</b> · แถว ${o.sheetRow}${when}${pick}`
+        : `แถว ${o.sheetRow}${when}${pick}`;
+      return `<div class="order">
+        <div>
+          <div class="order-head">${label}</div>
+          <ul class="lines">${lineHtml(orderLines(o, setIncludesCup))}</ul>
+          <div class="sum"><span>${multi ? `รวมครั้งที่ ${i + 1}` : "รวม"}</span><span>${num(o.amount)} บาท</span></div>
+        </div>
+        <div class="slip">${slipHtml([{ id:o.slipId, row:o.sheetRow, raw:o.slipRaw }])}</div>
+      </div>`;
+    }).join("");
 
     return `<article class="buyer" data-find="${esc([head.name, head.phone, head.nickname, head.house].join(" ").toLowerCase())}">
-      <div>
-        <h3>${esc(head.name || "(ไม่ระบุชื่อ)")}</h3>
-        <p class="meta"><b>${esc(head.phone || "ไม่มีเบอร์")}</b>
-          ${head.nickname ? " · " + esc(head.nickname) : ""}
-          ${head.house ? " · " + esc(head.house) : ""}
-          ${head.batch ? " · รุ่น " + esc(head.batch) : ""}
-          ${pickups.length ? " · รับของ " + esc(pickups.join(", ")) : ""}
-          ${list.length > 1 ? `<span class="multi">สั่ง ${list.length} ครั้ง (แถว ${list.map(o => o.sheetRow).join(", ")}) รวมให้แล้ว</span>` : ""}
-        </p>
-        <ul class="lines">
-          ${lines.map(l => `<li class="${l.setline ? "setline" : ""}${l.sub ? " sub" : ""}${l.subhead ? " subhead" : ""}">
-             <span class="q">${l.q === "" ? "" : l.q}</span>
-             <span class="txt">${esc(l.text)}</span>
-             ${l.amt != null ? `<span class="amt">${num(l.amt)}</span>` : ""}</li>`).join("")}
-        </ul>
-        <div class="sum"><span>รวม</span><span>${num(amount)} บาท</span></div>
-      </div>
-      <div class="slip">${slipHtml(slips)}</div>
+      <h3>${esc(head.name || "(ไม่ระบุชื่อ)")}</h3>
+      <p class="meta"><b>${esc(head.phone || "ไม่มีเบอร์")}</b>
+        ${head.nickname ? " · " + esc(head.nickname) : ""}
+        ${head.house ? " · " + esc(head.house) : ""}
+        ${head.batch ? " · รุ่น " + esc(head.batch) : ""}
+        ${multi ? `<span class="multi">เบอร์นี้สั่ง ${list.length} ครั้ง แยกให้แล้วด้านล่าง</span>` : ""}
+      </p>
+      ${orders_html}
+      ${multi ? `<div class="grand"><span>รวมทั้งเบอร์ ${list.length} ครั้ง</span><span>${num(grand)} บาท</span></div>` : ""}
     </article>`;
   }).join("");
 
