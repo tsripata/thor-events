@@ -113,7 +113,11 @@ tfoot td{border-top:2px solid var(--ink);border-bottom:none;padding-top:12px;fon
 .lines li{display:flex;gap:10px;padding:3px 0}
 .lines .q{flex:0 0 34px;text-align:right;font-weight:700}
 .lines .amt{margin-left:auto;color:var(--dim)}
-.lines .set{color:var(--green);font-weight:600}
+.lines li.setline .txt{color:var(--green);font-weight:600}
+.lines li.sub{padding-left:30px;color:#4e5c52;font-size:14px}
+.lines li.sub .q{font-weight:500;color:var(--dim)}
+.lines li.subhead{padding-left:30px;padding-top:7px;font-size:12.5px;color:var(--dim)}
+.lines li.subhead .txt{border-bottom:1px solid var(--rule);flex:1;padding-bottom:2px}
 .buyer .sum{margin-top:10px;font-weight:700;font-size:15px;border-top:1px solid var(--rule);
   padding-top:8px;display:flex}
 .buyer .sum span:last-child{margin-left:auto}
@@ -576,7 +580,7 @@ function render(){
 
   renderTally(t, setIncludesCup);
   const money = renderMoney(orders, t);
-  renderBuyers(orders);
+  renderBuyers(orders, setIncludesCup);
   const checks = renderRecon(t, raw, orders, testRows, blankRows, money, setIncludesCup);
   renderFlags(orders, map, checks);
   renderRaw(raw);
@@ -651,7 +655,7 @@ function groupByPhone(orders){
   return g;
 }
 
-function renderBuyers(orders){
+function renderBuyers(orders, setIncludesCup){
   const groups = groupByPhone(orders);
   const keys = Object.keys(groups).sort((a, b) =>
     groups[a][0].name.localeCompare(groups[b][0].name, "th"));
@@ -666,14 +670,22 @@ function renderBuyers(orders){
 
     for (const o of list) {
       amount += o.amount; sets += o.sets;
-      for (const c of o.combos) {
-        const bits = [c.box, c.flask, c.tote].filter(Boolean).map(labelOf).join(" + ");
-        lines.push({ set:true, q:1, text:`เซตปิคนิค — ${bits || c.raw}`, amt:null });
+
+      if (o.sets || o.combos.length) {
+        lines.push({ setline:true, q:o.sets || o.combos.length,
+                     text:"เซตปิคนิคพร้อมลุย", amt:o.setAmount || null });
+
+        o.combos.forEach((c, i) => {
+          if (o.combos.length > 1) lines.push({ subhead:true, q:"", text:`ชุดที่ ${i + 1}` });
+          const ids = [c.box, c.flask, c.tote].filter(Boolean);
+          if (setIncludesCup) ids.push("cup");
+          if (ids.length) for (const id of ids) lines.push({ sub:true, q:1, text:labelOf(id) });
+          else lines.push({ sub:true, q:1, text:c.raw });
+        });
       }
-      for (const l of o.lines) lines.push({ q:l.qty, text:`${l.group} ${l.label}`, amt:l.amount });
+
+      for (const l of o.lines) lines.push({ q:l.qty, text:labelOf(l.id), amt:l.amount });
     }
-    if (sets) lines.unshift({ set:true, q:sets, text:`เซตปิคนิคพร้อมลุย (${num(sets * CONFIG.SET_PRICE)} บาท)`,
-                              amt:list.reduce((s, o) => s + o.setAmount, 0), head:true });
 
     const pickups = [...new Set(list.map(o => o.pickup).filter(Boolean))];
     const slips = list.map(o => ({ id:o.slipId, row:o.sheetRow, raw:o.slipRaw })).filter(s => s.id || s.raw);
@@ -689,8 +701,9 @@ function renderBuyers(orders){
           ${list.length > 1 ? `<span class="multi">สั่ง ${list.length} ครั้ง (แถว ${list.map(o => o.sheetRow).join(", ")}) รวมให้แล้ว</span>` : ""}
         </p>
         <ul class="lines">
-          ${lines.map(l => `<li><span class="q">${l.q}</span>
-             <span class="${l.set ? "set" : ""}">${esc(l.text)}</span>
+          ${lines.map(l => `<li class="${l.setline ? "setline" : ""}${l.sub ? " sub" : ""}${l.subhead ? " subhead" : ""}">
+             <span class="q">${l.q === "" ? "" : l.q}</span>
+             <span class="txt">${esc(l.text)}</span>
              ${l.amt != null ? `<span class="amt">${num(l.amt)}</span>` : ""}</li>`).join("")}
         </ul>
         <div class="sum"><span>รวม</span><span>${num(amount)} บาท</span></div>
@@ -717,7 +730,8 @@ function slipHtml(slips){
 
 function labelOf(id){
   const it = ITEMS.find(x => x.id === id) || SET_TOTE_ROWS.find(x => x.id === id);
-  return it ? `${it.group} ${it.label}` : id;
+  if (!it) return id;
+  return it.label.includes(it.group) ? it.label : `${it.group} ${it.label}`;
 }
 
 /* ---------- reconciliation ---------- */
