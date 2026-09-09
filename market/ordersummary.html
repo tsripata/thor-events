@@ -194,7 +194,7 @@ footer{padding:28px 0 60px;color:var(--dim);font-size:13px;border-top:1px solid 
         <ul class="checks" id="checks"></ul>
       </div>
       <details class="raw">
-        <summary>ดูยอดดิบรายคอลัมน์ (ไว้เทียบกับชีทช่องต่อช่อง)</summary>
+        <summary>ดูยอดดิบรายคอลัมน์ — บวกคอลัมน์ในชีทเองแล้วไม่ตรง เปิดตรงนี้</summary>
         <div id="rawTally"></div>
       </details>
     </section>
@@ -528,21 +528,24 @@ function rawRecount(grid, map, skipSheetRows){
   for (const it of ITEMS) for (const ci of (map.items[it.id] || [])) colsOfInterest.push({ ci, it });
 
   for (const { ci, it } of colsOfInterest) {
-    let units = 0, baht = 0, cells = 0;
+    let units = 0, baht = 0, cells = 0, unitsAll = 0, cellsAll = 0;
     grid.rows.forEach((row, r) => {
-      if (skip.has(r + 2)) return;
       const cell = row[ci];
       if (!cell) return;
-      cellsSeen++;
       const m = cell.match(/(\d[\d,]*)\s*(?:ใบ|ชิ้น|อัน|แผ่น)/);
       const p = cell.match(/ราคา\s*([\d,]+)\s*บาท/);
+      const skipped = skip.has(r + 2);
+      if (!skipped) cellsSeen++;
       if (!m) return;
-      cellsRead++;
       const q = +m[1].replace(/,/g, "");
+      unitsAll += q; cellsAll++;
+      if (skipped) return;
+      cellsRead++;
       units += q; cells++;
       baht += p ? +p[1].replace(/,/g, "") : q * it.price;
     });
-    perColumn.push({ header:grid.headers[ci], label:`${it.group} · ${it.label}`, units, baht, cells });
+    perColumn.push({ header:grid.headers[ci], label:`${it.group} · ${it.label}`,
+                     units, baht, cells, unitsAll, cellsAll });
     itemUnits += units; itemBaht += baht;
   }
 
@@ -825,12 +828,23 @@ function renderRecon(t, raw, orders, testRows, blankRows, money, setIncludesCup)
 }
 
 function renderRaw(raw){
-  let html = `<table><thead><tr><th>คอลัมน์ในชีท</th><th class="n">ช่องที่กรอก</th><th class="n">จำนวนชิ้น</th><th class="n">บาท</th></tr></thead><tbody>`;
+  let html = `<p class="lede" style="margin-top:14px">ถ้าบวกคอลัมน์ในชีทเองด้วยตา ตัวเลขที่ได้จะตรงกับช่อง
+    <b>รวมทั้งชีท</b> เพราะรวมแถวทดสอบไว้ด้วย ส่วนช่อง <b>ใช้จริง</b> คือยอดที่หน้านี้เอาไปแสดง
+    ซึ่งตัดแถวทดสอบ ${num(CONFIG.TEST_ROW_SKIP)} แถวแรกออกแล้ว ผลต่างสองช่องคือของที่มาจากแถวทดสอบล้วน ๆ</p>
+    <table><thead><tr><th>คอลัมน์ในชีท</th><th class="n">ช่องที่กรอก</th>
+    <th class="n">รวมทั้งชีท</th><th class="n">แถวทดสอบ</th><th class="n">ใช้จริง</th><th class="n">บาท</th></tr></thead><tbody>`;
   for (const c of raw.perColumn) {
+    const t = c.unitsAll - c.units;
     html += `<tr><td>${esc(c.header)}<span class="note-inline">${esc(c.label)}</span></td>`
-         +  `<td class="n side">${num(c.cells)}</td><td class="n">${num(c.units)}</td><td class="n side">${num(c.baht)}</td></tr>`;
+         +  `<td class="n side">${num(c.cells)}</td>`
+         +  `<td class="n side">${num(c.unitsAll)}</td>`
+         +  `<td class="n side">${t ? "−" + num(t) : "—"}</td>`
+         +  `<td class="n qty${c.units ? "" : " zero"}">${num(c.units)}</td>`
+         +  `<td class="n side">${num(c.baht)}</td></tr>`;
   }
-  html += `<tr><td><b>เซตปิคนิคพร้อมลุย</b></td><td class="n side">—</td><td class="n">${num(raw.setUnits)} เซต</td><td class="n side">${num(raw.setBaht)}</td></tr>`;
+  html += `<tr><td><b>เซตปิคนิคพร้อมลุย</b></td><td class="n side">—</td><td class="n side">—</td>`
+       +  `<td class="n side">—</td><td class="n qty">${num(raw.setUnits)} เซต</td>`
+       +  `<td class="n side">${num(raw.setBaht)}</td></tr>`;
   html += `</tbody></table>`;
   document.getElementById("rawTally").innerHTML = html;
 }
