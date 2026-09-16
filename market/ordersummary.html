@@ -156,6 +156,39 @@ details.raw summary{cursor:pointer;color:var(--dim);font-size:14px}
 details.raw table{margin-top:12px;font-size:13.5px}
 footer{padding:28px 0 60px;color:var(--dim);font-size:13px;border-top:1px solid var(--rule)}
 
+/* ---------- batch filter + matrix modal ---------- */
+.filterbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:0 0 18px}
+.filterbar label{font-size:14px;color:var(--dim);display:flex;gap:8px;align-items:center}
+.filterbar select{font:inherit;padding:7px 10px;border:1px solid var(--rule);border-radius:2px;
+  background:#fff;color:var(--ink)}
+.filternote{font-size:13px;color:var(--amber);font-weight:600}
+
+.modal{position:fixed;inset:0;background:rgba(27,36,30,.55);z-index:50;
+  display:flex;align-items:flex-start;justify-content:center;padding:22px}
+.modal[hidden]{display:none}
+.modal-inner{background:var(--paper);width:100%;max-width:1400px;max-height:100%;
+  display:flex;flex-direction:column;border:1px solid var(--ink)}
+.modal-bar{display:flex;gap:10px;align-items:center;padding:13px 18px;border-bottom:2px solid var(--ink)}
+.modal-bar b{margin-right:auto;font-size:17px}
+.modal-body{overflow:auto;padding:16px 18px 26px}
+.modal-body .lede{margin-bottom:14px}
+
+.matrix{border-collapse:collapse;font-size:14px;min-width:100%}
+.matrix th,.matrix td{white-space:nowrap}
+.matrix th.grp-h{text-align:center;padding:0 12px 7px;border-bottom:1px solid var(--ink);
+  border-left:2px solid var(--rule);font-size:14px;color:var(--ink);font-weight:700}
+.matrix th.grp-h.all{background:var(--green-soft);color:var(--green)}
+.matrix th.sub{font-size:12px;padding:6px 0 8px 14px;text-align:right}
+.matrix th.sub.first{border-left:2px solid var(--rule)}
+.matrix td.cell{text-align:right;padding-left:14px}
+.matrix td.cell.first{border-left:2px solid var(--rule)}
+.matrix td.stick,.matrix th.stick{position:sticky;left:0;z-index:2;background:var(--paper);
+  text-align:left;padding-right:18px}
+.matrix tr.grp td{background:var(--green-soft);font-weight:700;font-size:13.5px}
+.matrix tr.grp td.stick{background:var(--green-soft)}
+.matrix tbody tr:hover td{background:#eef1ea}
+.matrix tbody tr:hover td.stick{background:#eef1ea}
+
 @media (max-width:720px){
   .order{grid-template-columns:1fr}
   .slip{max-width:230px}
@@ -167,6 +200,13 @@ footer{padding:28px 0 60px;color:var(--dim);font-size:13px;border-top:1px solid 
   .actions,.toolbar,#reload,.act{display:none !important}
   section{border-bottom:none;padding:14px 0;break-inside:avoid}
   .buyer,.order{break-inside:avoid}
+  body.modal-open > .shell{display:none}
+  body.modal-open .modal{position:static;background:none;padding:0;display:block}
+  body.modal-open .modal-inner{border:none;max-height:none;max-width:none}
+  body.modal-open .modal-bar{display:none}
+  body.modal-open .modal-body{overflow:visible;padding:0}
+  .matrix td.stick,.matrix th.stick{position:static}
+  .matrix{font-size:9pt}
   .slip img{max-height:150px;object-fit:contain}
 }
 </style>
@@ -205,6 +245,13 @@ footer{padding:28px 0 60px;color:var(--dim);font-size:13px;border-top:1px solid 
     <section id="tallySec">
       <h2>ของที่ต้องสั่ง <span class="count" id="tallyCount"></span></h2>
       <p class="lede">จำนวนรวมทุกออร์เดอร์ แยกว่ามาจากเซตปิคนิคหรือสั่งแยกชิ้น ถุงผ้าที่มากับเซตเลือกได้แค่สีผ้า ลายเป็นแบบสุ่ม จึงแยกบรรทัดไว้ต่างหาก</p>
+      <div class="filterbar">
+        <label>แยกตามรุ่น
+          <select id="batchFilter"><option value="">ทุกรุ่น</option></select>
+        </label>
+        <button class="act ghost" id="openBatch">ดูตารางแยกตามรุ่น</button>
+        <span class="filternote" id="filterNote"></span>
+      </div>
       <table id="tallyTable"></table>
       <label style="display:flex;gap:8px;align-items:center;margin-top:16px;font-size:14px;color:var(--dim);cursor:pointer">
         <input type="checkbox" id="setCup" checked> เซตปิคนิค 899 บาท รวมแก้วเมลามีน 1 ใบ
@@ -239,6 +286,22 @@ footer{padding:28px 0 60px;color:var(--dim);font-size:13px;border-top:1px solid 
       หน้านี้ไม่เก็บข้อมูล ทุกครั้งที่เปิดจะดึงสดจากชีทใหม่ทั้งหมด · แถวทดสอบถูกตัดออกตามค่า TEST_ROW_SKIP ในไฟล์
     </footer>
   </main>
+</div>
+
+<div class="modal" id="batchModal" hidden>
+  <div class="modal-inner">
+    <div class="modal-bar">
+      <b>ยอดแยกตามรุ่น</b>
+      <button class="act ghost" id="batchPrint">พิมพ์ / บันทึก PDF</button>
+      <button class="act" id="batchClose">ปิด</button>
+    </div>
+    <div class="modal-body">
+      <p class="lede">แต่ละรุ่นมีสามช่อง รวม / จากเซต / สั่งแยก อ่านเหมือนตารางหลักทุกประการ
+        คอลัมน์ขวาสุดคือยอดรวมทุกรุ่น ซึ่งต้องเท่ากับตารางหลักตอนไม่ได้กรองอะไร
+        ตารางนี้ใช้ข้อมูลเต็มเสมอ ไม่ขึ้นกับตัวกรองด้านนอก</p>
+      <div id="batchBody"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -583,24 +646,49 @@ function rawRecount(grid, map, skipSheetRows){
    ================================================================== */
 let STATE = null;
 
+let FILTER_BATCH = "";
+
 function render(){
   const { grid, map, orders, testRows, blankRows } = STATE;
   const setIncludesCup = document.getElementById("setCup").checked;
-  const t = tally(orders, setIncludesCup);
+
+  renderBatchOptions(orders);
+  const view = FILTER_BATCH ? orders.filter(o => batchOf(o) === FILTER_BATCH) : orders;
+
+  const tAll  = tally(orders, setIncludesCup);
+  const tView = FILTER_BATCH ? tally(view, setIncludesCup) : tAll;
 
   const usedRows = new Set(orders.map(o => o.sheetRow));
   const skipRows = grid.rows.map((_, r) => r + 2).filter(n => !usedRows.has(n));
   const raw = rawRecount(grid, map, skipRows);
 
-  renderTally(t, setIncludesCup);
-  const money = renderMoney(orders, t);
-  renderBuyers(orders, setIncludesCup);
-  const checks = renderRecon(t, raw, orders, testRows, blankRows, money, setIncludesCup);
+  renderTally(tView, setIncludesCup);
+  renderMoney(view, tView);
+  renderBuyers(view, setIncludesCup);
+
+  // การตรวจสอบใช้ข้อมูลเต็มเสมอ ตัวกรองไม่มีผลกับตราตรวจสอบ
+  const checks = renderRecon(tAll, raw, orders, testRows, blankRows,
+                             moneyOf(orders), setIncludesCup, totalsOf(tAll));
   renderFlags(orders, map, checks);
   renderRaw(raw);
 
   document.getElementById("tallyCount").textContent =
-    `${num(orders.length)} ออร์เดอร์ · ${num(Object.keys(groupByPhone(orders)).length)} คน`;
+    `${num(view.length)} ออร์เดอร์ · ${num(Object.keys(groupByPhone(view)).length)} คน`;
+  document.getElementById("filterNote").textContent = FILTER_BATCH
+    ? `กำลังดูเฉพาะรุ่น ${FILTER_BATCH} — ตาราง ยอดเงิน และรายชื่อด้านล่างกรองตามนี้ทั้งหมด`
+    : "";
+
+  if (!document.getElementById("batchModal").hidden) renderBatchMatrix();
+}
+
+function renderBatchOptions(orders){
+  const sel = document.getElementById("batchFilter");
+  const counts = {};
+  for (const o of orders) counts[batchOf(o)] = (counts[batchOf(o)] || 0) + 1;
+  const keys = Object.keys(counts).sort(sortBatches);
+  const want = `<option value="">ทุกรุ่น (${num(orders.length)} ออร์เดอร์)</option>`
+    + keys.map(k => `<option value="${esc(k)}">${esc(k)} (${num(counts[k])} ออร์เดอร์)</option>`).join("");
+  if (sel.innerHTML !== want) { sel.innerHTML = want; sel.value = FILTER_BATCH; }
 }
 
 function tallyRows(t, setIncludesCup){
@@ -637,13 +725,38 @@ function renderTally(t, setIncludesCup){
   STATE.tallyTotals = { total, totalSet, totalInd };
 }
 
+const batchOf = o => norm(o.batch) || "ไม่ระบุ";
+
+function sortBatches(a, b){
+  const na = /^\d/.test(a), nb = /^\d/.test(b);
+  if (na && nb) return parseFloat(a) - parseFloat(b);
+  if (na) return -1;
+  if (nb) return 1;
+  if (a === "ไม่ระบุ") return 1;
+  if (b === "ไม่ระบุ") return -1;
+  return a.localeCompare(b, "th");
+}
+
+function moneyOf(list){
+  const setBaht  = list.reduce((s, o) => s + o.setAmount, 0);
+  const itemBaht = list.reduce((s, o) => s + o.lines.reduce((a, l) => a + l.amount, 0), 0);
+  const listBaht = list.reduce((s, o) => s + o.lines.reduce((a, l) => a + l.listAmount, 0), 0);
+  return { setBaht, itemBaht, listBaht,
+           sets:list.reduce((s, o) => s + o.sets, 0),
+           buyers:Object.keys(groupByPhone(list)).length,
+           orders:list.length, grand:setBaht + itemBaht };
+}
+
+function totalsOf(t){
+  let total = 0, totalSet = 0, totalInd = 0;
+  for (const g of tallyRows(t)) for (const it of g.items) {
+    total += it.set + it.ind; totalSet += it.set; totalInd += it.ind;
+  }
+  return { total, totalSet, totalInd };
+}
+
 function renderMoney(orders, t){
-  const setBaht  = orders.reduce((s, o) => s + o.setAmount, 0);
-  const itemBaht = orders.reduce((s, o) => s + o.lines.reduce((a, l) => a + l.amount, 0), 0);
-  const listBaht = orders.reduce((s, o) => s + o.lines.reduce((a, l) => a + l.listAmount, 0), 0);
-  const sets     = orders.reduce((s, o) => s + o.sets, 0);
-  const grand    = setBaht + itemBaht;
-  const buyers   = Object.keys(groupByPhone(orders)).length;
+  const { setBaht, itemBaht, listBaht, sets, grand, buyers } = moneyOf(orders);
 
   document.getElementById("moneyGrid").innerHTML =
       cell("ยอดรวมทั้งหมด", `${num(grand)} <small>บาท</small>`, "total")
@@ -805,7 +918,7 @@ function labelOf(id){
 }
 
 /* ---------- reconciliation ---------- */
-function renderRecon(t, raw, orders, testRows, blankRows, money, setIncludesCup){
+function renderRecon(t, raw, orders, testRows, blankRows, money, setIncludesCup, totals){
   const checks = [];
   const add = (state, text, detail) => checks.push({ state, text, detail });
 
@@ -817,7 +930,7 @@ function renderRecon(t, raw, orders, testRows, blankRows, money, setIncludesCup)
       testRows.length ? "แถวทดสอบที่ตัดออก: " + testRows.map(r => `แถว ${r.sheetRow} ${r.name}`).join(" · ") : null);
 
   // 2. จำนวนชิ้นสั่งแยก นับสองทางตรงกันไหม
-  const indFromOrders = STATE.tallyTotals.totalInd;
+  const indFromOrders = totals.totalInd;
   add(indFromOrders === raw.itemUnits ? "pass" : "fail",
       `จำนวนชิ้นที่สั่งแยก นับจากตารางดิบได้ ${num(raw.itemUnits)} ชิ้น ตรงกับที่แสดง ${num(indFromOrders)} ชิ้น`,
       indFromOrders === raw.itemUnits ? null : "ตัวเลขสองทางไม่ตรงกัน อย่าเพิ่งใช้ยอดนี้สั่งของ");
@@ -872,6 +985,66 @@ function renderRecon(t, raw, orders, testRows, blankRows, money, setIncludesCup)
        <span>${esc(c.text)}${c.detail ? `<span class="detail">${esc(c.detail)}</span>` : ""}</span></li>`).join("");
 
   return checks;
+}
+
+function renderBatchMatrix(){
+  const setIncludesCup = document.getElementById("setCup").checked;
+  const orders = STATE.orders;
+
+  const batches = [...new Set(orders.map(batchOf))].sort(sortBatches);
+  const cols = batches.map(b => {
+    const list = orders.filter(o => batchOf(o) === b);
+    return { name:b, t:tally(list, setIncludesCup), m:moneyOf(list) };
+  });
+  cols.push({ name:"รวมทุกรุ่น", t:tally(orders, setIncludesCup), m:moneyOf(orders), all:true });
+
+  const span = 1 + cols.length * 3;
+  const trio = (c, v) => {
+    const sum = v.set + v.ind;
+    return `<td class="cell first qty${sum ? "" : " zero"}">${num(sum)}</td>`
+         + `<td class="cell side">${v.set ? num(v.set) : "—"}</td>`
+         + `<td class="cell side">${v.ind ? num(v.ind) : "—"}</td>`;
+  };
+
+  let h = `<div style="overflow-x:auto"><table class="matrix"><thead>
+    <tr><th rowspan="2" class="stick">รายการ</th>
+      ${cols.map(c => `<th colspan="3" class="grp-h${c.all ? " all" : ""}">${esc(c.name)}</th>`).join("")}
+    </tr><tr>
+      ${cols.map(() => `<th class="sub first">รวม</th><th class="sub">จากเซต</th><th class="sub">สั่งแยก</th>`).join("")}
+    </tr></thead><tbody>`;
+
+  h += `<tr class="grp"><td class="stick" colspan="${span}">ภาพรวมของรุ่น</td></tr>`;
+  for (const [label, f] of [
+    ["จำนวนออร์เดอร์",      c => num(c.m.orders)],
+    ["จำนวนผู้สั่ง (เบอร์)", c => num(c.m.buyers)],
+    ["เซตปิคนิค",           c => num(c.m.sets) + " เซต"],
+    ["ยอดเงิน",             c => num(c.m.grand) + " บาท"]
+  ]) {
+    h += `<tr><td class="stick">${label}</td>`
+       + cols.map(c => `<td class="cell first qty" colspan="3">${f(c)}</td>`).join("") + `</tr>`;
+  }
+
+  for (const g of tallyRows(cols[0].t)) {
+    h += `<tr class="grp"><td class="stick" colspan="${span}">${esc(g.header)}</td></tr>`;
+    for (const it of g.items) {
+      h += `<tr><td class="stick">${esc(it.label)}</td>`
+         + cols.map(c => trio(c, c.t[it.id] || { set:0, ind:0 })).join("") + `</tr>`;
+    }
+  }
+
+  h += `</tbody></table></div>`;
+  document.getElementById("batchBody").innerHTML = h;
+}
+
+function openBatchMatrix(){
+  renderBatchMatrix();
+  document.getElementById("batchModal").hidden = false;
+  document.body.classList.add("modal-open");
+}
+
+function closeBatchMatrix(){
+  document.getElementById("batchModal").hidden = true;
+  document.body.classList.remove("modal-open");
 }
 
 function renderRaw(raw){
@@ -981,6 +1154,18 @@ document.getElementById("reload").addEventListener("click", load);
 document.getElementById("printBtn").addEventListener("click", () => window.print());
 document.getElementById("search").addEventListener("input", applySearch);
 document.getElementById("setCup").addEventListener("change", () => STATE && render());
+document.getElementById("batchFilter").addEventListener("change", e => {
+  FILTER_BATCH = e.target.value; if (STATE) render();
+});
+document.getElementById("openBatch").addEventListener("click", () => STATE && openBatchMatrix());
+document.getElementById("batchClose").addEventListener("click", closeBatchMatrix);
+document.getElementById("batchPrint").addEventListener("click", () => window.print());
+document.getElementById("batchModal").addEventListener("click", e => {
+  if (e.target.id === "batchModal") closeBatchMatrix();
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && !document.getElementById("batchModal").hidden) closeBatchMatrix();
+});
 document.getElementById("showSlips").addEventListener("change", e => {
   document.querySelectorAll(".slipimg,.noimg").forEach(i => { i.style.display = e.target.checked ? "" : "none"; });
 });
