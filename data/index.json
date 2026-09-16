@@ -10,27 +10,31 @@
     "2026-08-10",
     "2026-08-17",
     "2026-08-24",
-    "2026-08-31"
+    "2026-08-31",
+    "2026-09-14",
+    "2026-09-21",
+    "2026-09-28",
+    "2026-10-05"
   ],
   "interests": [
     {
-      "emoji": "\ud83e\uddb8",
+      "emoji": "🦸",
       "label": "Iron Man"
     },
     {
-      "emoji": "\u26f8\ufe0f",
+      "emoji": "⛸️",
       "label": "Ice skating"
     },
     {
-      "emoji": "\ud83d\udefc",
+      "emoji": "🛼",
       "label": "Rollerblading"
     },
     {
-      "emoji": "\ud83d\udee0\ufe0f",
+      "emoji": "🛠️",
       "label": "Building & making"
     },
     {
-      "emoji": "\ud83e\udd41",
+      "emoji": "🥁",
       "label": "Drums"
     }
   ]
