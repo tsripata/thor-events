@@ -224,6 +224,7 @@ footer{padding:28px 0 60px;color:var(--dim);font-size:13px;border-top:1px solid 
 .pc-slips img{display:block;max-width:100%;object-fit:contain;border:1px solid #d2dace}
 .pc-slips .cap{font-size:7.5pt;color:#6b7a6f;text-align:center}
 .pc-slips .missing{border:1px dashed #d2dace;padding:6mm 2mm;color:#8a5d00;font-size:9pt;text-align:center;width:100%}
+.pc-warn{font-size:9pt;color:#8a5d00;background:#fbf1dc;border-left:2pt solid #8a5d00;padding:1mm 2mm;margin-top:1.5mm}
 .pc-foot{display:flex;gap:6mm;font-size:8.5pt;color:#6b7a6f;border-top:1px solid #d2dace;padding-top:1.5mm;margin-top:2mm}
 .pc-foot span:last-child{margin-left:auto}
 .pc-box{display:inline-block;width:3.2mm;height:3.2mm;border:1px solid #1b241e;vertical-align:-.5mm;margin-right:1.2mm}
@@ -366,7 +367,9 @@ const CONFIG = {
   // ชื่อที่เข้าเงื่อนไขนี้จะถูกตัดออกด้วย ไม่ว่าจะอยู่แถวไหน
   TEST_NAME_PATTERN: /test|เทสต?ฟอร์ม|ทดสอบ/i,
   SET_PRICE: 899,
-  SET_INCLUDES_CUP: true
+  SET_INCLUDES_CUP: true,
+  // แท็บที่ระบุว่าถุงผ้าจากเซต (ลายสุ่ม) ได้ลายไหนจริง ใช้ตอนพิมพ์ใบออเดอร์
+  ALLOC_SHEET: "ยอดสรุปสินค้าผลิต"
 };
 
 const qs = new URLSearchParams(location.search);
@@ -490,9 +493,11 @@ function driveId(url){
 /* ==================================================================
    FETCH
    ================================================================== */
-async function fetchGrid(){
+async function fetchGrid(sheetName){
   const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq`
-            + `?tqx=out:json&headers=1&gid=${encodeURIComponent(CONFIG.GID)}&_=${Date.now()}`;
+            + `?tqx=out:json&headers=1&`
+            + (sheetName ? `sheet=${encodeURIComponent(sheetName)}` : `gid=${encodeURIComponent(CONFIG.GID)}`)
+            + `&_=${Date.now()}`;
   const res = await fetch(url, { cache:"no-store" });
   if (!res.ok) throw new Error(`Google ตอบกลับ HTTP ${res.status}`);
   const txt = await res.text();
@@ -689,6 +694,82 @@ function rawRecount(grid, map, skipSheetRows){
   }
 
   return { perColumn, itemUnits, itemBaht, setUnits, setBaht, comboCells, cellsSeen, cellsRead };
+}
+
+
+/* ==================================================================
+   ถุงผ้าจากเซต (ลายสุ่ม) → ลายจริง จากแท็บ ยอดสรุปสินค้าผลิต
+   แท็บนั้นนับถุงผ้าต่อแถวรวมทั้งที่สั่งแยกและที่มากับเซต
+   ลายของถุงจากเซต = ยอดในแท็บนั้น − ที่สั่งแยกในฟอร์ม แยกตามสีผ้า
+   จับคู่แถวด้วย Timestamp + เบอร์โทร
+   ================================================================== */
+const TOTE_STYLES = {
+  tote_set_white:  ["tote_white_print",  "tote_white_logo"],
+  tote_set_canvas: ["tote_canvas_print", "tote_canvas_logo"]
+};
+
+function allocateSetTotes(orders, g, error){
+  const res = { error, ok:0, need:0, missing:[], bad:[] };
+  const needers = orders.filter(o => o.combos.some(c => TOTE_STYLES[c.tote]));
+  for (const o of needers) { o.allocTotes = null; o.allocState = "missing"; }
+  res.need = needers.reduce((s, o) => s + o.combos.filter(c => TOTE_STYLES[c.tote]).length, 0);
+  if (!g) { res.missing = needers; return res; }
+
+  const H = g.headers;
+  const iTs = H.findIndex(h => h.includes("Timestamp") || h.includes("ประทับเวลา"));
+  const iPh = H.findIndex(h => h.includes("เบอร์"));
+  const col = {};
+  H.forEach((h, i) => {
+    if (h.includes("ชุด ที่")) return;
+    const hit = ITEMS.filter(it => it.group === "ถุงผ้า" && it.match(h));
+    if (hit.length === 1 && col[hit[0].id] == null) col[hit[0].id] = i;
+  });
+  const cols = Object.values(TOTE_STYLES).flat();
+  if (iTs < 0 || iPh < 0 || cols.some(id => col[id] == null)) {
+    res.error = `หาคอลัมน์ Timestamp / เบอร์ / ถุงผ้า 4 แบบในแท็บ ${CONFIG.ALLOC_SHEET} ไม่ครบ`;
+    res.missing = needers; return res;
+  }
+
+  const byKey = {};
+  g.rows.forEach((r, i) => {
+    const k = norm(r[iTs]) + "|" + digits(r[iPh]);
+    (byKey[k] ||= []).push({ r, sheetRow:i + 2 });
+  });
+  const used = {};
+
+  for (const o of orders) {
+    const k = norm(o.timestamp) + "|" + digits(o.phone);
+    const n = used[k] = (used[k] || 0) + 1;          // แถวซ้ำ key เดียวกัน ใช้ตามลำดับ
+    if (!o.combos.some(c => TOTE_STYLES[c.tote])) continue;
+    const hit = (byKey[k] || [])[n - 1];
+    if (!hit) { res.missing.push(o); continue; }
+    o.allocRow = hit.sheetRow;
+
+    const ind = {};
+    for (const l of o.lines) ind[l.id] = (ind[l.id] || 0) + l.qty;
+    const pool = {}, problems = [];
+    for (const [setId, styles] of Object.entries(TOTE_STYLES)) {
+      const need = o.combos.filter(c => c.tote === setId).length;
+      let sum = 0;
+      for (const id of styles) {
+        pool[id] = (+String(hit.r[col[id]]).replace(/,/g, "") || 0) - (ind[id] || 0);
+        if (pool[id] < 0) problems.push(`${labelOf(id)} ติดลบ ${pool[id]}`);
+        sum += Math.max(0, pool[id]);
+      }
+      if (sum !== need) problems.push(`${labelOf(setId)} ต้องมี ${need} ใบ แต่แท็บจัดไว้ ${sum} ใบ`);
+    }
+    if (problems.length) { o.allocState = "bad"; o.allocProblems = problems; res.bad.push(o); continue; }
+
+    o.allocTotes = o.combos.map(c => {
+      const styles = TOTE_STYLES[c.tote];
+      if (!styles) return null;
+      const id = styles.find(s => pool[s] > 0);
+      pool[id]--; return id;
+    });
+    o.allocState = "ok";
+    res.ok += o.allocTotes.filter(Boolean).length;
+  }
+  return res;
 }
 
 /* ==================================================================
@@ -1034,6 +1115,18 @@ function renderRecon(t, raw, orders, testRows, blankRows, money, setIncludesCup,
         `แก้วเมลามีนที่มากับเซต ${num(cupSet)} ใบ เท่ากับจำนวนชุดสีที่กรอก ${num(comboTotal)} ชุด`);
   }
 
+  // 9. ถุงผ้าจากเซต (ลายสุ่ม) ได้ลายจริงครบไหม (จากแท็บ ยอดสรุปสินค้าผลิต)
+  const al = STATE.alloc;
+  if (al) {
+    const pending = al.missing.length + al.bad.length;
+    add(al.bad.length ? "fail" : pending || al.error ? "warn" : "pass",
+      `ถุงผ้าจากเซต (ลายสุ่ม) ${num(al.need)} ใบ จัดลายจริงจากแท็บ ${CONFIG.ALLOC_SHEET} แล้ว ${num(al.ok)} ใบ`,
+      [al.error,
+       al.missing.length ? "ยังไม่มีในแท็บ: " + al.missing.map(o => `แถว ${o.sheetRow} ${o.name}`).join(" · ") : "",
+       al.bad.length ? "ตัวเลขในแท็บไม่ลงตัว: " + al.bad.map(o => `แถว ${o.sheetRow} ${o.name} (แท็บแถว ${o.allocRow}: ${o.allocProblems.join(", ")})`).join(" · ") : ""
+      ].filter(Boolean).join(" — ") || null);
+  }
+
   const failed = checks.filter(c => c.state === "fail").length;
   const warned = checks.filter(c => c.state === "warn").length;
 
@@ -1199,7 +1292,9 @@ async function load(){
     const grid = await fetchGrid();
     const map = mapColumns(grid.headers);
     const built = buildOrders(grid, map);
-    STATE = { grid, map, ...built };
+    let allocGrid = null, allocError = null;
+    try { allocGrid = await fetchGrid(CONFIG.ALLOC_SHEET); } catch (e) { allocError = e.message; }
+    STATE = { grid, map, ...built, alloc: allocateSetTotes(built.orders, allocGrid, allocError) };
     document.getElementById("pulledAt").textContent =
       new Date().toLocaleString("th-TH", { dateStyle:"medium", timeStyle:"short" });
     status.hidden = true;
@@ -1225,14 +1320,21 @@ function cardHtml(list, setIncludesCup, withSlips){
   const proxies = [...new Set(list.map(o => o.proxy).filter(Boolean))];
   const meta = [head.nickname, head.house, head.batch ? "รุ่น " + head.batch : ""].filter(Boolean).map(esc).join(" · ");
 
+  // ถุงผ้าจากเซต: ใช้ลายจริงที่จัดไว้ในแท็บ ยอดสรุปสินค้าผลิต แทน "ลายสุ่ม"
+  const withTotes = list.map(o => o.allocTotes
+    ? { ...o, combos: o.combos.map((c, i) => o.allocTotes[i] ? { ...c, tote: o.allocTotes[i] } : c) }
+    : o);
+  const unalloc = list.filter(o => o.allocState && o.allocState !== "ok");
+
   // คนที่สั่งหลายครั้ง รวมรายการเป็นชุดเดียว (บวกจำนวนชิ้นเดียวกันเข้าด้วยกัน) ให้จัดของง่าย
-  const merged = mergeOrders(list);
+  const merged = mergeOrders(withTotes);
   const head_html = multi
     ? `<b>รวม ${list.length} ครั้ง</b> · ` + list.map(o => `แถว ${o.sheetRow} (${num(o.amount)})`).join(" · ")
     : `แถว ${head.sheetRow}${head.timestamp ? ` · ${esc(head.timestamp)}` : ""}`;
   const orders = `<div class="pc-order">
       <div class="order-head">${head_html}</div>
       <ul class="lines">${lineHtml(orderLines(merged, setIncludesCup))}</ul>
+      ${unalloc.length ? `<div class="pc-warn">ถุงผ้าจากเซตยังไม่ได้จัดลาย (${unalloc.map(o => "แถว " + o.sheetRow).join(", ")}) — ดูแท็บ ${esc(CONFIG.ALLOC_SHEET)}</div>` : ""}
     </div>`;
 
   const n = list.length;
