@@ -526,7 +526,9 @@ function mapColumns(headers){
     ["name",      h => h === "ชื่อ" || /^ชื่อ$/.test(h)],
     ["phone",     h => h.includes("เบอร์")],
     ["nickname",  h => h.includes("ชื่อเล่น")],
-    ["batch",     h => h.includes("รุ่น")],
+    // "ฝากสินค้าให้ท่านอื่นรับ โปรดระบุชื่อและรุ่นค่ะ" มีคำว่ารุ่นด้วย ต้องจับก่อน batch
+    ["proxy",     h => h.includes("ฝากสินค้า")],
+    ["batch",     h => h.startsWith("รุ่น")],
     ["house",     h => h.includes("บ้าน")],
     ["pickup",    h => h.includes("วันที่รับ")],
     ["slip",      h => h.includes("สลิป")]
@@ -573,7 +575,7 @@ function buildOrders(grid, map){
       name, phone: g("phone"), phoneKey: digits(g("phone")) || ("noname:" + name),
       timestamp: g("timestamp"),
       nickname: g("nickname"), batch: g("batch"), house: g("house"),
-      pickup: g("pickup"), slipId: driveId(g("slip")), slipRaw: g("slip"),
+      pickup: g("pickup"), proxy: g("proxy"), slipId: driveId(g("slip")), slipRaw: g("slip"),
       sets: 0, setAmount: 0, combos: [], lines: [], setLines: [],
       amount: 0, issues: []
     };
@@ -894,6 +896,7 @@ function renderBuyers(orders, setIncludesCup){
         ${head.nickname ? " · " + esc(head.nickname) : ""}
         ${head.house ? " · " + esc(head.house) : ""}
         ${head.batch ? " · รุ่น " + esc(head.batch) : ""}
+        ${head.proxy ? " · ฝากให้รับแทน: " + esc(head.proxy) : ""}
         ${multi ? `<span class="multi">เบอร์นี้สั่ง ${list.length} ครั้ง แยกให้แล้วด้านล่าง</span>` : ""}
       </p>
       ${orders_html}
@@ -1208,6 +1211,7 @@ function cardHtml(list, setIncludesCup, withSlips){
   const head = list[0], multi = list.length > 1;
   const grand = list.reduce((s, o) => s + o.amount, 0);
   const pickups = [...new Set(list.map(o => o.pickup).filter(Boolean))];
+  const proxies = [...new Set(list.map(o => o.proxy).filter(Boolean))];
   const meta = [head.nickname, head.house, head.batch ? "รุ่น " + head.batch : ""].filter(Boolean).map(esc).join(" · ");
 
   const orders = list.map((o, i) => {
@@ -1234,7 +1238,8 @@ function cardHtml(list, setIncludesCup, withSlips){
       <span class="ev">น้ำจิตน้ำใจ · จิตตเมตต์ แฟมิลี่</span>
     </div>
     <p class="pc-meta"><b>${esc(head.phone || "ไม่มีเบอร์")}</b>${meta ? " · " + meta : ""}${
-      pickups.length ? ` · รับของ <b>${pickups.map(esc).join(", ")}</b>` : ""}</p>
+      pickups.length ? ` · รับของ <b>${pickups.map(esc).join(", ")}</b>` : ""}${
+      proxies.length ? `<br>ฝากให้รับแทน: <b>${proxies.map(esc).join(", ")}</b>` : ""}</p>
     <div class="pc-body${withSlips ? "" : " noslip"}">
       <div class="pc-col"><div class="pc-inner">
         ${orders}
