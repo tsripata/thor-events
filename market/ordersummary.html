@@ -189,6 +189,45 @@ footer{padding:28px 0 60px;color:var(--dim);font-size:13px;border-top:1px solid 
 .matrix tbody tr:hover td{background:#eef1ea}
 .matrix tbody tr:hover td.stick{background:#eef1ea}
 
+
+/* ---------- A5 order cards (2 per A4) ---------- */
+#cardSheets{position:absolute;left:-10000px;top:0;visibility:hidden}
+.ppage{width:210mm;height:296.5mm;background:#fff;display:flex;flex-direction:column;overflow:hidden}
+.pcard{flex:0 0 148.25mm;height:148.25mm;padding:9mm 11mm 8mm;overflow:hidden;position:relative;
+  display:flex;flex-direction:column;font-size:10.5pt;line-height:1.45;color:#1b241e}
+.pcard + .pcard{border-top:1px dashed #9aa79d}
+.pcard + .pcard::before{content:"✂";position:absolute;top:-2.4mm;left:4mm;font-size:9pt;color:#6b7a6f;
+  background:#fff;padding:0 1mm;line-height:1}
+.pcard.blank{visibility:hidden}
+.pc-top{display:flex;align-items:baseline;gap:4mm;border-bottom:1.5pt solid #1b241e;padding-bottom:2mm}
+.pc-top .ev{font-size:8.5pt;color:#6b7a6f;margin-left:auto;white-space:nowrap}
+.pc-top h3{margin:0;font-size:15pt;font-weight:700;line-height:1.25}
+.pc-meta{font-size:9.5pt;color:#6b7a6f;margin:1.5mm 0 0}
+.pc-meta b{color:#1b241e;font-size:11pt}
+.pc-body{flex:1;min-height:0;display:grid;grid-template-columns:1fr 50mm;grid-template-rows:minmax(0,1fr);gap:6mm;margin-top:3mm}
+.pc-col{min-height:0;overflow:hidden}
+.pc-body.noslip{grid-template-columns:1fr}
+.pc-inner{transform-origin:top left}
+.pc-order + .pc-order{border-top:1px dashed #d2dace;margin-top:2.5mm;padding-top:2.5mm}
+.pc-order .order-head{font-size:8.5pt;color:#6b7a6f;margin-bottom:1mm}
+.pc-order .order-head b{color:#1b241e;font-size:10pt}
+.pcard .lines{font-size:10.5pt}
+.pcard .lines li{padding:.6mm 0;gap:2.5mm}
+.pcard .lines .q{flex:0 0 7mm}
+.pcard .lines li.sub,.pcard .lines li.subhead{padding-left:8mm;font-size:9.5pt}
+.pcard .lines li.subhead{font-size:8.5pt}
+.pcard .lines .amt{color:#6b7a6f}
+.pc-sum{display:flex;font-weight:700;border-top:1pt solid #1b241e;margin-top:1.5mm;padding-top:1.2mm;font-size:11pt}
+.pc-sum span:last-child{margin-left:auto}
+.pc-sum.sub{font-weight:600;font-size:10pt;border-top:1px solid #d2dace}
+.pc-slips{display:flex;flex-direction:column;gap:2mm;min-height:0;overflow:hidden;align-items:center}
+.pc-slips img{display:block;max-width:100%;object-fit:contain;border:1px solid #d2dace}
+.pc-slips .cap{font-size:7.5pt;color:#6b7a6f;text-align:center}
+.pc-slips .missing{border:1px dashed #d2dace;padding:6mm 2mm;color:#8a5d00;font-size:9pt;text-align:center;width:100%}
+.pc-foot{display:flex;gap:6mm;font-size:8.5pt;color:#6b7a6f;border-top:1px solid #d2dace;padding-top:1.5mm;margin-top:2mm}
+.pc-foot span:last-child{margin-left:auto}
+.pc-box{display:inline-block;width:3.2mm;height:3.2mm;border:1px solid #1b241e;vertical-align:-.5mm;margin-right:1.2mm}
+
 @media (max-width:720px){
   .order{grid-template-columns:1fr}
   .slip{max-width:230px}
@@ -208,6 +247,12 @@ footer{padding:28px 0 60px;color:var(--dim);font-size:13px;border-top:1px solid 
   .matrix td.stick,.matrix th.stick{position:static}
   .matrix{font-size:9pt}
   .slip img{max-height:150px;object-fit:contain}
+  /* ใบออเดอร์ A5 — พิมพ์เฉพาะการ์ด */
+  body.print-cards > *:not(#cardSheets){display:none !important}
+  body.print-cards #cardSheets{position:static;visibility:visible;left:auto}
+  body.print-cards .ppage{break-after:page}
+  body.print-cards .ppage:last-child{break-after:auto}
+  body.print-cards *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
 </head>
@@ -271,6 +316,7 @@ footer{padding:28px 0 60px;color:var(--dim);font-size:13px;border-top:1px solid 
       <div class="toolbar">
         <input type="search" id="search" placeholder="ค้นหาชื่อ เบอร์ ชื่อเล่น หรือบ้าน">
         <label><input type="checkbox" id="showSlips" checked> แสดงสลิปอัตโนมัติ</label>
+        <button class="act" id="cardPrint" title="หนึ่งคนครึ่งหน้า A4 (A5) พิมพ์ 2 คนต่อแผ่น ตามตัวกรองรุ่นและคำค้นที่ใช้อยู่">พิมพ์ใบออเดอร์ A5 (2 คน / A4)</button>
         <span class="slipstat" id="slipStat"></span>
       </div>
       <div id="buyers"></div>
@@ -287,6 +333,8 @@ footer{padding:28px 0 60px;color:var(--dim);font-size:13px;border-top:1px solid 
     </footer>
   </main>
 </div>
+
+<div id="cardSheets" aria-hidden="true"></div>
 
 <div class="modal" id="batchModal" hidden>
   <div class="modal-inner">
@@ -665,6 +713,7 @@ function render(){
   renderTally(tView, setIncludesCup);
   renderMoney(view, tView);
   renderBuyers(view, setIncludesCup);
+  STATE.view = view;
 
   // การตรวจสอบใช้ข้อมูลเต็มเสมอ ตัวกรองไม่มีผลกับตราตรวจสอบ
   const checks = renderRecon(tAll, raw, orders, testRows, blankRows,
@@ -1150,7 +1199,136 @@ async function load(){
   }
 }
 
+
+/* ==================================================================
+   ใบออเดอร์ A5 — หนึ่งคน (เบอร์) ต่อครึ่งหน้า A4 พิมพ์ 2 คนต่อแผ่น
+   ใช้ตัวกรองรุ่น + คำค้นเดียวกับรายชื่อบนจอ
+   ================================================================== */
+function cardHtml(list, setIncludesCup, withSlips){
+  const head = list[0], multi = list.length > 1;
+  const grand = list.reduce((s, o) => s + o.amount, 0);
+  const pickups = [...new Set(list.map(o => o.pickup).filter(Boolean))];
+  const meta = [head.nickname, head.house, head.batch ? "รุ่น " + head.batch : ""].filter(Boolean).map(esc).join(" · ");
+
+  const orders = list.map((o, i) => {
+    const when = o.timestamp ? ` · ${esc(o.timestamp)}` : "";
+    const pick = o.pickup ? ` · รับของ <b>${esc(o.pickup)}</b>` : "";
+    const label = (multi ? `<b>ครั้งที่ ${i + 1}</b> · ` : "") + `แถว ${o.sheetRow}${when}${pick}`;
+    return `<div class="pc-order">
+      <div class="order-head">${label}</div>
+      <ul class="lines">${lineHtml(orderLines(o, setIncludesCup))}</ul>
+      <div class="pc-sum${multi ? " sub" : ""}"><span>${multi ? `รวมครั้งที่ ${i + 1}` : "รวม"}</span><span>${num(o.amount)} บาท</span></div>
+    </div>`;
+  }).join("");
+
+  const n = list.length;
+  const slips = withSlips ? `<div class="pc-slips">${list.map(o => o.slipId
+      ? `<img class="pc-slipimg" alt="" data-id="${o.slipId}" data-try="0" src="${SLIP_HOSTS[0](o.slipId)}"
+>
+         <div class="cap">สลิป แถว ${o.sheetRow}</div>`
+      : `<div class="missing">ไม่พบสลิป (แถว ${o.sheetRow})</div>`).join("")}</div>` : "";
+
+  return `<div class="pcard">
+    <div class="pc-top">
+      <h3>${esc(head.name || "(ไม่ระบุชื่อ)")}</h3>
+      <span class="ev">น้ำจิตน้ำใจ · จิตตเมตต์ แฟมิลี่</span>
+    </div>
+    <p class="pc-meta"><b>${esc(head.phone || "ไม่มีเบอร์")}</b>${meta ? " · " + meta : ""}${
+      pickups.length ? ` · รับของ <b>${pickups.map(esc).join(", ")}</b>` : ""}</p>
+    <div class="pc-body${withSlips ? "" : " noslip"}">
+      <div class="pc-col"><div class="pc-inner">
+        ${orders}
+        ${multi ? `<div class="pc-sum"><span>รวมทั้งเบอร์ ${n} ครั้ง</span><span>${num(grand)} บาท</span></div>` : ""}
+      </div></div>
+      ${slips}
+    </div>
+    <div class="pc-foot"><span><i class="pc-box"></i>จัดของครบ</span><span><i class="pc-box"></i>ส่งมอบแล้ว</span><span>ผู้รับ ..............................</span></div>
+  </div>`;
+}
+
+let CARD_PAGE_STYLE = null;
+
+async function printCards(){
+  if (!STATE) return;
+  const setIncludesCup = document.getElementById("setCup").checked;
+  const withSlips = document.getElementById("showSlips").checked;
+  const q = (document.getElementById("search").value || "").trim().toLowerCase();
+
+  const groups = groupByPhone(STATE.view || STATE.orders);
+  const keys = Object.keys(groups)
+    .sort((a, b) => groups[a][0].name.localeCompare(groups[b][0].name, "th"))
+    .filter(k => {
+      if (!q) return true;
+      const h = groups[k][0];
+      return [h.name, h.phone, h.nickname, h.house].join(" ").toLowerCase().includes(q);
+    });
+  if (!keys.length) { alert("ไม่มีรายชื่อให้พิมพ์ ลองล้างคำค้นหรือตัวกรองรุ่น"); return; }
+
+  const cards = keys.map(k => cardHtml(groups[k].slice().sort((a, b) => a.sheetRow - b.sheetRow), setIncludesCup, withSlips));
+  if (cards.length % 2) cards.push(`<div class="pcard blank"></div>`);
+  let html = "";
+  for (let i = 0; i < cards.length; i += 2) html += `<div class="ppage">${cards[i]}${cards[i + 1]}</div>`;
+
+  const box = document.getElementById("cardSheets");
+  box.innerHTML = html;
+
+  // ย่อข้อความให้พอดีครึ่งหน้า ถ้าคนไหนสั่งเยอะจนล้น
+  box.querySelectorAll(".pc-col").forEach(col => {
+    const inner = col.firstElementChild;
+    const avail = col.clientHeight, need = inner.scrollHeight;
+    if (need > avail && avail > 0) {
+      const k = Math.max(0.4, avail / need);
+      inner.style.transform = `scale(${k})`;
+      inner.style.width = `${100 / k}%`;
+    }
+  });
+
+  // แบ่งความสูงช่องสลิปเท่า ๆ กัน ถ้าคนเดียวมีหลายสลิป
+  box.querySelectorAll(".pc-slips").forEach(sl => {
+    const im = sl.querySelectorAll(".pc-slipimg");
+    const kids = sl.children.length;
+    if (!im.length) return;
+    const h = (sl.clientHeight - (kids - 1) * 8 - im.length * 16) / im.length;
+    im.forEach(i => { i.style.maxHeight = Math.max(40, h) + "px"; });
+  });
+
+  // รอรูปสลิปโหลดก่อนสั่งพิมพ์ (สูงสุด 15 วินาที)
+  const imgs = [...box.querySelectorAll(".pc-slipimg")];
+  const btn = document.getElementById("cardPrint");
+  const label = btn.textContent;
+  btn.disabled = true; btn.textContent = `กำลังโหลดสลิป ${imgs.length} รูป…`;
+  await Promise.race([
+    Promise.all(imgs.map(img => new Promise(res => {
+      if (img.complete && img.naturalWidth) return res();
+      img.addEventListener("load", res);
+      img.addEventListener("error", () => {
+        const t = +img.dataset.try + 1;
+        if (t < SLIP_HOSTS.length) { img.dataset.try = String(t); img.src = SLIP_HOSTS[t](img.dataset.id); return; }
+        const ph = document.createElement("div");
+        ph.className = "missing"; ph.textContent = "รูปสลิปไม่ขึ้น";
+        img.replaceWith(ph); res();
+      });
+    }))),
+    new Promise(res => setTimeout(res, 15000))
+  ]);
+  btn.disabled = false; btn.textContent = label;
+
+  CARD_PAGE_STYLE = document.createElement("style");
+  CARD_PAGE_STYLE.textContent = "@page{size:A4 portrait;margin:0}";
+  document.head.appendChild(CARD_PAGE_STYLE);
+  document.body.classList.add("print-cards");
+  window.print();
+}
+
+window.addEventListener("afterprint", () => {
+  if (!document.body.classList.contains("print-cards")) return;
+  document.body.classList.remove("print-cards");
+  if (CARD_PAGE_STYLE) { CARD_PAGE_STYLE.remove(); CARD_PAGE_STYLE = null; }
+  document.getElementById("cardSheets").innerHTML = "";
+});
+
 document.getElementById("reload").addEventListener("click", load);
+document.getElementById("cardPrint").addEventListener("click", printCards);
 document.getElementById("printBtn").addEventListener("click", () => window.print());
 document.getElementById("search").addEventListener("input", applySearch);
 document.getElementById("setCup").addEventListener("change", () => STATE && render());
