@@ -840,12 +840,23 @@ function orderLines(o, setIncludesCup){
     lines.push({ setline:true, q:o.sets || o.combos.length,
                  text:"เซตปิคนิคพร้อมลุย", amt:o.setAmount || null });
 
-    o.combos.forEach((c, i) => {
-      if (o.combos.length > 1) lines.push({ subhead:true, q:"", text:`ชุดที่ ${i + 1}` });
+    // ชุดที่เลือกสีเหมือนกันรวมเป็นบรรทัดเดียว เช่น "ชุดแบบที่ 1 × 3 ชุด"
+    const groups = [];
+    for (const c of o.combos) {
+      const key = [c.box, c.flask, c.tote].join("|") || c.raw;
+      const g = groups.find(x => x.key === key);
+      if (g) g.n++; else groups.push({ key, c, n:1 });
+    }
+    groups.forEach((g, i) => {
+      const c = g.c;
+      if (o.combos.length > 1)
+        lines.push({ subhead:true, q:"", text: groups.length > 1
+          ? `ชุดแบบที่ ${i + 1}${g.n > 1 ? ` × ${g.n} ชุด` : ""}`
+          : `ทั้ง ${g.n} ชุดเหมือนกัน` });
       const ids = [c.box, c.flask, c.tote].filter(Boolean);
       if (setIncludesCup) ids.push("cup");
-      if (ids.length) for (const id of ids) lines.push({ sub:true, q:1, text:labelOf(id) });
-      else lines.push({ sub:true, q:1, text:c.raw });
+      if (ids.length) for (const id of ids) lines.push({ sub:true, q:g.n, text:labelOf(id) });
+      else lines.push({ sub:true, q:g.n, text:c.raw });
     });
   }
 
@@ -1214,16 +1225,15 @@ function cardHtml(list, setIncludesCup, withSlips){
   const proxies = [...new Set(list.map(o => o.proxy).filter(Boolean))];
   const meta = [head.nickname, head.house, head.batch ? "รุ่น " + head.batch : ""].filter(Boolean).map(esc).join(" · ");
 
-  const orders = list.map((o, i) => {
-    const when = o.timestamp ? ` · ${esc(o.timestamp)}` : "";
-    const pick = o.pickup ? ` · รับของ <b>${esc(o.pickup)}</b>` : "";
-    const label = (multi ? `<b>ครั้งที่ ${i + 1}</b> · ` : "") + `แถว ${o.sheetRow}${when}${pick}`;
-    return `<div class="pc-order">
-      <div class="order-head">${label}</div>
-      <ul class="lines">${lineHtml(orderLines(o, setIncludesCup))}</ul>
-      <div class="pc-sum${multi ? " sub" : ""}"><span>${multi ? `รวมครั้งที่ ${i + 1}` : "รวม"}</span><span>${num(o.amount)} บาท</span></div>
+  // คนที่สั่งหลายครั้ง รวมรายการเป็นชุดเดียว (บวกจำนวนชิ้นเดียวกันเข้าด้วยกัน) ให้จัดของง่าย
+  const merged = mergeOrders(list);
+  const head_html = multi
+    ? `<b>รวม ${list.length} ครั้ง</b> · ` + list.map(o => `แถว ${o.sheetRow} (${num(o.amount)})`).join(" · ")
+    : `แถว ${head.sheetRow}${head.timestamp ? ` · ${esc(head.timestamp)}` : ""}`;
+  const orders = `<div class="pc-order">
+      <div class="order-head">${head_html}</div>
+      <ul class="lines">${lineHtml(orderLines(merged, setIncludesCup))}</ul>
     </div>`;
-  }).join("");
 
   const n = list.length;
   const slips = withSlips ? `<div class="pc-slips">${list.map(o => o.slipId
@@ -1243,12 +1253,30 @@ function cardHtml(list, setIncludesCup, withSlips){
     <div class="pc-body${withSlips ? "" : " noslip"}">
       <div class="pc-col"><div class="pc-inner">
         ${orders}
-        ${multi ? `<div class="pc-sum"><span>รวมทั้งเบอร์ ${n} ครั้ง</span><span>${num(grand)} บาท</span></div>` : ""}
+        <div class="pc-sum"><span>${multi ? `รวมทั้งหมด (${n} ครั้ง)` : "รวม"}</span><span>${num(grand)} บาท</span></div>
       </div></div>
       ${slips}
     </div>
     <div class="pc-foot"><span><i class="pc-box"></i>จัดของครบ</span><span><i class="pc-box"></i>ส่งมอบแล้ว</span><span>ผู้รับ ..............................</span></div>
   </div>`;
+}
+
+function mergeOrders(list){
+  if (list.length === 1) return list[0];
+  const out = { sets:0, setAmount:0, combos:[], lines:[] };
+  const byId = {};
+  for (const o of list) {
+    out.sets += o.sets || o.combos.length;
+    out.setAmount += o.setAmount;
+    out.combos.push(...o.combos);
+    for (const l of o.lines) {
+      const m = byId[l.id] ||= (out.lines.push({ ...l, qty:0, amount:0 }), out.lines[out.lines.length - 1]);
+      m.qty += l.qty; m.amount += l.amount;
+    }
+  }
+  const rank = id => { const i = ITEMS.findIndex(x => x.id === id); return i < 0 ? 99 : i; };
+  out.lines.sort((a, b) => rank(a.id) - rank(b.id));
+  return out;
 }
 
 let CARD_PAGE_STYLE = null;
