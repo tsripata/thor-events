@@ -31,12 +31,12 @@
 
   <!-- Loading -->
   <section id="view-loading" class="view center">
-    <img src="/sprites/00-egg.webp?v=2" alt="" class="wobble" width="80">
+    <img src="/sprites/00-egg.webp?v=3" alt="" class="wobble" width="80">
   </section>
 
   <!-- Sign in -->
   <section id="view-login" class="view center" hidden>
-    <div class="egg-circle"><img src="/sprites/00-egg.webp?v=2" alt="A dragon egg" height="150"></div>
+    <div class="egg-circle"><img src="/sprites/00-egg.webp?v=3" alt="A dragon egg" height="150"></div>
     <h1 class="brand big">Thor's Reading Dragon</h1>
     <p class="lead">Read a book every day and watch the egg grow into a mighty dragon.</p>
     <button id="btn-google" class="btn btn-outline wide" type="button">
@@ -48,7 +48,7 @@
 
   <!-- Not on the allow-list -->
   <section id="view-denied" class="view center" hidden>
-    <div class="egg-circle"><img src="/sprites/00-egg.webp?v=2" alt="" height="150"></div>
+    <div class="egg-circle"><img src="/sprites/00-egg.webp?v=3" alt="" height="150"></div>
     <h1 class="brand">Not on the family list</h1>
     <p class="lead"><span id="denied-email"></span> can't open this app. Ask a parent to add it.</p>
     <button class="btn btn-outline wide js-signout" type="button">Use a different account</button>
@@ -78,7 +78,16 @@
         </span>
       </div>
       <div id="evolved-badge" class="evolved" hidden>IT EVOLVED!</div>
-      <div class="dragon-stage"><div id="dragon-walker" class="walker"><img id="dragon-img" alt=""></div></div>
+      <div class="dragon-stage">
+        <div id="dragon-walker" class="walker">
+          <div id="dragon-rig" class="rig">
+            <img id="dragon-img" alt="">
+            <img class="part leg-a" alt="" aria-hidden="true">
+            <img class="part leg-b" alt="" aria-hidden="true">
+            <div id="dragon-fire" class="fires" aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
       <h2 class="dragon-name" id="dragon-name"></h2>
       <div class="dragon-days" id="dragon-days"></div>
       <div class="progress" role="progressbar" aria-labelledby="progress-label" id="progress"><div id="progress-fill"></div></div>
