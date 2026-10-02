@@ -94,8 +94,23 @@ h1, h2 { margin: 0; font-family: "Fredoka", sans-serif; }
 }
 .avatar-btn img { width: 100%; height: 100%; object-fit: cover; }
 .card { background: var(--card); border: 2px solid var(--mint-line); border-radius: 18px; padding: 14px; }
-.menu { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.menu .muted { overflow-wrap: anywhere; }
+.menu { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.menu .muted { overflow-wrap: anywhere; flex-basis: 100%; }
+
+/* Choose a creature */
+.choose { display: flex; flex-direction: column; align-items: center; gap: 18px; width: 100%; }
+.choose-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 360px; }
+.choose-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 22px 10px;
+  border-radius: 24px; border: 3px solid #8cc7ea; background: #eaf6ff; color: #1d5a85; cursor: pointer;
+  font: 700 18px "Fredoka", sans-serif; box-shadow: 0 6px 0 #8cc7ea;
+}
+.choose-btn.female { border-color: #f2a6cf; background: #fff0f7; color: #8f2a63; box-shadow: 0 6px 0 #f2a6cf; }
+.choose-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 currentColor; }
+.choose-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.choose-btn[disabled] { opacity: .6; cursor: progress; }
+.choose-symbol { font-size: 44px; line-height: 1; }
+#reveal-img { max-width: 160px; object-fit: contain; }
 
 /* Dragon card */
 .dragon-card {
@@ -115,7 +130,7 @@ h1, h2 { margin: 0; font-family: "Fredoka", sans-serif; }
 
 /* ---- Idle animation ----
    .walker strolls a few steps left, turns, and walks back (not for eggs).
-   .rig holds the sprite: eggs wriggle, grubs squirm, legged stages bob and step, dragons breathe fire. */
+   .rig holds the sprite: eggs wriggle, babies squirm, legged stages bob and step, flyers hover, some breathe fire. */
 .walker { animation: stroll 9s ease-in-out infinite; }
 .walker.stay { animation: none; }
 @keyframes stroll {
@@ -155,6 +170,9 @@ h1, h2 { margin: 0; font-family: "Fredoka", sans-serif; }
 .rig.walk .leg-a { clip-path: inset(calc(100% - var(--band)) calc(100% - var(--split)) 0 0); }
 .rig.walk .leg-b { clip-path: inset(calc(100% - var(--band)) 0 0 var(--split)); animation-delay: -.45s; }
 @keyframes step { 0%, 100% { transform: skewX(16deg); } 50% { transform: skewX(-16deg); } }
+
+.rig.fly { animation: hover 1.6s ease-in-out infinite alternate; }
+@keyframes hover { from { transform: translateY(0) rotate(-2deg); } to { transform: translateY(-14px) rotate(2deg); } }
 
 /* Fire breath: every few seconds a tapered jet of billowing flame bursts from each mouth.
    Sprites face left, so the jet points left from the mouth; it flips with the walker. */

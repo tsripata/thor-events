@@ -24,29 +24,28 @@ Omega Hydra-Archon after 100 reading days.
 - Only today's log can be undone (to fix a typo). Past days are locked.
 - Photos are resized in the browser to 1280px JPEG before upload (max 8 MB).
 
-## Evolution stages
+## Creatures
 
-| # | Stage | Reading days |
+The first time Thor opens the app he picks a **boy or girl creature** and gets a random creature
+of that kind. Every creature has its own 17-stage evolution path, from egg to legend at 100 reading days.
+"Pick a new creature" in the account menu swaps it (reading days are kept).
+
+| Creature | Kind | Art |
 |---|---|---|
-| 1 | Egg | 0 |
-| 2 | Hatching Egg | 1 |
-| 3 | Hatchling | 2 |
-| 4 | Wiggler | 3 |
-| 5 | Aqua-Liz | 5 |
-| 6 | Scale-Mote | 7 |
-| 7 | Little Croc | 9 |
-| 8 | Canyon Croc | 12 |
-| 9 | Armored Croc | 15 |
-| 10 | Drake | 19 |
-| 11 | Wyvern | 24 |
-| 12 | Wyvern Lord | 30 |
-| 13 | Twin-Head Drake | 37 |
-| 14 | Twin-Head Elder | 45 |
-| 15 | Tri-Head Warden | 55 |
-| 16 | Five-Head Emperor | 70 |
-| 17 | Omega Hydra-Archon | 100 |
+| Croc Dragon (Egg → Omega Hydra-Archon) | Boy | Hand-made, `public/sprites/croc-dragon/` |
+| Dino (Speckled Egg → Titan Rex) | Boy | Drawn by `tools/draw-creatures.mjs` |
+| Unicorn (Pearl Egg → Celestial Empress) | Girl | Drawn by `tools/draw-creatures.mjs` |
+| Phoenix (Ember Egg → Eternal Phoenix) | Girl | Drawn by `tools/draw-creatures.mjs` |
 
-Change the thresholds in `public/stages.js`.
+All four share these thresholds (each creature can set its own):
+
+| Stage | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Reading days | 0 | 1 | 2 | 3 | 5 | 7 | 9 | 12 | 15 | 19 | 24 | 30 | 37 | 45 | 55 | 70 | 100 |
+
+**Adding a creature:** see the comment at the top of `public/creatures/index.js`. Either drop hand-made
+sprites in `public/sprites/<id>/` and write a module like `croc-dragon.js`, or add a draw function to
+`tools/draw-creatures.mjs` and run `node tools/draw-creatures.mjs`. Then list it in `CREATURES`.
 
 ---
 
@@ -60,7 +59,7 @@ Change the thresholds in `public/stages.js`.
 ## Phase 1: MVP code ✅
 
 - [x] Database schema with RLS lock-down and private photo bucket
-- [x] API: `GET /api/config`, `GET /api/state`, `POST /api/logs`, `DELETE /api/logs/:id`
+- [x] API: `GET /api/config`, `GET /api/state`, `POST /api/logs`, `DELETE /api/logs/:id`, `POST /api/creature`
 - [x] Google sign-in + family allow-list
 - [x] Home: dragon avatar, stage, streak, progress to next evolution, recent books
 - [x] Log a book: title, note, take/choose photo, once per day
@@ -102,6 +101,7 @@ Change the thresholds in `public/stages.js`.
 
 ## Change log
 
+- 2026-10-02: Pick a boy or girl creature; 4 creatures (Croc Dragon, Dino, Unicorn, Phoenix), 17 stages each. Code is creature-generic.
 - 2026-10-02: Phases 0 and 1 done.
 - 2026-10-02: Much sharper sprites (Real-ESRGAN anime), stepping legs, egg wriggle, fire breath for dragons.
 - 2026-10-02: Faster early evolutions (one every 1-2 reading days), sharper sprites, idle walking animation.

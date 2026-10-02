@@ -7,7 +7,7 @@
 > npm run demo     # then open http://localhost:8788
 > ```
 > "Continue with Google" signs you straight in as a demo parent. The **Next day** and **+5 reading days**
-> buttons move time forward so you can watch the dragon evolve. Data is lost when you stop it (Ctrl+C).
+> buttons move time forward so you can watch the creature evolve. Data is lost when you stop it (Ctrl+C).
 
 About 30 minutes, all free. You need three accounts: **Supabase**, **Google Cloud** and **Cloudflare**.
 Dashboard menu names change from time to time; if a step doesn't match exactly, look for the nearest equivalent.
