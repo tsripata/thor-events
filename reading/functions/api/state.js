@@ -1,5 +1,5 @@
 import { supabase } from '../../lib/supabase.js';
-import { PHOTO_BUCKET, json, todayIn, timezone, streakFrom, getReader } from '../../lib/util.js';
+import { PHOTO_BUCKET, json, currentDate, streakFrom, getReader } from '../../lib/util.js';
 
 const RECENT = 10;
 
@@ -7,7 +7,7 @@ const RECENT = 10;
 export async function onRequestGet({ env, data }) {
   const db = supabase(env);
   const reader = await getReader(db);
-  const today = todayIn(timezone(env));
+  const today = await currentDate(env);
 
   const logs = await db.select(
     'reading_logs',

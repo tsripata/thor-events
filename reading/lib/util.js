@@ -36,6 +36,14 @@ export function timezone(env) {
   return env.APP_TIMEZONE || 'Asia/Bangkok';
 }
 
+// The date logs are filed under. In demo mode (npm run demo) the clock can be moved forward.
+export async function currentDate(env) {
+  const today = todayIn(timezone(env));
+  if (env.DEMO !== '1') return today;
+  const { offset } = await fetch(`${env.SUPABASE_URL}/demo/offset`).then((r) => r.json());
+  return addDays(today, offset);
+}
+
 // The child whose reading is tracked. One reader for now (see PLAN.md, Phase 4).
 export async function getReader(db) {
   const rows = await db.select('readers', 'select=id,name&order=created_at.asc&limit=1');

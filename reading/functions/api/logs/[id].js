@@ -1,5 +1,5 @@
 import { supabase } from '../../../lib/supabase.js';
-import { PHOTO_BUCKET, json, todayIn, timezone, getReader } from '../../../lib/util.js';
+import { PHOTO_BUCKET, json, currentDate, getReader } from '../../../lib/util.js';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -9,7 +9,7 @@ export async function onRequestDelete({ params, env }) {
 
   const db = supabase(env);
   const reader = await getReader(db);
-  const today = todayIn(timezone(env));
+  const today = await currentDate(env);
 
   const [log] = await db.select(
     'reading_logs',

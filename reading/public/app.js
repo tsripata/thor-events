@@ -1,4 +1,3 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 import { STAGES, stageFor } from './stages.js';
 
 const $ = (id) => document.getElementById(id);
@@ -19,9 +18,15 @@ async function start() {
   try {
     const cfg = await fetch('/api/config').then((r) => r.json());
     if (cfg.error) throw new Error(cfg.error);
-    supabase = createClient(cfg.supabaseUrl, cfg.supabasePublishableKey, {
-      auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
-    });
+    if (cfg.demo) {
+      supabase = demoAuth();
+      $('demo-bar').hidden = false;
+    } else {
+      const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+      supabase = createClient(cfg.supabaseUrl, cfg.supabasePublishableKey, {
+        auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+      });
+    }
   } catch (err) {
     showView('login');
     toast(`Can't reach the server: ${err.message}`);
@@ -258,7 +263,7 @@ $('log-form').addEventListener('submit', async (e) => {
     resetLogForm();
     await refresh();
     celebrateFrom = before;
-    location.hash = '';
+    history.replaceState(null, '', location.pathname); // no hashchange, so the celebration isn't redrawn away
     route();
   } catch (err) {
     error.textContent = err.message;
@@ -335,6 +340,37 @@ for (const btn of document.querySelectorAll('.js-signout')) {
     await supabase.auth.signOut();
     state = null;
     showView('login');
+  });
+}
+
+// ---------- Demo mode (npm run demo) ----------
+
+// Stands in for Supabase login: "Continue with Google" signs straight in as a demo parent.
+function demoAuth() {
+  let session = { access_token: 'demo' };
+  return {
+    auth: {
+      onAuthStateChange() {},
+      async getSession() { return { data: { session } }; },
+      async signOut() { session = null; },
+      async signInWithOAuth() { session = { access_token: 'demo' }; await refresh(); route(); return {}; },
+    },
+  };
+}
+
+for (const [id, action] of [['demo-next-day', 'next-day'], ['demo-skip', 'skip-ahead']]) {
+  $(id).addEventListener('click', async () => {
+    try {
+      const before = state.totalDays;
+      await api(`/api/demo/${action}`, { method: 'POST' });
+      await refresh();
+      if (state.totalDays !== before) celebrateFrom = before;
+      history.replaceState(null, '', location.pathname); // no hashchange, so the celebration isn't redrawn away
+      route();
+      if (action === 'next-day') toast(`It's now ${formatLong(state.today)}`);
+    } catch (err) {
+      toast(err.message);
+    }
   });
 }
 

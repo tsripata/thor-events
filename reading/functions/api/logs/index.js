@@ -1,5 +1,5 @@
 import { supabase } from '../../../lib/supabase.js';
-import { PHOTO_BUCKET, json, todayIn, timezone, getReader } from '../../../lib/util.js';
+import { PHOTO_BUCKET, json, currentDate, getReader } from '../../../lib/util.js';
 
 const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
 const PHOTO_TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
@@ -29,7 +29,7 @@ export async function onRequestPost({ request, env, data }) {
 
   const db = supabase(env);
   const reader = await getReader(db);
-  const today = todayIn(timezone(env));
+  const today = await currentDate(env);
 
   const existing = await db.select('reading_logs', `select=id&reader_id=eq.${reader.id}&read_date=eq.${today}`);
   if (existing.length) return json({ error: 'Already read today. Come back tomorrow!' }, 409);

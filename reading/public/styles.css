@@ -196,6 +196,13 @@ h1, h2 { margin: 0; font-family: "Fredoka", sans-serif; }
   max-width: calc(100% - 32px); text-align: center; z-index: 10;
 }
 
+.demo-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+  background: var(--warn-bg); color: var(--warn-ink); border: 2px dashed var(--amber);
+  border-radius: 16px; padding: 8px 10px; margin-bottom: 16px; font-size: 14px;
+}
+.demo-actions { display: flex; gap: 8px; }
+
 @media (prefers-reduced-motion: reduce) {
   .wobble, .grow, .munch { animation: none; }
   #progress-fill { transition: none; }

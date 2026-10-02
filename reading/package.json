@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "demo": "node demo/run.mjs",
     "dev": "wrangler pages dev",
     "deploy": "wrangler pages deploy"
   },
