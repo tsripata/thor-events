@@ -2,8 +2,8 @@
 // App files: network first (so updates show up), cached as a fallback.
 // Sprites and icons: cache first (they never change).
 // /api and other sites: never cached.
-const CACHE = 'reading-dragon-v1';
-const SHELL = ['/', '/index.html', '/styles.css', '/app.js', '/stages.js', '/manifest.webmanifest', '/sprites/00-egg.webp'];
+const CACHE = 'reading-dragon-v2';
+const SHELL = ['/', '/index.html', '/styles.css', '/app.js', '/stages.js', '/manifest.webmanifest', '/sprites/00-egg.webp?v=2'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
