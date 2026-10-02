@@ -20,6 +20,15 @@
 <body>
 <main id="app">
 
+  <!-- Only shown by `npm run demo` -->
+  <div id="demo-bar" class="demo-bar" hidden>
+    <strong>DEMO</strong>
+    <span class="demo-actions">
+      <button id="demo-next-day" type="button" class="btn btn-small btn-outline">Next day</button>
+      <button id="demo-skip" type="button" class="btn btn-small btn-outline">+5 reading days</button>
+    </span>
+  </div>
+
   <!-- Loading -->
   <section id="view-loading" class="view center">
     <img src="/sprites/00-egg.webp" alt="" class="wobble" width="80">

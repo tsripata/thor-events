@@ -68,6 +68,7 @@ Change the thresholds in `public/stages.js`.
 - [x] Evolution path screen (locked stages shown as silhouettes)
 - [x] PWA: manifest, service worker, installable
 - [x] Tested locally against a mock Supabase (API + browser flow)
+- [x] `npm run demo`: try it locally with no accounts, with time-travel buttons
 
 ## Phase 2: Go live ⏳ (needs you, see [SETUP.md](SETUP.md))
 
@@ -99,3 +100,4 @@ Change the thresholds in `public/stages.js`.
 ## Change log
 
 - 2026-10-02: Phases 0 and 1 done.
+- 2026-10-02: Added demo mode; fixed the evolution celebration disappearing right after saving.
