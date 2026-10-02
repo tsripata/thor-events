@@ -30,20 +30,20 @@ Omega Hydra-Archon after 100 reading days.
 |---|---|---|
 | 1 | Egg | 0 |
 | 2 | Hatching Egg | 1 |
-| 3 | Hatchling | 3 |
-| 4 | Wiggler | 5 |
-| 5 | Aqua-Liz | 7 |
-| 6 | Scale-Mote | 10 |
-| 7 | Little Croc | 14 |
-| 8 | Canyon Croc | 18 |
-| 9 | Armored Croc | 22 |
-| 10 | Drake | 27 |
-| 11 | Wyvern | 32 |
-| 12 | Wyvern Lord | 38 |
-| 13 | Twin-Head Drake | 45 |
-| 14 | Twin-Head Elder | 52 |
-| 15 | Tri-Head Warden | 60 |
-| 16 | Five-Head Emperor | 75 |
+| 3 | Hatchling | 2 |
+| 4 | Wiggler | 3 |
+| 5 | Aqua-Liz | 5 |
+| 6 | Scale-Mote | 7 |
+| 7 | Little Croc | 9 |
+| 8 | Canyon Croc | 12 |
+| 9 | Armored Croc | 15 |
+| 10 | Drake | 19 |
+| 11 | Wyvern | 24 |
+| 12 | Wyvern Lord | 30 |
+| 13 | Twin-Head Drake | 37 |
+| 14 | Twin-Head Elder | 45 |
+| 15 | Tri-Head Warden | 55 |
+| 16 | Five-Head Emperor | 70 |
 | 17 | Omega Hydra-Archon | 100 |
 
 Change the thresholds in `public/stages.js`.
@@ -86,7 +86,9 @@ Change the thresholds in `public/stages.js`.
 - [ ] Name the dragon
 - [ ] Bigger evolution animation (sparkles, sound)
 - [ ] Streak badges / milestones (7, 30, 100 days)
-- [ ] Higher-quality sprite art (the current ones are cut from one image, so they're small)
+- [x] Sharper sprites (AI-upscaled 4x with EDSR, backgrounds re-cut)
+- [x] Idle animation: the dragon strolls a few steps and back; eggs rock
+- [ ] Brand-new higher-detail sprite art (e.g. generated with Higgsfield)
 
 ## Phase 4: Extras (ideas)
 
@@ -100,4 +102,5 @@ Change the thresholds in `public/stages.js`.
 ## Change log
 
 - 2026-10-02: Phases 0 and 1 done.
+- 2026-10-02: Faster early evolutions (one every 1-2 reading days), sharper sprites, idle walking animation.
 - 2026-10-02: Added demo mode; fixed the evolution celebration disappearing right after saving.

@@ -1,4 +1,4 @@
-import { STAGES, stageFor } from './stages.js';
+import { STAGES, stageFor, spriteUrl } from './stages.js';
 
 const $ = (id) => document.getElementById(id);
 const VIEWS = ['loading', 'login', 'denied', 'home', 'log', 'evolution'];
@@ -107,9 +107,10 @@ function renderHome() {
   $('streak-label').textContent = `${streak}-day streak`;
 
   const img = $('dragon-img');
-  img.src = `/sprites/${s.stage.file}`;
+  img.src = spriteUrl(s.stage.file);
   img.alt = `${s.stage.name}, Thor's dragon at stage ${s.index + 1}`;
   img.style.height = `${Math.min(110 + s.index * 7, 220)}px`;
+  $('dragon-walker').classList.toggle('egg', s.index < 2); // eggs rock gently instead of walking
 
   $('dragon-name').textContent = s.stage.name;
   $('dragon-days').textContent = `${totalDays} reading ${totalDays === 1 ? 'day' : 'days'}`;
@@ -211,6 +212,11 @@ async function undoToday(log) {
   }
 }
 
+// After the celebration plays, go back to the idle bounce.
+$('dragon-img').addEventListener('animationend', (e) => {
+  if (e.animationName === 'grow' || e.animationName === 'munch') e.target.classList.remove('grow', 'munch');
+});
+
 // ---------- Log a book ----------
 
 function renderLog() {
@@ -310,7 +316,7 @@ function renderEvolution() {
     li.className = `evo${i === current ? ' current' : ''}${got ? '' : ' locked'}`;
     li.innerHTML = '<div class="evo-img"><img></div><div class="evo-name"></div><div class="evo-days"></div>';
     const img = li.querySelector('img');
-    img.src = `/sprites/${s.file}`;
+    img.src = spriteUrl(s.file);
     img.alt = got ? s.name : 'Locked stage';
     img.loading = 'lazy';
     li.querySelector('.evo-name').textContent = got ? s.name : '???';

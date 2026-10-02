@@ -110,7 +110,23 @@ h1, h2 { margin: 0; font-family: "Fredoka", sans-serif; }
   width: 100%; height: 240px; border-radius: 22px; background: var(--mint-soft);
   display: flex; align-items: flex-end; justify-content: center; overflow: hidden;
 }
-.dragon-stage img { max-width: 92%; object-fit: contain; margin-bottom: 14px; transform-origin: bottom center; }
+.walker { max-width: 92%; display: flex; justify-content: center; margin-bottom: 14px; }
+.dragon-stage img { max-width: 100%; object-fit: contain; transform-origin: bottom center; }
+
+/* Idle animation: the dragon strolls a few steps, turns around and walks back, with a little bounce. */
+.walker { animation: stroll 9s ease-in-out infinite; }
+.walker img { animation: bob .9s ease-in-out infinite; }
+.walker.egg { animation: none; }
+.walker.egg img { animation: rock 3s ease-in-out infinite; }
+@keyframes stroll {
+  0%   { transform: translateX(10px) scaleX(1); }
+  44%  { transform: translateX(-10px) scaleX(1); }
+  50%  { transform: translateX(-10px) scaleX(-1); }
+  94%  { transform: translateX(10px) scaleX(-1); }
+  100% { transform: translateX(10px) scaleX(1); }
+}
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes rock { 0%, 70%, 100% { transform: rotate(0); } 78% { transform: rotate(-4deg); } 86% { transform: rotate(4deg); } 93% { transform: rotate(-2deg); } }
 .dragon-name { font-weight: 700; font-size: 26px; text-align: center; }
 .dragon-days { font-size: 15px; font-weight: 700; color: var(--muted); }
 .progress { align-self: stretch; height: 14px; background: var(--mint-track); border-radius: 999px; overflow: hidden; }
@@ -126,9 +142,9 @@ h1, h2 { margin: 0; font-family: "Fredoka", sans-serif; }
 .dragon-card.celebrate .pill { background: #fff; color: var(--teal); }
 .dragon-card.celebrate .streak { color: #ffd59a; }
 .evolved { background: var(--amber); color: var(--amber-ink); border-radius: 999px; padding: 6px 14px; font-size: 14px; font-weight: 800; letter-spacing: .04em; }
-.grow { animation: grow 1.1s cubic-bezier(.3, 1.6, .5, 1) both; }
+.walker img.grow { animation: grow 1.1s cubic-bezier(.3, 1.6, .5, 1) both; }
 @keyframes grow { 0% { transform: scale(.3); opacity: 0; } 60% { transform: scale(1.12); opacity: 1; } 100% { transform: scale(1); } }
-.munch { animation: munch .7s ease both; }
+.walker img.munch { animation: munch .7s ease both; }
 @keyframes munch { 0%, 100% { transform: scale(1); } 30% { transform: scale(1.08) translateY(-6px); } 60% { transform: scale(.97); } }
 
 .done-today {
@@ -204,6 +220,6 @@ h1, h2 { margin: 0; font-family: "Fredoka", sans-serif; }
 .demo-actions { display: flex; gap: 8px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .wobble, .grow, .munch { animation: none; }
+  .wobble, .walker, .walker img, .walker img.grow, .walker img.munch { animation: none; }
   #progress-fill { transition: none; }
 }
