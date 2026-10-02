@@ -1,0 +1,16 @@
+{
+  "name": "Thor's Reading Dragon",
+  "short_name": "Reading Dragon",
+  "description": "Read a book every day and watch the egg grow into a mighty dragon.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#e6f5ec",
+  "theme_color": "#e6f5ec",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#e6f5ec">
+<meta name="description" content="Read a book every day and watch Thor's egg grow into a mighty dragon.">
+<title>Thor's Reading Dragon</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Reading Dragon">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+<script type="module" src="/app.js"></script>
+</head>
+<body>
+<main id="app">
+
+  <!-- Loading -->
+  <section id="view-loading" class="view center">
+    <img src="/sprites/00-egg.webp" alt="" class="wobble" width="80">
+  </section>
+
+  <!-- Sign in -->
+  <section id="view-login" class="view center" hidden>
+    <div class="egg-circle"><img src="/sprites/00-egg.webp" alt="A dragon egg" height="150"></div>
+    <h1 class="brand big">Thor's Reading Dragon</h1>
+    <p class="lead">Read a book every day and watch the egg grow into a mighty dragon.</p>
+    <button id="btn-google" class="btn btn-outline wide" type="button">
+      <span class="g-badge" aria-hidden="true">G</span>
+      <span>Continue with Google</span>
+    </button>
+    <p class="small">Only family accounts can sign in.</p>
+  </section>
+
+  <!-- Not on the allow-list -->
+  <section id="view-denied" class="view center" hidden>
+    <div class="egg-circle"><img src="/sprites/00-egg.webp" alt="" height="150"></div>
+    <h1 class="brand">Not on the family list</h1>
+    <p class="lead"><span id="denied-email"></span> can't open this app. Ask a parent to add it.</p>
+    <button class="btn btn-outline wide js-signout" type="button">Use a different account</button>
+  </section>
+
+  <!-- Home -->
+  <section id="view-home" class="view" hidden>
+    <header class="topbar">
+      <div>
+        <h1 class="brand">Thor's Reading Dragon</h1>
+        <div class="muted" id="today-label"></div>
+      </div>
+      <button id="btn-account" class="avatar-btn" type="button" aria-label="Account"></button>
+    </header>
+
+    <div id="account-menu" class="card menu" hidden>
+      <div class="muted" id="account-email"></div>
+      <button class="btn btn-small btn-outline js-signout" type="button">Sign out</button>
+    </div>
+
+    <article id="dragon-card" class="dragon-card">
+      <div class="dragon-top">
+        <span class="pill" id="stage-pill"></span>
+        <span class="streak" id="streak">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-3 2-4 2-7 2 1 3 3 3 5"/></svg>
+          <span id="streak-label"></span>
+        </span>
+      </div>
+      <div id="evolved-badge" class="evolved" hidden>IT EVOLVED!</div>
+      <div class="dragon-stage"><img id="dragon-img" alt=""></div>
+      <h2 class="dragon-name" id="dragon-name"></h2>
+      <div class="dragon-days" id="dragon-days"></div>
+      <div class="progress" role="progressbar" aria-labelledby="progress-label" id="progress"><div id="progress-fill"></div></div>
+      <div class="progress-text"><span id="progress-label"></span><span id="progress-next"></span></div>
+    </article>
+
+    <a href="#log" id="btn-read" class="btn btn-primary big" hidden>
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      <span>We read a book today</span>
+    </a>
+    <div id="done-today" class="done-today" hidden>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2a9d8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+      <span>Read today. Come back tomorrow!</span>
+    </div>
+
+    <div class="section-head">
+      <h2>Recent books</h2>
+      <a href="#evolution">Evolution path</a>
+    </div>
+    <ul id="recent" class="book-list"></ul>
+    <p id="recent-empty" class="muted" hidden>No books yet. Read one today to hatch the egg!</p>
+  </section>
+
+  <!-- Log a book -->
+  <section id="view-log" class="view" hidden>
+    <header class="topbar left">
+      <a href="#" class="icon-btn" aria-label="Back">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      </a>
+      <div>
+        <h1 class="brand">What did we read?</h1>
+        <div class="muted" id="log-date"></div>
+      </div>
+    </header>
+
+    <form id="log-form" class="log-form" novalidate>
+      <div class="photo-box" id="photo-box">
+        <img id="photo-preview" alt="Photo of the book" hidden>
+        <div id="photo-empty" class="photo-empty">
+          <div class="cam-circle">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </div>
+          <div class="photo-title">Add a photo of the book</div>
+        </div>
+      </div>
+      <div class="photo-actions">
+        <label class="btn btn-outline">
+          <input type="file" accept="image/*" capture="environment" id="photo-camera" class="visually-hidden">
+          Take photo
+        </label>
+        <label class="btn btn-outline">
+          <input type="file" accept="image/*" id="photo-library" class="visually-hidden">
+          Choose photo
+        </label>
+      </div>
+
+      <label for="title" class="field-label">Book title</label>
+      <input id="title" name="title" type="text" maxlength="200" required placeholder="e.g. The Gruffalo" autocomplete="off">
+
+      <label for="note" class="field-label">Note (optional)</label>
+      <input id="note" name="note" type="text" maxlength="500" placeholder="Thor's favourite part…" autocomplete="off">
+
+      <div class="hint">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        <span>One book log per day. It feeds the dragon!</span>
+      </div>
+      <p id="log-error" class="error" role="alert" hidden></p>
+      <button type="submit" id="btn-save" class="btn btn-primary big">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+        <span>Save and feed the dragon</span>
+      </button>
+    </form>
+  </section>
+
+  <!-- Evolution path -->
+  <section id="view-evolution" class="view" hidden>
+    <header class="topbar left">
+      <a href="#" class="icon-btn" aria-label="Back">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      </a>
+      <div>
+        <h1 class="brand">Evolution path</h1>
+        <div class="muted" id="evo-summary"></div>
+      </div>
+    </header>
+    <ol id="evo-grid" class="evo-grid"></ol>
+  </section>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+</main>
+</body>
+</html>

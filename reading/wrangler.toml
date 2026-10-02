@@ -1,0 +1,9 @@
+# Cloudflare Pages project for Thor's Reading Dragon.
+# Secrets (SUPABASE_SECRET_KEY etc.) are NOT stored here: set them in the
+# Cloudflare dashboard, or in .dev.vars for local development.
+name = "thor-reading-dragon"
+compatibility_date = "2026-09-01"
+pages_build_output_dir = "public"
+
+[vars]
+APP_TIMEZONE = "Asia/Bangkok"
