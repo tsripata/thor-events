@@ -86,9 +86,10 @@ Change the thresholds in `public/stages.js`.
 - [ ] Name the dragon
 - [ ] Bigger evolution animation (sparkles, sound)
 - [ ] Streak badges / milestones (7, 30, 100 days)
-- [x] Sharper sprites (AI-upscaled 4x with EDSR, backgrounds re-cut)
-- [x] Idle animation: the dragon strolls a few steps and back; eggs rock
-- [ ] Brand-new higher-detail sprite art (e.g. generated with Higgsfield)
+- [x] Sharper sprites (AI-upscaled 4x with Real-ESRGAN anime model, backgrounds re-cut)
+- [x] Idle animation: strolls a few steps and back; legs step; eggs wriggle; grubs squirm
+- [x] Dragons (Drake onward) breathe fire from each mouth every few seconds
+- [ ] Brand-new higher-detail sprite art and a real animated clip for the final stage (needs a paid Higgsfield plan; the free plan can't generate)
 
 ## Phase 4: Extras (ideas)
 
@@ -102,5 +103,6 @@ Change the thresholds in `public/stages.js`.
 ## Change log
 
 - 2026-10-02: Phases 0 and 1 done.
+- 2026-10-02: Much sharper sprites (Real-ESRGAN anime), stepping legs, egg wriggle, fire breath for dragons.
 - 2026-10-02: Faster early evolutions (one every 1-2 reading days), sharper sprites, idle walking animation.
 - 2026-10-02: Added demo mode; fixed the evolution celebration disappearing right after saving.

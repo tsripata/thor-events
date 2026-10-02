@@ -107,10 +107,10 @@ function renderHome() {
   $('streak-label').textContent = `${streak}-day streak`;
 
   const img = $('dragon-img');
-  img.src = spriteUrl(s.stage.file);
+  const rig = $('dragon-rig');
   img.alt = `${s.stage.name}, Thor's dragon at stage ${s.index + 1}`;
   img.style.height = `${Math.min(110 + s.index * 7, 220)}px`;
-  $('dragon-walker').classList.toggle('egg', s.index < 2); // eggs rock gently instead of walking
+  rigDragon(rig, s.stage);
 
   $('dragon-name').textContent = s.stage.name;
   $('dragon-days').textContent = `${totalDays} reading ${totalDays === 1 ? 'day' : 'days'}`;
@@ -127,18 +127,17 @@ function renderHome() {
   // Celebrate the book we just logged.
   const card = $('dragon-card');
   card.classList.remove('celebrate');
-  img.classList.remove('grow', 'munch');
   $('evolved-badge').hidden = true;
   if (celebrateFrom !== null) {
     const evolved = stageFor(celebrateFrom).index !== s.index;
-    void img.offsetWidth; // restart the animation
+    void rig.offsetWidth; // restart the animation
     if (evolved) {
       card.classList.add('celebrate');
       $('evolved-badge').hidden = false;
-      img.classList.add('grow');
+      rig.classList.add('grow');
       toast(`Your dragon evolved into ${s.stage.name}!`);
     } else {
-      img.classList.add('munch');
+      rig.classList.add('munch');
       toast(`Yum! Day ${totalDays} done.`);
     }
     celebrateFrom = null;
@@ -212,9 +211,35 @@ async function undoToday(log) {
   }
 }
 
-// After the celebration plays, go back to the idle bounce.
-$('dragon-img').addEventListener('animationend', (e) => {
-  if (e.animationName === 'grow' || e.animationName === 'munch') e.target.classList.remove('grow', 'munch');
+// Sets up the idle animation for a stage: eggs wriggle, grubs squirm, legged stages step
+// (the sprite's bottom band is split into front and back legs that swing in turn), dragons breathe fire.
+function rigDragon(rig, stage) {
+  const src = spriteUrl(stage.file);
+  for (const el of rig.querySelectorAll('img')) el.src = src;
+  rig.className = `rig ${stage.motion}`;
+  $('dragon-walker').classList.toggle('stay', stage.motion === 'egg');
+  if (stage.legs) {
+    rig.style.setProperty('--band', `${stage.legs.band * 100}%`);
+    rig.style.setProperty('--split', `${stage.legs.split * 100}%`);
+  }
+  $('dragon-fire').replaceChildren(...(stage.mouths || []).map(([x, y, angle, size = 1], i) => {
+    const fire = document.createElement('div');
+    fire.className = 'fire';
+    fire.style.left = `${x * 100}%`;
+    fire.style.top = `${y * 100}%`;
+    fire.style.setProperty('--angle', `${angle}deg`);
+    fire.style.setProperty('--size', size);
+    fire.style.animationDelay = `${i * 0.15}s`;
+    fire.innerHTML = '<div class="jet"><i class="cone"></i><span></span><span></span><span></span><span></span><span></span></div>';
+    return fire;
+  }));
+}
+
+// After the celebration plays, go back to the idle animation.
+$('dragon-rig').addEventListener('animationend', (e) => {
+  if (e.target === e.currentTarget && (e.animationName === 'grow' || e.animationName === 'munch')) {
+    e.currentTarget.classList.remove('grow', 'munch');
+  }
 });
 
 // ---------- Log a book ----------
