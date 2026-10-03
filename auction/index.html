@@ -99,6 +99,12 @@ main{max-width:1120px;margin:0 auto;padding:12px 16px 72px}
   font:inherit;font-size:14px;padding:6px 10px;border-radius:10px;border:2px solid #eadfc2;
   background:var(--paper-2);color:var(--ink)
 }
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.controls label{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--dim);min-width:0}
+#pick{width:min(420px,100%);min-width:0;text-overflow:ellipsis}
+.controls label:first-child{flex:1 1 260px;max-width:480px}
+@media (max-width:560px){.controls{width:100%}.controls label{width:100%}.controls select{flex:1;width:auto}}
+.show-all{border:0;background:none;color:var(--red-deep);font-weight:600;padding:0}
 .lots{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:22px;margin-top:10px}
 .lot{
   position:relative;background:var(--paper-2);border-radius:22px;padding:18px 14px 14px;
@@ -216,6 +222,12 @@ footer{max-width:1120px;margin:0 auto;padding:0 16px 40px;color:var(--dim);font-
   <section>
     <div class="lots-head">
       <h2>🎁 ของประมูลทั้งหมด</h2>
+      <div class="controls">
+      <label>ดูของ
+        <select id="pick" aria-label="เลือกของประมูล">
+          <option value="">ทั้งหมด</option>
+        </select>
+      </label>
       <label>เรียงตาม
         <select id="sort">
           <option value="no">หมายเลข</option>
@@ -225,6 +237,7 @@ footer{max-width:1120px;margin:0 auto;padding:0 16px 40px;color:var(--dim);font-
           <option value="empty">ยังไม่มีคนประมูล</option>
         </select>
       </label>
+      </div>
     </div>
     <div class="lots" id="lots"><p class="skeleton">กำลังโหลดของประมูล…</p></div>
   </section>
@@ -565,6 +578,19 @@ function formUrl(it){
   return u.toString();
 }
 
+// Dropdown: "ทั้งหมด" + one option per item with its current top bid and leader. Keeps the selection across refreshes.
+function fillPicker(lots){
+  const sel = $("pick"), cur = sel.value;
+  const no = s => parseInt(s.item.no, 10) || 9999;
+  const opts = lots.slice().sort((a, b) => no(a) - no(b)).map(s => {
+    const L = s.leader;
+    const tail = L ? `${baht(L.amount)} บาท · ${L.who.main}` : `ยังไม่มีคนประมูล (เริ่ม ${baht(s.item.start)})`;
+    return `<option value="${esc(s.item.key)}">#${esc((s.item.no || "").padStart(2, "0"))} ${esc(s.item.name)} — ${esc(tail)}</option>`;
+  });
+  sel.innerHTML = `<option value="">ทั้งหมด (${lots.length} ชิ้น)</option>` + opts.join("");
+  sel.value = lots.some(s => s.item.key === cur) ? cur : "";
+}
+
 function sortLots(lots){
   const by = $("sort").value;
   const arr = lots.slice();
@@ -591,7 +617,12 @@ function render(changed){
     return `<span class="chip${i === 0 && changed.size ? " new" : ""}">${esc(b.who.main)} → #${esc((it.no || "").padStart(2, "0"))} <b>${baht(b.amount)}</b><span class="t">${timeAgo(b.time)}</span></span>`;
   }).join("");
 
-  $("lots").innerHTML = lots.length ? sortLots(lots).map(lotCard).join("")
+  fillPicker(lots);
+  const pick = $("pick").value;
+  const shown = pick ? lots.filter(s => s.item.key === pick) : sortLots(lots);
+  $("sort").disabled = !!pick;
+  $("lots").innerHTML = lots.length ? shown.map(lotCard).join("")
+    + (pick ? `<p class="skeleton"><button type="button" class="show-all" data-show-all>← ดูของทั้งหมด (${lots.length} ชิ้น)</button></p>` : "")
     : `<p class="skeleton">ยังไม่มีของประมูล เพิ่มรายการในแท็บ ${esc(CONFIG.ITEMS_SHEET)} ของชีท</p>`;
   changed.forEach(k => { const el = document.querySelector(`.lot[data-key="${CSS.escape(k)}"]`); if (el) el.classList.add("bump"); });
 
@@ -716,6 +747,17 @@ if (!DEMO) {
 }
 $("refreshBtn").addEventListener("click", load);
 $("sort").addEventListener("change", () => model && render(new Set()));
+$("pick").addEventListener("change", () => {
+  if (!model) return;
+  render(new Set());
+  try { history.replaceState(null, "", $("pick").value ? `#item-${$("pick").value}` : location.pathname + location.search); } catch (e) {}
+});
+$("lots").addEventListener("click", e => {
+  if (e.target.closest("[data-show-all]")) { $("pick").value = ""; $("pick").dispatchEvent(new Event("change")); }
+});
+// Deep link: …/auction/#item-3 opens with item 3 selected
+const hashPick = /^#item-(.+)$/.exec(location.hash);
+if (hashPick) $("pick").innerHTML += `<option value="${esc(decodeURIComponent(hashPick[1]))}" selected></option>`;
 $("lots").addEventListener("click", e => { const b = e.target.closest("[data-history]"); if (b) openHistory(b.dataset.history); });
 $("dlgClose").addEventListener("click", () => $("dlg").close());
 $("dlg").addEventListener("click", e => { if (e.target === $("dlg")) $("dlg").close(); });

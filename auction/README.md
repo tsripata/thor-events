@@ -104,6 +104,12 @@ The page walks the responses **in sheet order**, which is submission order, and 
 Badges: `ยังว่าง` = no bids yet, `ฮอต 🔥` = 5+ counted bids, `ผู้ชนะ 🏆` = winner after close.
 Sorting: item number, highest price, most bids, most recent, or unbid items first.
 
+**Item dropdown (ดูของ).** Above the grid is a dropdown. It defaults to **ทั้งหมด (N ชิ้น)**, which shows every item.
+Each option reads `#NN <name> — <top bid> บาท · <leader>`, or `ยังไม่มีคนประมูล (เริ่ม <start>)` when nobody has bid.
+Picking one shows only that card, plus a "← ดูของทั้งหมด" link back. The sort control is disabled while one item is picked.
+The selection and the option labels survive the 20-second refresh.
+The URL updates to `#item-<no>`, so you can share a link straight to one item, e.g. `…/auction/#item-3`, or print it as a QR code on that item's poster.
+
 ## 6. Gotchas
 
 - **Keep the amount column numbers only.** Google's gviz endpoint guesses one type per column. If most answers are numbers and a few are text like `1,000 บาท`, the text ones come back **empty** and those bids are silently lost. Number validation on the form question prevents this.
@@ -119,7 +125,7 @@ To rebuild `auction/index.html` from scratch (by hand or with an AI assistant), 
 > Build `auction/index.html` as a single self-contained static page (no build step, GitHub Pages) for a Thai school charity auction.
 > Data: read a Google Sheet via `https://docs.google.com/spreadsheets/d/<ID>/gviz/tq?tqx=out:json&headers=1&gid=<gid>` (form responses) and `&sheet=Items` (catalog), parse the JSON out of the `setResponse(...)` wrapper, and map columns by header keywords exactly as in §2–3.
 > Logic: follow §5 exactly (sheet order, start price, minimum increment, first bidder wins ties, end-time cutoff, test-row filter, rejected bids kept with reasons).
-> UI (Thai): bunting header, event name in handwritten font (Mali), status pill with live dot + last-updated time + refresh button, optional countdown, 4 stat tiles, a horizontally scrolling "ประมูลล่าสุด" feed of the last 10 counted bids, then a grid of item cards styled after the poster: circular photo with a blue-grey ring and a 🎀 bow, a tilted wooden "Item no. NN" plank, and a lemon-yellow board in a brown wood frame holding name, description, donor, current price, 👑 leader (`คุณ<first name>` + `น้อง<nick> · รุ่น X`), bid count, next minimum, a "ประมูลชิ้นนี้" button (pre-filled form link) and a "ประวัติ" button that opens a history dialog.
+> UI (Thai): bunting header, event name in handwritten font (Mali), status pill with live dot + last-updated time + refresh button, optional countdown, 4 stat tiles, a horizontally scrolling "ประมูลล่าสุด" feed of the last 10 counted bids, then an item dropdown ("ทั้งหมด" by default; each option = item + current top bid + leader; picking one filters the grid to that card and sets `#item-<no>` for deep links) and a sort select, then a grid of item cards styled after the poster: circular photo with a blue-grey ring and a 🎀 bow, a tilted wooden "Item no. NN" plank, and a lemon-yellow board in a brown wood frame holding name, description, donor, current price, 👑 leader (`คุณ<first name>` + `น้อง<nick> · รุ่น X`), bid count, next minimum, a "ประมูลชิ้นนี้" button (pre-filled form link) and a "ประวัติ" button that opens a history dialog.
 > Palette: paper `#f6f0dc`, red `#e2553f`, olive `#7f8f52`, lemon `#e9ea8c`, ring `#a3a9c6`, wood `#9a4423`. Fonts: Mali (headings), Sarabun (body).
 > Behaviour: poll every 20 s (pause when the tab is hidden), animate cards and show a toast when an item's top bid rises, keep showing the last good data if a fetch fails, demo mode with fake data when no SHEET_ID or `?demo`. Escape all sheet text before inserting it into HTML. Never display phone numbers. Works at 390 px width with no horizontal scroll. Add `noindex` meta.
 > Also add a card linking to `auction/` in the root `index.html`.
