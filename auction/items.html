@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="theme-color" content="#f6f0dc">
+<title>รายการของประมูล — ตลาดน้ำจิตน้ำใจ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --paper:#f6f0dc;
+  --paper-2:#fffaf0;
+  --line:#eadfc2;
+  --ink:#3b2f27;
+  --dim:#857766;
+  --red:#e2553f;
+  --red-deep:#c23b28;
+  --olive:#7f8f52;
+  --olive-soft:#eef0dc;
+  --lemon:#e9ea8c;
+  --lemon-2:#f2f2b4;
+  --ring:#a3a9c6;
+  --wood:#9a4423;
+  --shadow:0 5px 0 rgba(59,47,39,.09);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Sarabun",-apple-system,"Segoe UI",Tahoma,sans-serif;
+  font-size:16px;line-height:1.5;font-variant-numeric:tabular-nums;overflow-x:hidden;
+}
+a{color:var(--red-deep)}
+button{font:inherit;cursor:pointer}
+.hand{font-family:"Mali","Sarabun",cursive}
+
+.bunting{display:block;width:100%;height:46px}
+.shell{max-width:880px;margin:0 auto;padding:0 16px}
+
+header{text-align:center;padding:2px 0 6px}
+.event{margin:0;color:var(--olive);font-size:clamp(16px,4vw,21px);font-weight:600}
+h1{margin:2px 0 4px;font-size:clamp(28px,7.5vw,42px);line-height:1.2;color:var(--red);font-weight:700}
+.lead{margin:0 auto;color:var(--dim);max-width:520px}
+.countdown{display:inline-block;margin-top:10px;padding:6px 14px;border-radius:999px;background:var(--red);color:#fff;font-weight:700;font-size:15px}
+.countdown.closed{background:var(--olive)}
+.countdown[hidden]{display:none}
+
+/* ---------- call to action ---------- */
+.cta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:16px 0 4px}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;
+  border-radius:14px;padding:11px 18px;font-weight:700;border:2px solid var(--wood);
+  background:var(--paper-2);color:var(--wood);white-space:nowrap
+}
+.btn.primary{background:var(--red);border-color:var(--red-deep);color:#fff;box-shadow:var(--shadow)}
+.btn.small{padding:7px 12px;font-size:14px;border-radius:11px}
+.btn:hover,.btn:focus-visible{filter:brightness(1.05);transform:translateY(-1px);outline:none}
+.btn[hidden]{display:none}
+
+/* ---------- summary + tools ---------- */
+.summary{
+  margin:16px 0 0;padding:12px 14px;border-radius:16px;background:var(--paper-2);border:2px solid var(--line);
+  display:flex;flex-wrap:wrap;gap:4px 18px;justify-content:center;font-size:15px
+}
+.summary b{font-family:"Mali",cursive;font-size:19px;color:var(--red-deep)}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:16px 0 10px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{
+  border:2px solid var(--line);background:var(--paper-2);color:var(--ink);border-radius:999px;
+  padding:5px 12px;font-size:14px;font-weight:600
+}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.tools .right{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;flex:1 1 260px;justify-content:flex-end}
+.tools input,.tools select{
+  font:inherit;font-size:14px;padding:7px 10px;border-radius:10px;border:2px solid var(--line);
+  background:var(--paper-2);color:var(--ink);min-width:0
+}
+.tools input{flex:1 1 150px;max-width:260px}
+
+.banner{margin:12px 0;padding:10px 14px;border-radius:14px;font-size:14px}
+.banner.err{background:#fbe6e2;color:#8c2618;border:2px solid #f3c2b8}
+.banner.info{background:var(--olive-soft);color:#4f5a2f;border:2px solid #d9ddb5}
+.banner:empty{display:none}
+
+/* ---------- item rows ---------- */
+.list{display:grid;gap:12px;margin:0;padding:0;list-style:none}
+.row{
+  display:grid;grid-template-columns:84px minmax(0,1fr) auto;gap:14px;align-items:center;
+  background:var(--paper-2);border:2px solid var(--line);border-radius:18px;padding:12px 14px;box-shadow:var(--shadow)
+}
+.row.open{border-color:#d9ddb5;background:linear-gradient(90deg,#f7f8e6,var(--paper-2) 60%)}
+.thumb{
+  width:84px;height:84px;border-radius:50%;border:5px solid var(--ring);background:#fff;overflow:hidden;
+  display:grid;place-items:center;font-size:36px
+}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.info{min-width:0}
+.no{display:inline-block;background:var(--wood);color:#fff6ea;font-family:"Mali",cursive;font-weight:600;font-size:13px;
+  padding:1px 9px;border-radius:7px;transform:rotate(-2deg);margin-right:4px}
+.info h2{display:inline;margin:0;font-family:"Mali",cursive;font-size:19px;line-height:1.35}
+.desc{margin:3px 0 0;font-size:14px;color:#5b4f3d;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.donor{margin:2px 0 0;font-size:13px;color:var(--dim)}
+.deal{text-align:right;min-width:150px}
+.deal .lbl{font-size:12px;color:var(--dim)}
+.deal .amt{font-family:"Mali",cursive;font-weight:700;font-size:26px;line-height:1.1;color:var(--red-deep)}
+.deal .amt small{font-size:13px;font-weight:600;color:var(--dim);margin-left:3px}
+.deal .who{font-size:14px;font-weight:600;word-break:break-word}
+.deal .who .sub{display:block;font-weight:400;font-size:12px;color:var(--dim)}
+.deal .fresh{display:inline-block;font-size:12px;font-weight:700;color:#4f5a2f;background:var(--lemon-2);border-radius:999px;padding:2px 9px;margin:2px 0}
+.deal .next{font-size:12px;color:var(--dim);margin-top:2px}
+.deal .acts{display:flex;gap:6px;justify-content:flex-end;margin-top:8px;flex-wrap:wrap}
+.empty{color:var(--dim);text-align:center;padding:32px 0}
+
+@media (max-width:620px){
+  .row{grid-template-columns:64px minmax(0,1fr);gap:10px 12px;padding:12px}
+  .thumb{width:64px;height:64px;font-size:28px;border-width:4px}
+  .deal{grid-column:1 / -1;text-align:left;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:end;
+    border-top:2px dashed var(--line);padding-top:8px}
+  .deal .acts{grid-column:2;grid-row:1 / span 4;align-self:center;margin:0;flex-direction:column}
+}
+
+/* ---------- sticky form bar (phones) ---------- */
+.sticky{
+  position:sticky;bottom:0;z-index:5;margin-top:22px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+  background:rgba(246,240,220,.94);backdrop-filter:blur(6px);border-top:2px solid var(--line);
+  display:flex;gap:10px;justify-content:center
+}
+.sticky .btn{flex:1;max-width:320px}
+.sticky[hidden]{display:none}
+
+footer{color:var(--dim);font-size:13px;text-align:center;padding:18px 16px 28px}
+
+@media print{
+  .bunting,.cta,.tools,.sticky,.acts,.banner,footer{display:none!important}
+  body{background:#fff}
+  .row{box-shadow:none;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<svg class="bunting" viewBox="0 0 1200 46" preserveAspectRatio="none" aria-hidden="true">
+  <path d="M0 4 Q600 34 1200 4" fill="none" stroke="#e2553f" stroke-width="3"/>
+  <g id="flags"></g>
+</svg>
+
+<div class="shell">
+  <header>
+    <p class="event hand" id="eventName">ตลาดน้ำจิตน้ำใจ #25</p>
+    <h1 class="hand">ของประมูลทั้งหมด</h1>
+    <p class="lead">ดูให้ครบทุกชิ้น ราคาตอนนี้อยู่ที่เท่าไร ใครนำอยู่ ถูกใจชิ้นไหนกดประมูลได้เลย</p>
+    <div class="countdown" id="countdown" hidden></div>
+    <div class="cta">
+      <a class="btn primary" id="formTop" target="_blank" rel="noopener" hidden>📝 ไปที่ฟอร์มประมูล</a>
+      <a class="btn" href="index.html">📺 กระดานประมูลสด</a>
+    </div>
+  </header>
+
+  <div class="banner err" id="errBanner"></div>
+  <div class="banner info" id="infoBanner"></div>
+
+  <div class="summary" id="summary">กำลังโหลด…</div>
+
+  <div class="tools">
+    <div class="chips" role="group" aria-label="กรอง">
+      <button type="button" class="chip" data-filter="all" aria-pressed="true">ทั้งหมด</button>
+      <button type="button" class="chip" data-filter="open" aria-pressed="false">ยังไม่มีคนประมูล</button>
+      <button type="button" class="chip" data-filter="bid" aria-pressed="false">มีคนประมูลแล้ว</button>
+    </div>
+    <div class="right">
+      <input type="search" id="q" placeholder="ค้นหาชื่อของ…" aria-label="ค้นหา">
+      <select id="sort" aria-label="เรียงตาม">
+        <option value="no">เรียงตามหมายเลข</option>
+        <option value="low">ราคาน้อย → มาก</option>
+        <option value="high">ราคามาก → น้อย</option>
+        <option value="bids">ประมูลบ่อยสุด</option>
+      </select>
+    </div>
+  </div>
+
+  <ul class="list" id="list"><li class="empty">กำลังโหลดรายการ…</li></ul>
+</div>
+
+<div class="sticky" id="sticky" hidden>
+  <a class="btn primary" id="formBottom" target="_blank" rel="noopener">📝 ไปที่ฟอร์มประมูล</a>
+  <a class="btn" href="index.html">📺 กระดานสด</a>
+</div>
+
+<footer class="shell">
+  ราคาอัปเดตเองทุก <span id="every">20</span> วินาที · อัปเดตล่าสุด <span id="updated">–</span>
+  · รายได้ทั้งหมดสมทบกิจกรรมการกุศล
+</footer>
+
+<script src="auction-core.js"></script>
+<script>
+"use strict";
+
+let model = null, loading = false, filter = "all";
+
+function rowHtml(s){
+  const it = s.item, L = s.leader;
+  const closed = endTime && Date.now() > endTime;
+  const no = (it.no || "").padStart(2, "0");
+  const img = it.image
+    ? `<img src="${esc(it.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(document.createTextNode('${esc(it.emoji)}'))">`
+    : esc(it.emoji);
+  const link = closed ? "" : formUrl(it);
+  const deal = L
+    ? `<div class="lbl">${closed ? "ราคาที่ชนะ 🏆" : "ราคาตอนนี้"}</div>
+       <div class="amt">${baht(L.amount)}<small>บาท</small></div>
+       <div class="who">👑 ${esc(L.who.main)}${L.who.sub ? `<span class="sub">${esc(L.who.sub)}</span>` : ""}</div>
+       ${closed ? "" : `<div class="next">ขั้นต่ำถัดไป ${baht(s.next)} บาท · ${s.valid} ครั้ง</div>`}`
+    : `<div class="lbl">${closed ? "ไม่มีผู้ประมูล" : "ราคาเริ่มต้น"}</div>
+       <div class="amt">${baht(it.start)}<small>บาท</small></div>
+       ${closed ? "" : `<div class="fresh">ยังไม่มีใครประมูล เป็นคนแรกเลย!</div>`}`;
+  return `<li class="row${!L && !closed ? " open" : ""}" id="item-${esc(it.key)}">
+    <div class="thumb">${img}</div>
+    <div class="info">
+      <span class="no">#${esc(no || "–")}</span><h2>${esc(it.name)}</h2>
+      ${it.desc ? `<p class="desc">${esc(it.desc)}</p>` : ""}
+      ${it.donor ? `<p class="donor">💝 บริจาคโดย ${esc(it.donor)}</p>` : ""}
+    </div>
+    <div class="deal">
+      ${deal}
+      <div class="acts">
+        ${link ? `<a class="btn primary small" href="${esc(link)}" target="_blank" rel="noopener">ประมูลเลย →</a>` : ""}
+        <a class="btn small" href="index.html#item-${encodeURIComponent(it.key)}">ดูบนกระดาน</a>
+      </div>
+    </div>
+  </li>`;
+}
+
+function render(){
+  const lots = model.lots;
+  const bidOn = lots.filter(s => s.leader);
+  const total = bidOn.reduce((t, s) => t + s.leader.amount, 0);
+  const closed = endTime && Date.now() > endTime;
+  $("summary").innerHTML = `
+    <span><b>${lots.length}</b> ชิ้น</span>
+    <span><b>${bidOn.length}</b> ชิ้นมีคนประมูลแล้ว</span>
+    <span><b>${lots.length - bidOn.length}</b> ชิ้น${closed ? "ไม่มีคนประมูล" : "ยังรอคนแรก"}</span>
+    <span>${closed ? "ยอดรวมที่ชนะ" : "ยอดรวมตอนนี้"} <b>${baht(total)}</b> บาท</span>`;
+
+  const q = norm($("q").value).toLowerCase();
+  let rows = lots.filter(s =>
+    (filter === "all" || (filter === "open" ? !s.leader : !!s.leader)) &&
+    (!q || [s.item.name, s.item.desc, s.item.donor, s.item.no].join(" ").toLowerCase().includes(q)));
+  const price = s => s.leader ? s.leader.amount : s.item.start;
+  const num = s => parseInt(s.item.no, 10) || 9999;
+  const by = $("sort").value;
+  rows.sort((a, b) => num(a) - num(b));
+  if (by === "low") rows.sort((a, b) => price(a) - price(b));
+  if (by === "high") rows.sort((a, b) => price(b) - price(a));
+  if (by === "bids") rows.sort((a, b) => b.valid - a.valid);
+
+  $("list").innerHTML = rows.length ? rows.map(rowHtml).join("")
+    : `<li class="empty">${lots.length ? "ไม่พบของที่ตรงกับที่เลือก" : `ยังไม่มีของประมูล เพิ่มรายการในแท็บ ${esc(CONFIG.ITEMS_SHEET)} ของชีท`}</li>`;
+
+  const info = [];
+  if (DEMO) info.push("โหมดตัวอย่าง: ข้อมูลในหน้านี้เป็นข้อมูลสมมติ ใส่ SHEET_ID ใน auction-core.js เพื่อเชื่อมกับชีทจริง");
+  info.push(...model.notes);
+  $("infoBanner").innerHTML = info.map(esc).join("<br>");
+
+  const form = closed ? "" : formUrl(null);
+  $("formTop").hidden = $("sticky").hidden = !form;
+  if (form) $("formTop").href = $("formBottom").href = form;
+}
+
+async function load(){
+  if (loading) return;
+  loading = true;
+  try {
+    model = await fetchModel();
+    $("errBanner").textContent = "";
+    $("updated").textContent = clock(new Date());
+    render();
+  } catch (e) {
+    $("errBanner").textContent = `โหลดข้อมูลไม่สำเร็จ: ${e.message}` + (model ? " (แสดงข้อมูลล่าสุดที่โหลดได้)" : "");
+  } finally {
+    loading = false;
+  }
+}
+
+function tickCountdown(){
+  const el = $("countdown");
+  if (!endTime || isNaN(endTime)) return;
+  el.hidden = false;
+  const ms = endTime - Date.now();
+  if (ms <= 0) {
+    if (!el.classList.contains("closed") && model) render();
+    el.classList.add("closed");
+    el.textContent = "🏁 ปิดประมูลแล้ว นี่คือราคาที่ชนะของแต่ละชิ้น";
+    return;
+  }
+  const s = Math.floor(ms / 1000), pad = n => String(n).padStart(2, "0");
+  const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+  el.textContent = `⏰ ปิดประมูลในอีก ${d ? d + " วัน " : ""}${pad(h)}:${pad(m)}:${pad(s % 60)}`;
+}
+
+(function drawBunting(){
+  const colors = ["#e2553f", "#e9ea8c", "#7f8f52", "#e8774d", "#f3a7a3"];
+  let html = "";
+  for (let i = 0; i < 30; i++) {
+    const x = i * 40 + 4, t = (x + 15) / 1200, y = 4 + 60 * t * (1 - t);
+    html += `<path d="M${x} ${y.toFixed(1)} L${x + 30} ${y.toFixed(1)} L${x + 15} ${(y + 32).toFixed(1)} Z" fill="${colors[i % colors.length]}" opacity=".92"/>`;
+  }
+  $("flags").innerHTML = html;
+})();
+
+$("eventName").textContent = CONFIG.EVENT_NAME;
+$("every").textContent = CONFIG.REFRESH_SECONDS;
+document.querySelectorAll("[data-filter]").forEach(b => b.addEventListener("click", () => {
+  filter = b.dataset.filter;
+  document.querySelectorAll("[data-filter]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  if (model) render();
+}));
+$("q").addEventListener("input", () => model && render());
+$("sort").addEventListener("change", () => model && render());
+
+load();
+setInterval(() => { if (!document.hidden) load(); }, CONFIG.REFRESH_SECONDS * 1000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+tickCountdown();
+setInterval(tickCountdown, 1000);
+</script>
+</body>
+</html>
