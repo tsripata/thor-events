@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="theme-color" content="#f6f0dc">
+<title>ประมูลการกุศล — ตลาดน้ำจิตน้ำใจ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --paper:#f6f0dc;
+  --paper-2:#fffaf0;
+  --ink:#3b2f27;
+  --dim:#857766;
+  --red:#e2553f;
+  --red-deep:#c23b28;
+  --orange:#e8774d;
+  --olive:#7f8f52;
+  --lemon:#e9ea8c;
+  --lemon-2:#f2f2b4;
+  --ring:#a3a9c6;
+  --wood:#9a4423;
+  --wood-2:#b9592e;
+  --pink:#f3a7a3;
+  --shadow:0 6px 0 rgba(59,47,39,.10);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Sarabun",-apple-system,"Segoe UI",Tahoma,sans-serif;
+  font-size:16px;line-height:1.5;font-variant-numeric:tabular-nums;
+  min-height:100vh;overflow-x:hidden;
+}
+a{color:var(--red-deep)}
+button{font:inherit;cursor:pointer}
+.hand{font-family:"Mali","Sarabun",cursive}
+
+/* ---------- bunting ---------- */
+.bunting{display:block;width:100%;height:64px}
+
+/* ---------- header ---------- */
+header{max-width:1120px;margin:0 auto;padding:4px 16px 8px;text-align:center}
+.event{margin:0;color:var(--olive);font-size:clamp(18px,4.4vw,24px);font-weight:600}
+h1{margin:2px 0 4px;font-size:clamp(30px,8vw,48px);line-height:1.15;color:var(--red);font-weight:700}
+.tag-line{margin:0 auto;color:var(--dim);max-width:560px}
+.status{
+  display:inline-flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 12px;
+  margin:14px 0 0;padding:8px 14px;border-radius:999px;background:var(--paper-2);
+  border:2px solid #eadfc2;font-size:14px;color:var(--dim)
+}
+.dot{width:9px;height:9px;border-radius:50%;background:#5aa469;box-shadow:0 0 0 0 rgba(90,164,105,.6);animation:pulse 2s infinite}
+.dot.off{background:#c9b9a3;animation:none}
+.dot.err{background:var(--red);animation:none}
+@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(90,164,105,0)}100%{box-shadow:0 0 0 0 rgba(90,164,105,0)}}
+.status button{border:0;background:none;color:var(--red-deep);font-weight:600;padding:0}
+.countdown{
+  margin:14px auto 0;display:inline-block;padding:10px 18px;border-radius:16px;
+  background:var(--red);color:#fff;font-weight:700;box-shadow:var(--shadow)
+}
+.countdown.closed{background:var(--olive)}
+.countdown[hidden]{display:none}
+.countdown b{font-size:1.25em;letter-spacing:.02em}
+
+/* ---------- stats ---------- */
+main{max-width:1120px;margin:0 auto;padding:12px 16px 72px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0 8px}
+.stat{background:var(--paper-2);border:2px solid #eadfc2;border-radius:16px;padding:10px 12px;text-align:center}
+.stat .n{font-family:"Mali",cursive;font-weight:700;font-size:clamp(20px,5vw,28px);color:var(--ink);line-height:1.2}
+.stat .l{font-size:13px;color:var(--dim)}
+@media (max-width:560px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ---------- banners ---------- */
+.banner{margin:12px 0;padding:12px 14px;border-radius:14px;font-size:15px}
+.banner.err{background:#fbe6e2;color:#8c2618;border:2px solid #f3c2b8}
+.banner.info{background:#eef0dc;color:#4f5a2f;border:2px solid #d9ddb5}
+.banner:empty{display:none}
+
+/* ---------- feed ---------- */
+.feed-wrap{margin:18px 0 6px}
+.feed-wrap h2,.lots-head h2{font-family:"Mali",cursive;font-size:20px;margin:0 0 8px}
+.feed{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:thin}
+.feed:empty::before{content:"ยังไม่มีการประมูล เป็นคนแรกเลย!";color:var(--dim);font-size:14px}
+.chip{
+  flex:none;background:var(--paper-2);border:2px solid #eadfc2;border-radius:14px;
+  padding:6px 12px;font-size:14px;white-space:nowrap
+}
+.chip b{color:var(--red-deep)}
+.chip .t{color:var(--dim);font-size:12px;margin-left:4px}
+.chip.new{animation:pop .6s ease}
+
+/* ---------- lots ---------- */
+.lots-head{display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:18px}
+.lots-head select{
+  font:inherit;font-size:14px;padding:6px 10px;border-radius:10px;border:2px solid #eadfc2;
+  background:var(--paper-2);color:var(--ink)
+}
+.lots{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:22px;margin-top:10px}
+.lot{
+  position:relative;background:var(--paper-2);border-radius:22px;padding:18px 14px 14px;
+  box-shadow:var(--shadow);border:2px solid #eadfc2;display:flex;flex-direction:column
+}
+.lot.bump{animation:bump 1.4s ease}
+@keyframes bump{
+  0%{transform:scale(1)}15%{transform:scale(1.035) rotate(-.6deg);border-color:var(--red)}
+  30%{transform:scale(1) rotate(.4deg)}100%{transform:none;border-color:#eadfc2}
+}
+@keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:none;opacity:1}}
+.photo{
+  position:relative;width:150px;height:150px;margin:0 auto;border-radius:50%;
+  border:7px solid var(--ring);background:#fff;overflow:visible
+}
+.photo .inner{width:100%;height:100%;border-radius:50%;overflow:hidden;display:grid;place-items:center;font-size:58px}
+.photo img{width:100%;height:100%;object-fit:cover;display:block}
+.bow{position:absolute;right:-6px;bottom:-4px;font-size:32px;transform:rotate(12deg)}
+.plank{
+  position:relative;z-index:1;align-self:center;margin:14px 0 -12px;padding:4px 18px 6px;
+  background:linear-gradient(180deg,var(--wood-2),var(--wood));color:#fff6ea;
+  border-radius:8px 14px 9px 12px;transform:rotate(-2deg);box-shadow:0 3px 0 rgba(0,0,0,.15);
+  font-family:"Mali",cursive;font-weight:600;font-size:15px
+}
+.plank b{font-size:20px;margin-left:4px}
+.board{
+  background:var(--lemon);border:7px solid var(--wood);border-radius:6px;
+  padding:20px 14px 14px;flex:1;display:flex;flex-direction:column;gap:6px
+}
+.board h3{margin:0;font-family:"Mali",cursive;font-size:20px;line-height:1.3}
+.desc{margin:0;font-size:14px;color:#5b4f3d;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.donor{margin:0;font-size:13px;color:#6d6047}
+.price{margin-top:6px;padding:8px 10px;border-radius:12px;background:var(--lemon-2)}
+.price .lbl{font-size:13px;color:#6d6047}
+.price .amt{font-family:"Mali",cursive;font-weight:700;font-size:30px;line-height:1.15;color:var(--red-deep)}
+.price .amt small{font-size:15px;font-weight:600;color:#6d6047;margin-left:4px}
+.leader{font-weight:600;font-size:15px;word-break:break-word}
+.leader .sub{display:block;font-weight:400;font-size:13px;color:#6d6047}
+.leader.none{color:#6d6047;font-weight:500}
+.meta{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:#6d6047;flex-wrap:wrap}
+.actions{display:flex;gap:8px;margin-top:8px}
+.btn{
+  flex:1;text-align:center;text-decoration:none;border-radius:12px;padding:10px 12px;font-weight:700;
+  border:2px solid var(--wood);background:#fffaf0;color:var(--wood)
+}
+.btn.primary{background:var(--red);border-color:var(--red-deep);color:#fff}
+.btn:hover,.btn:focus-visible{filter:brightness(1.05);outline:none;transform:translateY(-1px)}
+.badge{
+  position:absolute;top:10px;left:10px;background:var(--red);color:#fff;font-size:12px;font-weight:700;
+  padding:3px 9px;border-radius:999px;transform:rotate(-6deg)
+}
+.badge.win{background:var(--olive)}
+.badge.hot{background:var(--orange)}
+
+/* ---------- dialog ---------- */
+dialog{border:0;border-radius:20px;padding:0;max-width:min(560px,calc(100vw - 24px));width:100%;background:var(--paper-2);color:var(--ink)}
+dialog::backdrop{background:rgba(59,47,39,.45)}
+.dlg-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:2px solid #eadfc2}
+.dlg-head h3{margin:0;font-family:"Mali",cursive}
+.dlg-head button{border:0;background:none;font-size:24px;line-height:1;color:var(--dim)}
+.dlg-body{padding:12px 16px 18px;max-height:70vh;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid #eadfc2;vertical-align:top}
+th{color:var(--dim);font-weight:600}
+td.num{text-align:right;font-weight:700;white-space:nowrap}
+tr.lead td{background:#f7f3c9}
+tr.rej td{color:#a3968a}
+tr.rej td.num{text-decoration:line-through}
+.why{display:block;font-size:12px;color:#b0553f}
+
+/* ---------- toast ---------- */
+.toasts{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);display:grid;gap:8px;z-index:20;width:min(420px,calc(100vw - 32px))}
+.toast{background:var(--ink);color:#fff;border-radius:14px;padding:10px 14px;font-size:15px;box-shadow:0 8px 24px rgba(0,0,0,.2);animation:pop .4s ease}
+
+footer{max-width:1120px;margin:0 auto;padding:0 16px 40px;color:var(--dim);font-size:13px;text-align:center}
+.skeleton{color:var(--dim);text-align:center;padding:40px 0}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<svg class="bunting" viewBox="0 0 1200 64" preserveAspectRatio="none" aria-hidden="true">
+  <path d="M0 6 Q600 46 1200 6" fill="none" stroke="#e2553f" stroke-width="3"/>
+  <g id="flags"></g>
+</svg>
+
+<header>
+  <p class="event hand" id="eventName">ตลาดน้ำจิตน้ำใจ #25</p>
+  <h1 class="hand">ประมูลการกุศล</h1>
+  <p class="tag-line">ดูราคาสูงสุดล่าสุดของแต่ละชิ้น แล้วกดประมูลผ่าน Google Form · ราคาอัปเดตเองอัตโนมัติ</p>
+  <div class="status" role="status" aria-live="polite">
+    <span class="dot off" id="dot"></span>
+    <span id="statusText">กำลังโหลด…</span>
+    <button type="button" id="refreshBtn">รีเฟรช</button>
+  </div>
+  <div><div class="countdown" id="countdown" hidden></div></div>
+</header>
+
+<main>
+  <div class="banner err" id="errBanner"></div>
+  <div class="banner info" id="infoBanner"></div>
+
+  <section class="stats" aria-label="สรุป">
+    <div class="stat"><div class="n" id="sItems">–</div><div class="l">ของประมูล</div></div>
+    <div class="stat"><div class="n" id="sBids">–</div><div class="l">ครั้งที่ประมูล</div></div>
+    <div class="stat"><div class="n" id="sBidders">–</div><div class="l">ผู้ร่วมประมูล</div></div>
+    <div class="stat"><div class="n" id="sTotal">–</div><div class="l">ยอดรวมราคาสูงสุด (บาท)</div></div>
+  </section>
+
+  <section class="feed-wrap">
+    <h2>🔔 ประมูลล่าสุด</h2>
+    <div class="feed" id="feed"></div>
+  </section>
+
+  <section>
+    <div class="lots-head">
+      <h2>🎁 ของประมูลทั้งหมด</h2>
+      <label>เรียงตาม
+        <select id="sort">
+          <option value="no">หมายเลข</option>
+          <option value="price">ราคาสูงสุด</option>
+          <option value="bids">ประมูลบ่อยสุด</option>
+          <option value="recent">มีคนประมูลล่าสุด</option>
+          <option value="empty">ยังไม่มีคนประมูล</option>
+        </select>
+      </label>
+    </div>
+    <div class="lots" id="lots"><p class="skeleton">กำลังโหลดของประมูล…</p></div>
+  </section>
+</main>
+
+<footer>
+  รายได้ทั้งหมดสมทบกิจกรรมการกุศล · ราคาในหน้านี้อ่านจาก Google Sheet แบบ real-time
+  <span id="sheetLinkWrap" hidden> · <a id="sheetLink" target="_blank" rel="noopener">เปิดชีท</a></span>
+</footer>
+
+<dialog id="dlg">
+  <div class="dlg-head"><h3 id="dlgTitle">ประวัติการประมูล</h3><button type="button" id="dlgClose" aria-label="ปิด">×</button></div>
+  <div class="dlg-body" id="dlgBody"></div>
+</dialog>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+"use strict";
+
+/* ==================================================================
+   CONFIG — edit here only. See auction/README.md
+   ================================================================== */
+const CONFIG = {
+  EVENT_NAME: "ตลาดน้ำจิตน้ำใจ #25",
+  // Spreadsheet that receives the Google Form responses (must be shared: Anyone with the link → Viewer)
+  SHEET_ID: "",
+  // gid of the form-responses tab (the number after #gid= in the sheet URL)
+  BIDS_GID: "0",
+  // Name of the tab (same spreadsheet) that lists the items. Leave "" to derive items from bids only.
+  ITEMS_SHEET: "Items",
+  // Google Form link (…/viewform). Empty = hide the "bid" button.
+  FORM_URL: "",
+  // Pre-fill field id for the item question, e.g. "entry.123456789". Empty = no pre-fill.
+  FORM_ITEM_ENTRY: "",
+  // Auction closes at this time (ISO with timezone). Bids stamped after it are ignored. "" = no end.
+  END_TIME: "",
+  // Default rules when an item row leaves them blank
+  DEFAULT_START_PRICE: 0,
+  DEFAULT_MIN_INCREMENT: 10,
+  // A new bid must beat the leader by at least the increment. false = any higher amount wins.
+  ENFORCE_INCREMENT: true,
+  REFRESH_SECONDS: 20,
+  // Show only the first word of the parent's name publicly
+  SHORT_PARENT_NAME: true,
+  // Rows whose names match this are ignored (form test rows)
+  TEST_NAME_PATTERN: /^(test|ทดสอบ|เทส)/i
+};
+
+const qs = new URLSearchParams(location.search);
+if (qs.get("sheet")) CONFIG.SHEET_ID = qs.get("sheet");
+if (qs.get("gid")) CONFIG.BIDS_GID = qs.get("gid");
+if (qs.get("end")) CONFIG.END_TIME = qs.get("end");
+const DEMO = qs.has("demo") || !CONFIG.SHEET_ID;
+if (DEMO) CONFIG.REFRESH_SECONDS = 8;
+
+/* ==================================================================
+   HELPERS
+   ================================================================== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const norm = s => String(s == null ? "" : s).replace(/[​-‍﻿]/g, "").replace(/\s+/g, " ").trim();
+const baht = n => Number(n || 0).toLocaleString("th-TH", { maximumFractionDigits: 2 });
+const endTime = CONFIG.END_TIME ? new Date(CONFIG.END_TIME) : null;
+
+function parseAmount(s){
+  const m = String(s).replace(/[,\s]/g, "").match(/\d+(\.\d+)?/);
+  return m ? parseFloat(m[0]) : NaN;
+}
+// "03 · ตุ๊กตาหมี" → "3" ; no number → lower-cased text
+function itemKey(s){
+  const t = norm(s);
+  const m = t.match(/\d+/);
+  return m ? String(parseInt(m[0], 10)) : t.toLowerCase();
+}
+function itemLabelText(s){
+  return norm(s).replace(/^\s*(item\s*no\.?|no\.?|#|หมายเลข)?\s*\d+\s*[·.:\-–)]*\s*/i, "");
+}
+function parseGvizDate(v){
+  if (v instanceof Date) return v;
+  const m = /Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?/.exec(String(v));
+  if (!m) { const d = new Date(v); return isNaN(d) ? null : d; }
+  return new Date(+m[1], +m[2], +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+}
+function driveId(url){
+  const m = /(?:id=|\/d\/)([\w-]{20,})/.exec(url || "");
+  return m ? m[1] : null;
+}
+function imageUrl(raw){
+  const s = norm(raw);
+  if (!s) return "";
+  const id = driveId(s);
+  if (id && /google\.com/.test(s)) return `https://drive.google.com/thumbnail?id=${id}&sz=w600`;
+  return /^https?:\/\//.test(s) ? s : "";
+}
+function timeAgo(d){
+  if (!d) return "";
+  const s = Math.max(0, (Date.now() - d.getTime()) / 1000);
+  if (s < 60) return "เมื่อกี้";
+  if (s < 3600) return `${Math.floor(s / 60)} นาทีที่แล้ว`;
+  if (s < 86400) return `${Math.floor(s / 3600)} ชม.ที่แล้ว`;
+  return d.toLocaleDateString("th-TH", { day:"numeric", month:"short" });
+}
+const clock = d => d ? d.toLocaleTimeString("th-TH", { hour:"2-digit", minute:"2-digit", second:"2-digit" }) : "";
+
+/* ==================================================================
+   FETCH (Google gviz endpoint — read-only, works on a link-shared sheet)
+   ================================================================== */
+async function fetchGrid({ gid, sheet }){
+  const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&headers=1&`
+            + (sheet ? `sheet=${encodeURIComponent(sheet)}` : `gid=${encodeURIComponent(gid)}`)
+            + `&_=${Date.now()}`;
+  const res = await fetch(url, { cache:"no-store" });
+  if (!res.ok) throw new Error(`Google ตอบกลับ HTTP ${res.status}`);
+  const txt = await res.text();
+  const a = txt.indexOf("{"), b = txt.lastIndexOf("}");
+  if (a < 0 || b < 0) throw new Error("อ่านคำตอบจาก Google ไม่ออก");
+  const json = JSON.parse(txt.slice(a, b + 1));
+  if (json.status === "error" || !json.table) {
+    const msg = (json.errors && json.errors[0] && (json.errors[0].detailed_message || json.errors[0].message)) || "";
+    throw new Error("ชีทไม่เปิดให้ดูแบบสาธารณะ หรือไม่พบแท็บ " + msg);
+  }
+  const headers = json.table.cols.map(c => norm(c.label));
+  const rows = json.table.rows.map(r => headers.map((_, i) => {
+    const c = (r.c || [])[i];
+    if (c == null) return { v:null, f:"" };
+    return { v:c.v, f:norm(c.f != null ? c.f : (c.v != null ? c.v : "")) };
+  }));
+  return { headers, rows };
+}
+
+// Match columns by header text, not by position, so editing the form doesn't break the page.
+// Order matters: the first role that matches a header claims it.
+function mapColumns(headers, defs){
+  const map = {};
+  headers.forEach((h, i) => {
+    for (const [role, test] of defs) {
+      if (map[role] == null && test(h)) { map[role] = i; break; }
+    }
+  });
+  return map;
+}
+const BID_COLS = [
+  ["time",    h => /timestamp|ประทับเวลา/i.test(h)],
+  ["phone",   h => /เบอร์|phone|tel|line/i.test(h)],
+  ["amount",  h => /ราคา|bid|amount|จำนวนเงิน|ยอดเงิน|บาท/i.test(h)],
+  ["display", h => /ชื่อที่(จะ)?(แสดง|โชว์)|display/i.test(h)],
+  ["child",   h => /ชื่อเด็ก|ชื่อเล่น|ชื่อน้อง|child|kid|student/i.test(h)],
+  ["parent",  h => /ผู้ปกครอง|parent|ชื่อ|name/i.test(h)],
+  ["batch",   h => /^รุ่น|class|grade|ห้อง/i.test(h)],
+  ["item",    h => /item|รายการ|สินค้า|หมายเลข|ของ|ชิ้น|lot/i.test(h)]
+];
+const ITEM_COLS = [
+  ["no",    h => /^(item\s*no|no\.?$|หมายเลข|ลำดับ|#)/i.test(h)],
+  ["start", h => /เริ่ม|start|opening/i.test(h)],
+  ["step",  h => /เพิ่มขั้นต่ำ|ขั้นต่ำ|increment|step/i.test(h)],
+  ["image", h => /รูป|ภาพ|image|photo|picture/i.test(h)],
+  ["donor", h => /บริจาค|donor|donated|ผู้ให้/i.test(h)],
+  ["desc",  h => /รายละเอียด|desc|detail/i.test(h)],
+  ["name",  h => /ชื่อ|name|item|สินค้า/i.test(h)],
+  ["emoji", h => /emoji|อีโมจิ/i.test(h)]
+];
+
+/* ==================================================================
+   BUILD MODEL
+   ================================================================== */
+function buildItems(grid){
+  if (!grid) return [];
+  const c = mapColumns(grid.headers, ITEM_COLS);
+  const get = (r, k) => c[k] == null ? "" : r[c[k]].f;
+  return grid.rows.map(r => {
+    const rawNo = get(r, "no") || get(r, "name");
+    if (!norm(rawNo)) return null;
+    const start = parseAmount(get(r, "start"));
+    const step = parseAmount(get(r, "step"));
+    return {
+      key: itemKey(rawNo),
+      no: (rawNo.match(/\d+/) || [""])[0],
+      name: get(r, "name") || itemLabelText(rawNo) || `ชิ้นที่ ${rawNo}`,
+      desc: get(r, "desc"),
+      donor: get(r, "donor"),
+      image: imageUrl(get(r, "image")),
+      emoji: get(r, "emoji") || "🎁",
+      start: isNaN(start) ? CONFIG.DEFAULT_START_PRICE : start,
+      step: isNaN(step) || step <= 0 ? CONFIG.DEFAULT_MIN_INCREMENT : step
+    };
+  }).filter(Boolean);
+}
+
+function displayName(p){
+  if (p.display) return { main:p.display, sub:p.batch ? `รุ่น ${p.batch}` : "" };
+  let parent = p.parent || "";
+  if (CONFIG.SHORT_PARENT_NAME) parent = parent.split(" ")[0];
+  const kid = p.child ? `น้อง${p.child.replace(/^น้อง\s*/, "")}` : "";
+  const main = parent ? `คุณ${parent.replace(/^คุณ\s*/, "")}` : (kid || "ไม่ระบุชื่อ");
+  const sub = [parent ? kid : "", p.batch ? `รุ่น ${p.batch}` : ""].filter(Boolean).join(" · ");
+  return { main, sub };
+}
+
+function buildModel(itemsGrid, bidsGrid){
+  const items = buildItems(itemsGrid);
+  const byKey = new Map(items.map(it => [it.key, it]));
+  const notes = [];
+  const c = mapColumns(bidsGrid.headers, BID_COLS);
+  if (c.item == null) notes.push("ไม่พบคอลัมน์ของที่ประมูล (หัวคอลัมน์ควรมีคำว่า “หมายเลข” หรือ “สินค้า”)");
+  if (c.amount == null) notes.push("ไม่พบคอลัมน์ราคา (หัวคอลัมน์ควรมีคำว่า “ราคา”)");
+  const get = (r, k) => c[k] == null ? "" : r[c[k]].f;
+
+  const bids = [];
+  bidsGrid.rows.forEach((r, i) => {
+    const rawItem = get(r, "item");
+    if (!rawItem) return;
+    const person = { display:get(r, "display"), parent:get(r, "parent"), child:get(r, "child"), batch:get(r, "batch") };
+    if ([person.display, person.parent, person.child].some(n => n && CONFIG.TEST_NAME_PATTERN.test(n))) return;
+    const key = itemKey(rawItem);
+    if (!byKey.has(key)) {
+      const it = {
+        key, no:(rawItem.match(/\d+/) || [""])[0], name:itemLabelText(rawItem) || rawItem,
+        desc:"", donor:"", image:"", emoji:"🎁",
+        start:CONFIG.DEFAULT_START_PRICE, step:CONFIG.DEFAULT_MIN_INCREMENT, fromBidsOnly:true
+      };
+      byKey.set(key, it); items.push(it);
+    }
+    const phone = get(r, "phone").replace(/\D/g, "");
+    bids.push({
+      row:i + 2, key, amount:parseAmount(get(r, "amount")),
+      time:c.time == null ? null : parseGvizDate(r[c.time].v),
+      who:displayName(person),
+      bidderId:phone || norm(person.parent + "|" + person.child + "|" + person.display).toLowerCase()
+    });
+  });
+
+  // Sheet order = submission order. Walk it and keep the leader per item.
+  const state = new Map(items.map(it => [it.key, { item:it, leader:null, history:[], valid:0, lastAt:null }]));
+  for (const b of bids) {
+    const s = state.get(b.key);
+    const it = s.item;
+    const min = s.leader ? s.leader.amount + (CONFIG.ENFORCE_INCREMENT ? it.step : 0.01) : it.start;
+    if (isNaN(b.amount) || b.amount <= 0) b.reject = "อ่านราคาไม่ได้";
+    else if (endTime && b.time && b.time > endTime) b.reject = "ส่งหลังปิดประมูล";
+    else if (b.amount < min) b.reject = s.leader ? `ต้องอย่างน้อย ${baht(min)}` : `ต่ำกว่าราคาเริ่มต้น ${baht(it.start)}`;
+    if (!b.reject) { s.leader = b; s.valid++; s.lastAt = b.time; }
+    s.history.push(b);
+  }
+  for (const s of state.values()) {
+    s.next = s.leader ? s.leader.amount + it_step(s) : s.item.start;
+  }
+  const lots = [...state.values()];
+  const extra = items.filter(it => it.fromBidsOnly).map(it => it.no || it.name);
+  if (itemsGrid && extra.length) notes.push(`มีคนประมูลของที่ไม่อยู่ในแท็บ ${CONFIG.ITEMS_SHEET}: ${extra.join(", ")}`);
+  return { lots, bids, notes };
+}
+function it_step(s){ return CONFIG.ENFORCE_INCREMENT ? s.item.step : 1; }
+
+/* ==================================================================
+   DEMO DATA (used when SHEET_ID is empty or ?demo is in the URL)
+   ================================================================== */
+const DEMO_ITEMS = [
+  ["1","ตุ๊กตาหมีถักมือ","ถักจากไหมพรมคอตตอน สูง 30 ซม. ทำโดยคุณยายของน้องข้าวปั้น","ครอบครัวน้องข้าวปั้น",100,20,"🧸"],
+  ["2","ภาพวาดสีน้ำ “ตลาดนัด”","ผลงานเด็ก ๆ รุ่น 5 ใส่กรอบไม้พร้อมแขวน","เด็ก ๆ รุ่น 5",200,50,"🖼️"],
+  ["3","เซตขนมไทยโบราณ","ขนมชั้น ทองหยิบ ฝอยทอง 1 กล่องใหญ่ รับวันงาน","บ้านขนมแม่น้อย",150,10,"🍮"],
+  ["4","กระถางต้นไม้เพนต์มือ","ต้นกุหลาบหินในกระถางดินเผาลายดอกไม้","คุณครูฝ้าย",80,10,"🪴"],
+  ["5","บัตรทำขนมปังกับเชฟ","Workshop 2 ชม. สำหรับเด็ก 1 คน + ผู้ปกครอง 1 คน","Little Bakery",500,100,"🥐"],
+  ["6","ผ้าพันคอมัดย้อม","ผ้าฝ้ายมัดย้อมครามธรรมชาติ ขนาด 50×180 ซม.","ครอบครัวน้องภูผา",120,20,"🧣"]
+];
+const DEMO_PEOPLE = [
+  ["สมใจ","มะลิ","3"],["วรรณา","ภูผา","1"],["ปกรณ์","ข้าวปั้น","2"],["นิดา","ต้นกล้า","5"],
+  ["อรุณี","ใบเตย","4"],["ธนพล","ไทเกอร์","2"],["กมล","น้ำฝน","1"]
+];
+let demoBids = null;
+function demoGrids(){
+  const items = { headers:["Item no.","ชื่อของ","รายละเอียด","ผู้บริจาค","ราคาเริ่มต้น","เพิ่มขั้นต่ำ","Emoji"],
+    rows: DEMO_ITEMS.map(r => r.map(v => ({ v, f:String(v) }))) };
+  const cur = new Map();
+  const add = (minsAgo) => {
+    const it = DEMO_ITEMS[Math.floor(Math.random() * DEMO_ITEMS.length)];
+    const p = DEMO_PEOPLE[Math.floor(Math.random() * DEMO_PEOPLE.length)];
+    const base = cur.get(it[0]) || it[4] - it[5];
+    const amt = base + it[5] * (1 + Math.floor(Math.random() * 3));
+    cur.set(it[0], amt);
+    const d = new Date(Date.now() - minsAgo * 60000);
+    demoBids.push([d, `${it[0].padStart(2, "0")} · ${it[1]}`, amt, p[0] + " ใจดี", p[1], p[2], "080000000" + DEMO_PEOPLE.indexOf(p)]);
+  };
+  if (!demoBids) { demoBids = []; for (let i = 24; i > 0; i--) add(i * 4); }
+  else if (Math.random() < 0.7) add(0);
+  const bids = { headers:["ประทับเวลา","หมายเลขของที่ต้องการประมูล","ราคาที่ให้ (บาท)","ชื่อผู้ปกครอง","ชื่อเล่นเด็ก","รุ่น","เบอร์โทร"],
+    rows: demoBids.map(r => r.map(v => ({ v, f:v instanceof Date ? v.toISOString() : String(v) }))) };
+  return { items, bids };
+}
+
+/* ==================================================================
+   RENDER
+   ================================================================== */
+let model = null, prevLeaders = null, lastUpdated = null, loading = false, failStreak = 0;
+
+function lotCard(s){
+  const it = s.item, L = s.leader;
+  const closed = endTime && Date.now() > endTime;
+  const formLink = formUrl(it);
+  const badge = closed && L ? `<span class="badge win">ผู้ชนะ 🏆</span>`
+    : s.valid >= 5 ? `<span class="badge hot">ฮอต 🔥</span>`
+    : !L ? `<span class="badge">ยังว่าง</span>` : "";
+  const img = it.image
+    ? `<img src="${esc(it.image)}" alt="${esc(it.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(document.createTextNode('${esc(it.emoji)}'))">`
+    : esc(it.emoji);
+  return `<article class="lot" data-key="${esc(it.key)}">
+    ${badge}
+    <div class="photo"><div class="inner">${img}</div><span class="bow" aria-hidden="true">🎀</span></div>
+    <div class="plank">Item no.<b>${esc(it.no ? it.no.padStart(2, "0") : "–")}</b></div>
+    <div class="board">
+      <h3>${esc(it.name)}</h3>
+      ${it.desc ? `<p class="desc">${esc(it.desc)}</p>` : ""}
+      ${it.donor ? `<p class="donor">💝 บริจาคโดย ${esc(it.donor)}</p>` : ""}
+      <div class="price">
+        <div class="lbl">${L ? (closed ? "ราคาที่ชนะ" : "ราคาสูงสุดตอนนี้") : "ราคาเริ่มต้น"}</div>
+        <div class="amt">${baht(L ? L.amount : it.start)}<small>บาท</small></div>
+        ${L ? `<div class="leader">👑 ${esc(L.who.main)}${L.who.sub ? `<span class="sub">${esc(L.who.sub)}</span>` : ""}</div>`
+            : `<div class="leader none">ยังไม่มีใครประมูล เป็นคนแรกเลย!</div>`}
+      </div>
+      <div class="meta">
+        <span>${s.valid} ครั้ง${s.lastAt ? ` · ${timeAgo(s.lastAt)}` : ""}</span>
+        ${closed ? "<span>ปิดแล้ว</span>" : `<span>ขั้นต่ำถัดไป <b>${baht(s.next)}</b></span>`}
+      </div>
+      <div class="actions">
+        ${formLink && !closed ? `<a class="btn primary" href="${esc(formLink)}" target="_blank" rel="noopener">ประมูลชิ้นนี้</a>` : ""}
+        <button type="button" class="btn" data-history="${esc(it.key)}">ประวัติ</button>
+      </div>
+    </div>
+  </article>`;
+}
+
+function formUrl(it){
+  if (!CONFIG.FORM_URL) return "";
+  if (!CONFIG.FORM_ITEM_ENTRY) return CONFIG.FORM_URL;
+  const u = new URL(CONFIG.FORM_URL);
+  u.searchParams.set("usp", "pp_url");
+  u.searchParams.set(CONFIG.FORM_ITEM_ENTRY, `${(it.no || "").padStart(2, "0")} · ${it.name}`);
+  return u.toString();
+}
+
+function sortLots(lots){
+  const by = $("sort").value;
+  const arr = lots.slice();
+  const no = s => parseInt(s.item.no, 10) || 9999;
+  arr.sort((a, b) => no(a) - no(b));
+  if (by === "price") arr.sort((a, b) => (b.leader ? b.leader.amount : -1) - (a.leader ? a.leader.amount : -1));
+  if (by === "bids") arr.sort((a, b) => b.valid - a.valid);
+  if (by === "recent") arr.sort((a, b) => (b.lastAt ? b.lastAt : 0) - (a.lastAt ? a.lastAt : 0));
+  if (by === "empty") arr.sort((a, b) => (a.leader ? 1 : 0) - (b.leader ? 1 : 0));
+  return arr;
+}
+
+function render(changed){
+  const { lots, bids, notes } = model;
+  const valid = bids.filter(b => !b.reject);
+  $("sItems").textContent = lots.length;
+  $("sBids").textContent = valid.length;
+  $("sBidders").textContent = new Set(valid.map(b => b.bidderId)).size;
+  $("sTotal").textContent = baht(lots.reduce((t, s) => t + (s.leader ? s.leader.amount : 0), 0));
+
+  const byKey = new Map(lots.map(s => [s.item.key, s.item]));
+  $("feed").innerHTML = valid.slice(-10).reverse().map((b, i) => {
+    const it = byKey.get(b.key);
+    return `<span class="chip${i === 0 && changed.size ? " new" : ""}">${esc(b.who.main)} → #${esc((it.no || "").padStart(2, "0"))} <b>${baht(b.amount)}</b><span class="t">${timeAgo(b.time)}</span></span>`;
+  }).join("");
+
+  $("lots").innerHTML = lots.length ? sortLots(lots).map(lotCard).join("")
+    : `<p class="skeleton">ยังไม่มีของประมูล เพิ่มรายการในแท็บ ${esc(CONFIG.ITEMS_SHEET)} ของชีท</p>`;
+  changed.forEach(k => { const el = document.querySelector(`.lot[data-key="${CSS.escape(k)}"]`); if (el) el.classList.add("bump"); });
+
+  const info = [];
+  if (DEMO) info.push("โหมดตัวอย่าง: ข้อมูลในหน้านี้เป็นข้อมูลสมมติ ใส่ SHEET_ID ใน CONFIG เพื่อเชื่อมกับชีทจริง");
+  info.push(...notes);
+  $("infoBanner").innerHTML = info.map(esc).join("<br>");
+}
+
+function toast(msg){
+  const el = document.createElement("div");
+  el.className = "toast"; el.textContent = msg;
+  $("toasts").appendChild(el);
+  setTimeout(() => el.remove(), 4500);
+}
+
+/* ==================================================================
+   LOAD LOOP
+   ================================================================== */
+async function load(){
+  if (loading) return;
+  loading = true;
+  $("statusText").textContent = "กำลังอัปเดต…";
+  try {
+    let itemsGrid = null, bidsGrid;
+    if (DEMO) ({ items:itemsGrid, bids:bidsGrid } = demoGrids());
+    else {
+      const [ig, bg] = await Promise.allSettled([
+        CONFIG.ITEMS_SHEET ? fetchGrid({ sheet:CONFIG.ITEMS_SHEET }) : Promise.resolve(null),
+        fetchGrid({ gid:CONFIG.BIDS_GID })
+      ]);
+      if (bg.status === "rejected") throw bg.reason;
+      bidsGrid = bg.value;
+      itemsGrid = ig.status === "fulfilled" ? ig.value : null;
+    }
+    model = buildModel(itemsGrid, bidsGrid);
+    if (!DEMO && CONFIG.ITEMS_SHEET && !itemsGrid) model.notes.push(`อ่านแท็บ “${CONFIG.ITEMS_SHEET}” ไม่ได้ แสดงเฉพาะของที่มีคนประมูลแล้ว`);
+
+    const changed = new Set();
+    const leaders = new Map(model.lots.map(s => [s.item.key, s.leader ? s.leader.amount : 0]));
+    if (prevLeaders) {
+      for (const s of model.lots) {
+        if (s.leader && s.leader.amount > (prevLeaders.get(s.item.key) || 0)) {
+          changed.add(s.item.key);
+          toast(`🔔 #${(s.item.no || "").padStart(2, "0")} ${s.item.name}: ${s.leader.who.main} ให้ ${baht(s.leader.amount)} บาท!`);
+        }
+      }
+    }
+    prevLeaders = leaders;
+    lastUpdated = new Date();
+    failStreak = 0;
+    $("errBanner").textContent = "";
+    $("dot").className = "dot";
+    render(changed);
+  } catch (e) {
+    failStreak++;
+    $("dot").className = "dot err";
+    $("errBanner").textContent = `โหลดข้อมูลไม่สำเร็จ: ${e.message}` + (model ? " (แสดงข้อมูลล่าสุดที่โหลดได้)" : "");
+  } finally {
+    loading = false;
+    updateStatus();
+  }
+}
+
+function updateStatus(){
+  const parts = [];
+  if (lastUpdated) parts.push(`อัปเดตล่าสุด ${clock(lastUpdated)}`);
+  parts.push(`รีเฟรชเองทุก ${CONFIG.REFRESH_SECONDS} วินาที`);
+  $("statusText").textContent = parts.join(" · ");
+}
+
+function tickCountdown(){
+  const el = $("countdown");
+  if (!endTime || isNaN(endTime)) { el.hidden = true; return; }
+  el.hidden = false;
+  const ms = endTime - Date.now();
+  if (ms <= 0) {
+    if (!el.classList.contains("closed") && model) render(new Set());
+    el.classList.add("closed");
+    el.innerHTML = "🏁 ปิดประมูลแล้ว ขอบคุณทุกคนที่ร่วมใจ!";
+    return;
+  }
+  const s = Math.floor(ms / 1000);
+  const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
+  const pad = n => String(n).padStart(2, "0");
+  el.innerHTML = `⏰ ปิดประมูลในอีก <b>${d ? d + " วัน " : ""}${pad(h)}:${pad(m)}:${pad(sec)}</b>`;
+}
+
+function openHistory(key){
+  const s = model.lots.find(x => x.item.key === key);
+  if (!s) return;
+  $("dlgTitle").textContent = `#${(s.item.no || "").padStart(2, "0")} ${s.item.name}`;
+  const rows = s.history.slice().reverse().map(b => `<tr class="${b === s.leader ? "lead" : b.reject ? "rej" : ""}">
+      <td>${b.time ? b.time.toLocaleString("th-TH", { day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" }) : "แถว " + b.row}</td>
+      <td>${b === s.leader ? "👑 " : ""}${esc(b.who.main)}${b.who.sub ? `<span class="why" style="color:#857766">${esc(b.who.sub)}</span>` : ""}
+        ${b.reject ? `<span class="why">ไม่นับ: ${esc(b.reject)}</span>` : ""}</td>
+      <td class="num">${isNaN(b.amount) ? "–" : baht(b.amount)}</td></tr>`).join("");
+  $("dlgBody").innerHTML = `
+    <p style="margin:0 0 10px;color:#857766;font-size:14px">ราคาเริ่มต้น ${baht(s.item.start)} บาท · เพิ่มครั้งละอย่างน้อย ${baht(s.item.step)} บาท</p>
+    ${s.history.length ? `<table><thead><tr><th>เวลา</th><th>ผู้ประมูล</th><th style="text-align:right">บาท</th></tr></thead><tbody>${rows}</tbody></table>`
+      : `<p>ยังไม่มีใครประมูลชิ้นนี้</p>`}`;
+  $("dlg").showModal();
+}
+
+/* ==================================================================
+   INIT
+   ================================================================== */
+(function drawBunting(){
+  const colors = ["#e2553f", "#e9ea8c", "#7f8f52", "#e8774d", "#f3a7a3"];
+  let html = "";
+  for (let i = 0; i < 24; i++) {
+    const x = i * 50 + 6, t = (x + 19) / 1200, y = 6 + 40 * 2 * t * (1 - t) * 1;
+    html += `<path d="M${x} ${y.toFixed(1)} L${x + 38} ${y.toFixed(1)} L${x + 19} ${(y + 44).toFixed(1)} Z" fill="${colors[i % colors.length]}" opacity=".92"/>`;
+  }
+  $("flags").innerHTML = html;
+})();
+
+$("eventName").textContent = CONFIG.EVENT_NAME;
+if (!DEMO) {
+  $("sheetLink").href = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/edit#gid=${CONFIG.BIDS_GID}`;
+  $("sheetLinkWrap").hidden = false;
+}
+$("refreshBtn").addEventListener("click", load);
+$("sort").addEventListener("change", () => model && render(new Set()));
+$("lots").addEventListener("click", e => { const b = e.target.closest("[data-history]"); if (b) openHistory(b.dataset.history); });
+$("dlgClose").addEventListener("click", () => $("dlg").close());
+$("dlg").addEventListener("click", e => { if (e.target === $("dlg")) $("dlg").close(); });
+
+load();
+setInterval(() => { if (!document.hidden) load(); }, CONFIG.REFRESH_SECONDS * 1000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+tickCountdown();
+setInterval(tickCountdown, 1000);
+</script>
+</body>
+</html>
