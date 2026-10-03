@@ -47,6 +47,14 @@ export function supabase(env) {
       });
     },
 
+    update(table, query, patch) {
+      return call(`/rest/v1/${table}?${query}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Prefer: 'return=representation' },
+        body: JSON.stringify(patch),
+      });
+    },
+
     remove(table, query) {
       return call(`/rest/v1/${table}?${query}`, {
         method: 'DELETE',

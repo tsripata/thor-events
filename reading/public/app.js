@@ -1,7 +1,7 @@
-import { STAGES, stageFor, spriteUrl } from './stages.js';
+import { creatureById, stageFor, spriteUrl } from './creatures/index.js';
 
 const $ = (id) => document.getElementById(id);
-const VIEWS = ['loading', 'login', 'denied', 'home', 'log', 'evolution'];
+const VIEWS = ['loading', 'login', 'denied', 'choose', 'home', 'log', 'evolution'];
 
 let supabase;
 let state = null;        // last /api/state response
@@ -75,6 +75,9 @@ async function refresh() {
   state = await api('/api/state');
 }
 
+// The reader's creature, or null until they've picked one.
+const myCreature = () => creatureById(state.reader.creature);
+
 // ---------- Routing ----------
 
 function showView(name) {
@@ -84,7 +87,10 @@ function showView(name) {
 
 function route() {
   if (!state) return;
+  $('account-menu').hidden = true;
   const hash = location.hash.replace('#', '');
+  if (!myCreature()) return renderChoose();
+  if (hash === 'choose') return renderChoose();
   if (hash === 'log' && !state.readToday) return renderLog();
   if (hash === 'evolution') return renderEvolution();
   if (hash) history.replaceState(null, '', location.pathname);
@@ -95,22 +101,24 @@ function route() {
 
 function renderHome() {
   const { totalDays, streak, readToday, recent, today, user } = state;
-  const s = stageFor(totalDays);
+  const creature = myCreature();
+  const s = stageFor(creature, totalDays);
 
+  $('home-title').textContent = `Thor's ${creature.name}`;
   $('today-label').textContent = formatLong(today);
   const account = $('btn-account');
   account.textContent = (user.name || user.email).trim().charAt(0).toUpperCase();
   $('account-email').textContent = user.email;
 
-  $('stage-pill').textContent = `STAGE ${s.index + 1} OF ${STAGES.length}`;
+  $('stage-pill').textContent = `STAGE ${s.index + 1} OF ${creature.stages.length}`;
   $('streak').hidden = streak < 1;
   $('streak-label').textContent = `${streak}-day streak`;
 
   const img = $('dragon-img');
   const rig = $('dragon-rig');
-  img.alt = `${s.stage.name}, Thor's dragon at stage ${s.index + 1}`;
+  img.alt = `${s.stage.name}, Thor's ${creature.name} at stage ${s.index + 1}`;
   img.style.height = `${Math.min(110 + s.index * 7, 220)}px`;
-  rigDragon(rig, s.stage);
+  rigCreature(rig, creature, s.stage);
 
   $('dragon-name').textContent = s.stage.name;
   $('dragon-days').textContent = `${totalDays} reading ${totalDays === 1 ? 'day' : 'days'}`;
@@ -129,13 +137,13 @@ function renderHome() {
   card.classList.remove('celebrate');
   $('evolved-badge').hidden = true;
   if (celebrateFrom !== null) {
-    const evolved = stageFor(celebrateFrom).index !== s.index;
+    const evolved = stageFor(creature, celebrateFrom).index !== s.index;
     void rig.offsetWidth; // restart the animation
     if (evolved) {
       card.classList.add('celebrate');
       $('evolved-badge').hidden = false;
       rig.classList.add('grow');
-      toast(`Your dragon evolved into ${s.stage.name}!`);
+      toast(`Your ${creature.name} evolved into ${s.stage.name}!`);
     } else {
       rig.classList.add('munch');
       toast(`Yum! Day ${totalDays} done.`);
@@ -211,10 +219,11 @@ async function undoToday(log) {
   }
 }
 
-// Sets up the idle animation for a stage: eggs wriggle, grubs squirm, legged stages step
-// (the sprite's bottom band is split into front and back legs that swing in turn), dragons breathe fire.
-function rigDragon(rig, stage) {
-  const src = spriteUrl(stage.file);
+// Sets up the idle animation for a stage: eggs wriggle, babies squirm, legged stages step
+// (the sprite's bottom band is split into front and back legs that swing in turn), flyers hover,
+// and stages with mouths breathe fire.
+function rigCreature(rig, creature, stage) {
+  const src = spriteUrl(creature, stage.file);
   for (const el of rig.querySelectorAll('img')) el.src = src;
   rig.className = `rig ${stage.motion}`;
   $('dragon-walker').classList.toggle('stay', stage.motion === 'egg');
@@ -245,6 +254,9 @@ $('dragon-rig').addEventListener('animationend', (e) => {
 // ---------- Log a book ----------
 
 function renderLog() {
+  const { name } = myCreature();
+  $('save-label').textContent = `Save and feed your ${name}`;
+  $('log-hint').textContent = `One book log per day. It feeds your ${name}!`;
   $('log-date').textContent = `Today · ${formatLong(state.today)}`;
   $('log-error').hidden = true;
   showView('log');
@@ -332,16 +344,17 @@ async function shrinkPhoto(file) {
 
 function renderEvolution() {
   const { totalDays } = state;
-  const current = stageFor(totalDays).index;
-  $('evo-summary').textContent = `${current + 1} of ${STAGES.length} unlocked · ${totalDays} reading ${totalDays === 1 ? 'day' : 'days'}`;
+  const creature = myCreature();
+  const current = stageFor(creature, totalDays).index;
+  $('evo-summary').textContent = `${creature.name} · ${current + 1} of ${creature.stages.length} unlocked · ${totalDays} reading ${totalDays === 1 ? 'day' : 'days'}`;
 
-  $('evo-grid').replaceChildren(...STAGES.map((s, i) => {
+  $('evo-grid').replaceChildren(...creature.stages.map((s, i) => {
     const got = i <= current;
     const li = document.createElement('li');
     li.className = `evo${i === current ? ' current' : ''}${got ? '' : ' locked'}`;
     li.innerHTML = '<div class="evo-img"><img></div><div class="evo-name"></div><div class="evo-days"></div>';
     const img = li.querySelector('img');
-    img.src = spriteUrl(s.file);
+    img.src = spriteUrl(creature, s.file);
     img.alt = got ? s.name : 'Locked stage';
     img.loading = 'lazy';
     li.querySelector('.evo-name').textContent = got ? s.name : '???';
@@ -350,6 +363,58 @@ function renderEvolution() {
   }));
   showView('evolution');
 }
+
+// ---------- Choose a creature ----------
+
+// Ask for a male or female creature. The server picks a random one of that gender.
+function renderChoose() {
+  const switching = Boolean(myCreature());
+  $('choose-ask').hidden = false;
+  $('choose-reveal').hidden = true;
+  $('choose-note').hidden = !switching || state.totalDays === 0;
+  $('choose-cancel').hidden = !switching;
+  showView('choose');
+}
+
+for (const btn of document.querySelectorAll('.js-gender')) {
+  btn.addEventListener('click', async () => {
+    const buttons = document.querySelectorAll('.js-gender');
+    buttons.forEach((b) => { b.disabled = true; });
+    try {
+      await api('/api/creature', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gender: btn.dataset.gender }),
+      });
+      await refresh();
+      renderReveal();
+    } catch (err) {
+      toast(err.message);
+    } finally {
+      buttons.forEach((b) => { b.disabled = false; });
+    }
+  });
+}
+
+function renderReveal() {
+  const creature = myCreature();
+  const { totalDays } = state;
+  const s = stageFor(creature, totalDays);
+  const img = $('reveal-img');
+  img.src = spriteUrl(creature, s.stage.file);
+  img.alt = s.stage.name;
+  $('reveal-title').textContent = `It's a ${creature.name}!`;
+  $('reveal-text').textContent = totalDays === 0
+    ? `Read a book today to start hatching your ${creature.name} egg.`
+    : `Your ${totalDays} reading ${totalDays === 1 ? 'day makes' : 'days make'} it a ${s.stage.name} already.`;
+  $('choose-ask').hidden = true;
+  $('choose-reveal').hidden = false;
+}
+
+$('reveal-go').addEventListener('click', () => {
+  history.replaceState(null, '', location.pathname);
+  route();
+});
 
 // ---------- Account ----------
 

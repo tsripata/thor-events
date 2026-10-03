@@ -20,7 +20,7 @@ export async function onRequestGet({ env, data }) {
 
   return json({
     user: data.user,
-    reader: { name: reader.name },
+    reader: { name: reader.name, creature: reader.creature || null },
     today,
     totalDays,
     streak: streakFrom(logs.map((l) => l.read_date), today),

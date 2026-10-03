@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#e6f5ec">
-<meta name="description" content="Read a book every day and watch Thor's egg grow into a mighty dragon.">
+<meta name="description" content="Read a book every day and watch Thor's egg grow into a mighty creature.">
 <title>Thor's Reading Dragon</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icons/favicon-32.png" sizes="32x32">
@@ -31,14 +31,14 @@
 
   <!-- Loading -->
   <section id="view-loading" class="view center">
-    <img src="/sprites/00-egg.webp?v=3" alt="" class="wobble" width="80">
+    <img src="/sprites/croc-dragon/00-egg.webp?v=4" alt="" class="wobble" width="80">
   </section>
 
   <!-- Sign in -->
   <section id="view-login" class="view center" hidden>
-    <div class="egg-circle"><img src="/sprites/00-egg.webp?v=3" alt="A dragon egg" height="150"></div>
+    <div class="egg-circle"><img src="/sprites/croc-dragon/00-egg.webp?v=4" alt="A creature egg" height="150"></div>
     <h1 class="brand big">Thor's Reading Dragon</h1>
-    <p class="lead">Read a book every day and watch the egg grow into a mighty dragon.</p>
+    <p class="lead">Read a book every day and watch the egg grow into a mighty creature.</p>
     <button id="btn-google" class="btn btn-outline wide" type="button">
       <span class="g-badge" aria-hidden="true">G</span>
       <span>Continue with Google</span>
@@ -48,17 +48,41 @@
 
   <!-- Not on the allow-list -->
   <section id="view-denied" class="view center" hidden>
-    <div class="egg-circle"><img src="/sprites/00-egg.webp?v=3" alt="" height="150"></div>
+    <div class="egg-circle"><img src="/sprites/croc-dragon/00-egg.webp?v=4" alt="" height="150"></div>
     <h1 class="brand">Not on the family list</h1>
     <p class="lead"><span id="denied-email"></span> can't open this app. Ask a parent to add it.</p>
     <button class="btn btn-outline wide js-signout" type="button">Use a different account</button>
+  </section>
+
+  <!-- Choose a creature: ask for male or female, get a random creature of it -->
+  <section id="view-choose" class="view center" hidden>
+    <div id="choose-ask" class="choose">
+      <h1 class="brand big">Pick an egg!</h1>
+      <p class="lead">Every book you read helps it hatch and grow. Which kind of creature would you like?</p>
+      <div class="choose-options">
+        <button type="button" class="choose-btn js-gender" data-gender="male">
+          <span class="choose-symbol" aria-hidden="true">&#9794;</span><span>Boy creature</span>
+        </button>
+        <button type="button" class="choose-btn female js-gender" data-gender="female">
+          <span class="choose-symbol" aria-hidden="true">&#9792;</span><span>Girl creature</span>
+        </button>
+      </div>
+      <p id="choose-note" class="small" hidden>Your reading days are kept: the new creature starts at the same stage.</p>
+      <a href="#" id="choose-cancel" class="small" hidden>Keep my creature</a>
+    </div>
+    <div id="choose-reveal" class="choose" hidden>
+      <div class="egg-circle"><img id="reveal-img" alt="" height="150"></div>
+      <h1 class="brand big" id="reveal-title"></h1>
+      <p class="lead" id="reveal-text"></p>
+      <button type="button" id="reveal-go" class="btn btn-primary wide">Let's read!</button>
+    </div>
   </section>
 
   <!-- Home -->
   <section id="view-home" class="view" hidden>
     <header class="topbar">
       <div>
-        <h1 class="brand">Thor's Reading Dragon</h1>
+        <h1 class="brand" id="home-title">Thor's Reading Dragon</h1>
         <div class="muted" id="today-label"></div>
       </div>
       <button id="btn-account" class="avatar-btn" type="button" aria-label="Account"></button>
@@ -66,6 +90,7 @@
 
     <div id="account-menu" class="card menu" hidden>
       <div class="muted" id="account-email"></div>
+      <a href="#choose" class="btn btn-small btn-outline">Pick a new creature</a>
       <button class="btn btn-small btn-outline js-signout" type="button">Sign out</button>
     </div>
 
@@ -152,12 +177,12 @@
 
       <div class="hint">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-        <span>One book log per day. It feeds the dragon!</span>
+        <span id="log-hint">One book log per day. It feeds your creature!</span>
       </div>
       <p id="log-error" class="error" role="alert" hidden></p>
       <button type="submit" id="btn-save" class="btn btn-primary big">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-        <span>Save and feed the dragon</span>
+        <span id="save-label">Save and feed your creature</span>
       </button>
     </form>
   </section>

@@ -5,8 +5,12 @@
 create table if not exists public.readers (
   id uuid primary key default gen_random_uuid(),
   name text not null,
+  -- Which creature they're growing (an id from public/creatures/index.js). Null until they pick.
+  creature text,
   created_at timestamptz not null default now()
 );
+-- For databases created before creatures could be picked.
+alter table public.readers add column if not exists creature text;
 
 -- One row per reading day.
 create table if not exists public.reading_logs (

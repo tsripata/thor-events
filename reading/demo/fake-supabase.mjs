@@ -2,7 +2,7 @@
 // It answers the handful of requests the app's API makes. Data is lost when it stops.
 import http from 'node:http';
 
-const READER = { id: '00000000-0000-4000-8000-000000000001', name: 'Thor', created_at: '2026-01-01' };
+const READER = { id: '00000000-0000-4000-8000-000000000001', name: 'Thor', creature: null, created_at: '2026-01-01' };
 const DEMO_EMAIL = 'demo@example.com';
 const SAMPLE_BOOKS = [
   'The Gruffalo', 'Where the Wild Things Are', 'The Very Hungry Caterpillar', 'Room on the Broom',
@@ -70,7 +70,10 @@ export function startFakeSupabase({ port, timeZone }) {
         : send(res, 401, { msg: 'invalid token' });
     }
 
-    if (path === '/rest/v1/readers') return send(res, 200, [READER]);
+    if (path === '/rest/v1/readers') {
+      if (req.method === 'PATCH') Object.assign(READER, JSON.parse(raw));
+      return send(res, 200, [READER]);
+    }
 
     if (path === '/rest/v1/reading_logs') {
       const filters = [...url.searchParams].filter(([k]) => !['select', 'order', 'limit'].includes(k));

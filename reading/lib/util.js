@@ -46,7 +46,7 @@ export async function currentDate(env) {
 
 // The child whose reading is tracked. One reader for now (see PLAN.md, Phase 4).
 export async function getReader(db) {
-  const rows = await db.select('readers', 'select=id,name&order=created_at.asc&limit=1');
+  const rows = await db.select('readers', 'select=id,name,creature&order=created_at.asc&limit=1');
   if (!rows.length) throw new Error('No reader found. Run supabase/schema.sql first.');
   return rows[0];
 }
