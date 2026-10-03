@@ -302,7 +302,7 @@ function lotCard(s){
       </div>
       <div class="meta">
         <span>${s.valid} ครั้ง${s.lastAt ? ` · ${timeAgo(s.lastAt)}` : ""}</span>
-        ${closed ? "<span>ปิดแล้ว</span>" : `<span>ขั้นต่ำถัดไป <b>${baht(s.next)}</b></span>`}
+        ${closed ? "<span>ปิดแล้ว</span>" : ""}
       </div>
       <div class="actions">
         ${formLink && !closed ? `<a class="btn primary" href="${esc(formLink)}" target="_blank" rel="noopener">ประมูลชิ้นนี้</a>` : ""}
@@ -447,7 +447,7 @@ function openHistory(key){
         ${b.reject ? `<span class="why">ไม่นับ: ${esc(b.reject)}</span>` : ""}</td>
       <td class="num">${isNaN(b.amount) ? "–" : baht(b.amount)}</td></tr>`).join("");
   $("dlgBody").innerHTML = `
-    <p style="margin:0 0 10px;color:#857766;font-size:14px">ราคาเริ่มต้น ${baht(s.item.start)} บาท · เพิ่มครั้งละอย่างน้อย ${baht(s.item.step)} บาท</p>
+    <p style="margin:0 0 10px;color:#857766;font-size:14px">ราคาเริ่มต้น ${baht(s.item.start)} บาท</p>
     ${s.history.length ? `<table><thead><tr><th>เวลา</th><th>ผู้ประมูล</th><th style="text-align:right">บาท</th></tr></thead><tbody>${rows}</tbody></table>`
       : `<p>ยังไม่มีใครประมูลชิ้นนี้</p>`}`;
   $("dlg").showModal();

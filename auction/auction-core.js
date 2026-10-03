@@ -23,7 +23,7 @@ const CONFIG = {
   DEFAULT_START_PRICE: 0,
   DEFAULT_MIN_INCREMENT: 10,
   // A new bid must beat the leader by at least the increment. false = any higher amount wins.
-  ENFORCE_INCREMENT: true,
+  ENFORCE_INCREMENT: false,
   REFRESH_SECONDS: 20,
   // Show only the first word of the parent's name publicly
   SHORT_PARENT_NAME: true,
@@ -222,7 +222,7 @@ function buildModel(itemsGrid, bidsGrid){
     const min = s.leader ? s.leader.amount + (CONFIG.ENFORCE_INCREMENT ? it.step : 0.01) : it.start;
     if (isNaN(b.amount) || b.amount <= 0) b.reject = "อ่านราคาไม่ได้";
     else if (endTime && b.time && b.time > endTime) b.reject = "ส่งหลังปิดประมูล";
-    else if (b.amount < min) b.reject = s.leader ? `ต้องอย่างน้อย ${baht(min)}` : `ต่ำกว่าราคาเริ่มต้น ${baht(it.start)}`;
+    else if (b.amount < min) b.reject = s.leader ? (CONFIG.ENFORCE_INCREMENT ? `ต้องอย่างน้อย ${baht(min)}` : `ต้องสูงกว่า ${baht(s.leader.amount)}`) : `ต่ำกว่าราคาเริ่มต้น ${baht(it.start)}`;
     if (!b.reject) { s.leader = b; s.valid++; s.lastAt = b.time; }
     s.history.push(b);
   }

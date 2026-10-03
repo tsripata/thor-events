@@ -213,7 +213,7 @@ function rowHtml(s){
     ? `<div class="lbl">${closed ? "ราคาที่ชนะ 🏆" : "ราคาตอนนี้"}</div>
        <div class="amt">${baht(L.amount)}<small>บาท</small></div>
        <div class="who">👑 ${esc(L.who.main)}${L.who.sub ? `<span class="sub">${esc(L.who.sub)}</span>` : ""}</div>
-       ${closed ? "" : `<div class="next">ขั้นต่ำถัดไป ${baht(s.next)} บาท · ${s.valid} ครั้ง</div>`}`
+       ${closed ? "" : `<div class="next">ประมูลแล้ว ${s.valid} ครั้ง</div>`}`
     : `<div class="lbl">${closed ? "ไม่มีผู้ประมูล" : "ราคาเริ่มต้น"}</div>
        <div class="amt">${baht(it.start)}<small>บาท</small></div>
        ${closed ? "" : `<div class="fresh">ยังไม่มีใครประมูล เป็นคนแรกเลย!</div>`}`;
