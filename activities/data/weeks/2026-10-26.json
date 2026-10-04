@@ -1,0 +1,70 @@
+{
+  "week_of": "2026-10-26",
+  "start": "2026-10-26",
+  "end": "2026-11-01",
+  "label": "October 26 – November 1, 2026",
+  "intro": "Halloween weekend is here, plus Book Expo and Thailand Game Show in town.",
+  "weekday_note": "Weekdays are good for a quiet ice skating or Roller Dome session before the Halloween weekend crowds.",
+  "activities": [
+    {
+      "title": "Book Expo Thailand 2026 (final days)",
+      "section": "weekend",
+      "category": "market",
+      "date": "Through Sunday November 1",
+      "time": null,
+      "location": "QSNCC, Bangkok",
+      "price": "Check official site",
+      "why": "Last chance to browse kids' books, including building and superhero titles.",
+      "tip": "Kids' programming unconfirmed. Check the organizer first.",
+      "link": "https://www.tatnews.org/2026/09/october-event-and-calendar/",
+      "image": null,
+      "video": null,
+      "pick": false
+    },
+    {
+      "title": "gamescom asia x Thailand Game Show 2026",
+      "section": "weekend",
+      "category": "play",
+      "date": "Thursday October 29 – Sunday November 1",
+      "time": null,
+      "location": "Bangkok (check venue)",
+      "price": "Check official site",
+      "why": "Four halls of game showcases. Probably more for dad than a 5-year-old, but demo stations may suit Thor.",
+      "tip": "Venue and family suitability unconfirmed. Weekend crowds will be heavy.",
+      "link": "https://www.tatnews.org/2026/09/october-event-and-calendar/",
+      "image": null,
+      "video": null,
+      "pick": false
+    },
+    {
+      "title": "Wat Banthat Thong Festival \"Pacha Taek\"",
+      "section": "weekend",
+      "category": "market",
+      "date": "October 26 – November 1",
+      "time": null,
+      "location": "Banthat Thong Road, in front of Chulalongkorn University Centenary Park",
+      "price": "Check on the day",
+      "why": "Local festival next to Centenary Park, so you can pair it with a playground and picnic stop.",
+      "tip": "Few details confirmed. Treat as a casual wander and check local listings.",
+      "link": "https://www.tatnews.org/2026/09/october-event-and-calendar/",
+      "image": null,
+      "video": null,
+      "pick": false
+    },
+    {
+      "title": "Chocolate Ville Spooky Town — Halloween Week",
+      "section": "weekday",
+      "category": "outdoor",
+      "date": "Any day through November 7",
+      "time": "Best from 5:00 PM",
+      "location": "Chocolate Ville, Vibhavadi Rangsit",
+      "price": "Entry fee applies (check venue)",
+      "why": "Fun-scary Halloween village, ideal for Thor's age.",
+      "tip": "Weekday evenings are calmer than Halloween weekend.",
+      "link": "https://www.facebook.com/ChocolateVilleBKK/",
+      "image": null,
+      "video": null,
+      "pick": true
+    }
+  ]
+}
