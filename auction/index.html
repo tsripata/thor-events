@@ -274,7 +274,7 @@ footer{max-width:1120px;margin:0 auto;padding:0 16px 40px;color:var(--dim);font-
 /* ==================================================================
    RENDER
    ================================================================== */
-let model = null, prevLeaders = null, lastUpdated = null, loading = false, failStreak = 0;
+let model = null, prevLeaders = null, lastUpdated = null, failStreak = 0, poller = null;
 
 function lotCard(s){
   const it = s.item, L = s.leader;
@@ -381,8 +381,6 @@ function toast(msg){
    LOAD LOOP
    ================================================================== */
 async function load(){
-  if (loading) return;
-  loading = true;
   $("statusText").textContent = "กำลังอัปเดต…";
   try {
     model = await fetchModel();
@@ -403,12 +401,13 @@ async function load(){
     $("errBanner").textContent = "";
     $("dot").className = "dot";
     render(changed);
+    return true;
   } catch (e) {
     failStreak++;
     $("dot").className = "dot err";
     $("errBanner").textContent = `โหลดข้อมูลไม่สำเร็จ: ${e.message}` + (model ? " (แสดงข้อมูลล่าสุดที่โหลดได้)" : "");
+    return false;
   } finally {
-    loading = false;
     updateStatus();
   }
 }
@@ -416,7 +415,7 @@ async function load(){
 function updateStatus(){
   const parts = [];
   if (lastUpdated) parts.push(`อัปเดตล่าสุด ${clock(lastUpdated)}`);
-  parts.push(`รีเฟรชเองทุก ${CONFIG.REFRESH_SECONDS} วินาที`);
+  parts.push(`รีเฟรชเองทุก ${refreshLabel()}`);
   $("statusText").textContent = parts.join(" · ");
 }
 
@@ -471,7 +470,7 @@ if (!DEMO) {
   $("sheetLink").href = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/edit#gid=${CONFIG.BIDS_GID}`;
   $("sheetLinkWrap").hidden = false;
 }
-$("refreshBtn").addEventListener("click", load);
+$("refreshBtn").addEventListener("click", () => poller && poller.refreshNow());
 $("sort").addEventListener("change", () => model && render(new Set()));
 $("pick").addEventListener("change", () => {
   if (!model) return;
@@ -488,9 +487,7 @@ $("lots").addEventListener("click", e => { const b = e.target.closest("[data-his
 $("dlgClose").addEventListener("click", () => $("dlg").close());
 $("dlg").addEventListener("click", e => { if (e.target === $("dlg")) $("dlg").close(); });
 
-load();
-setInterval(() => { if (!document.hidden) load(); }, CONFIG.REFRESH_SECONDS * 1000);
-document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+poller = startPolling(load);
 tickCountdown();
 setInterval(tickCountdown, 1000);
 </script>

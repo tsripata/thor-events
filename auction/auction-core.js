@@ -24,7 +24,10 @@ const CONFIG = {
   DEFAULT_MIN_INCREMENT: 10,
   // A new bid must beat the leader by at least the increment. false = any higher amount wins.
   ENFORCE_INCREMENT: false,
-  REFRESH_SECONDS: 20,
+  // How often each open page re-reads the bids. Every viewer adds load on the sheet, so keep this gentle.
+  REFRESH_SECONDS: 120,
+  // The Items tab rarely changes: read it once, then again only after this many minutes (or on a page reload)
+  ITEMS_REFRESH_MINUTES: 15,
   // Show only the first word of the parent's name publicly
   SHORT_PARENT_NAME: true,
   // Rows whose names match this are ignored (form test rows)
@@ -275,21 +278,59 @@ function demoGrids(){
 /* ==================================================================
    LOAD + FORM LINK
    ================================================================== */
+let itemsCache = null, itemsCachedAt = 0;
 async function fetchModel(){
   let itemsGrid = null, bidsGrid;
   if (DEMO) ({ items:itemsGrid, bids:bidsGrid } = demoGrids());
   else {
+    const itemsStale = !itemsCache || Date.now() - itemsCachedAt > CONFIG.ITEMS_REFRESH_MINUTES * 60000;
     const [ig, bg] = await Promise.allSettled([
-      CONFIG.ITEMS_SHEET ? fetchGrid({ sheet:CONFIG.ITEMS_SHEET }) : Promise.resolve(null),
+      CONFIG.ITEMS_SHEET && itemsStale ? fetchGrid({ sheet:CONFIG.ITEMS_SHEET }) : Promise.resolve(itemsCache),
       fetchGrid({ gid:CONFIG.BIDS_GID })
     ]);
+    if (ig.status === "fulfilled" && ig.value && itemsStale) { itemsCache = ig.value; itemsCachedAt = Date.now(); }
     if (bg.status === "rejected") throw bg.reason;
     bidsGrid = bg.value;
-    itemsGrid = ig.status === "fulfilled" ? ig.value : null;
+    itemsGrid = ig.status === "fulfilled" ? ig.value : itemsCache;
   }
   const m = buildModel(itemsGrid, bidsGrid);
   if (!DEMO && CONFIG.ITEMS_SHEET && !itemsGrid) m.notes.push(`อ่านแท็บ “${CONFIG.ITEMS_SHEET}” ไม่ได้ แสดงเฉพาะของที่มีคนประมูลแล้ว`);
   return m;
+}
+
+/* Polling, gentle on the sheet:
+   - every REFRESH_SECONDS, ±15% random so phones don't all hit Google in the same second
+   - after an error, wait 2×, 4×… longer (up to 10 min) before trying again
+   - paused while the tab is hidden; on return, reload only if the data is over 30 s old
+   - manual refresh at most once per 15 s
+   load() must return true on success, false on failure. */
+function startPolling(load){
+  let timer = null, fails = 0, lastAt = 0, busy = false;
+  const run = async () => {
+    if (busy) return;
+    busy = true; clearTimeout(timer); lastAt = Date.now();
+    const ok = await load();
+    fails = ok ? 0 : fails + 1;
+    busy = false;
+    schedule();
+  };
+  const schedule = () => {
+    clearTimeout(timer);
+    const base = CONFIG.REFRESH_SECONDS * 1000 * Math.pow(2, Math.min(fails, 3));
+    const wait = Math.min(base, 10 * 60000) * (0.85 + Math.random() * 0.3);
+    timer = setTimeout(() => { if (document.hidden) schedule(); else run(); }, wait);
+  };
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && Date.now() - lastAt > 30000) run();
+  });
+  run();
+  return { refreshNow(){ if (Date.now() - lastAt > 15000) run(); } };
+}
+
+// "120" → "2 นาที", "45" → "45 วินาที"
+function refreshLabel(){
+  const s = CONFIG.REFRESH_SECONDS;
+  return s >= 60 && s % 60 === 0 ? `${s / 60} นาที` : `${s} วินาที`;
 }
 
 // Google Form link, pre-filled with this item when FORM_ITEM_ENTRY is set. No item = the plain form.

@@ -191,7 +191,7 @@ footer{color:var(--dim);font-size:13px;text-align:center;padding:18px 16px 28px}
 </div>
 
 <footer class="shell">
-  ราคาอัปเดตเองทุก <span id="every">20</span> วินาที · อัปเดตล่าสุด <span id="updated">–</span>
+  ราคาอัปเดตเองทุก <span id="every">2 นาที</span> · อัปเดตล่าสุด <span id="updated">–</span>
   · รายได้ทั้งหมดสมทบกิจกรรมการกุศล
 </footer>
 
@@ -199,7 +199,7 @@ footer{color:var(--dim);font-size:13px;text-align:center;padding:18px 16px 28px}
 <script>
 "use strict";
 
-let model = null, loading = false, filter = "all";
+let model = null, filter = "all";
 
 function rowHtml(s){
   const it = s.item, L = s.leader;
@@ -271,17 +271,15 @@ function render(){
 }
 
 async function load(){
-  if (loading) return;
-  loading = true;
   try {
     model = await fetchModel();
     $("errBanner").textContent = "";
     $("updated").textContent = clock(new Date());
     render();
+    return true;
   } catch (e) {
     $("errBanner").textContent = `โหลดข้อมูลไม่สำเร็จ: ${e.message}` + (model ? " (แสดงข้อมูลล่าสุดที่โหลดได้)" : "");
-  } finally {
-    loading = false;
+    return false;
   }
 }
 
@@ -312,7 +310,7 @@ function tickCountdown(){
 })();
 
 $("eventName").textContent = CONFIG.EVENT_NAME;
-$("every").textContent = CONFIG.REFRESH_SECONDS;
+$("every").textContent = refreshLabel();
 document.querySelectorAll("[data-filter]").forEach(b => b.addEventListener("click", () => {
   filter = b.dataset.filter;
   document.querySelectorAll("[data-filter]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
@@ -321,9 +319,7 @@ document.querySelectorAll("[data-filter]").forEach(b => b.addEventListener("clic
 $("q").addEventListener("input", () => model && render());
 $("sort").addEventListener("change", () => model && render());
 
-load();
-setInterval(() => { if (!document.hidden) load(); }, CONFIG.REFRESH_SECONDS * 1000);
-document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+startPolling(load);
 tickCountdown();
 setInterval(tickCountdown, 1000);
 </script>

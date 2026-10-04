@@ -2,7 +2,7 @@
 
 A live auction board for the ตลาดน้ำจิตน้ำใจ market. People bid by submitting a **Google Form**.
 The page reads the form's **Google Sheet** and shows each item's **current highest bid and bidder**.
-It refreshes itself every 20 seconds and makes a little "bump" + toast whenever a new high bid lands.
+It refreshes itself every 2 minutes and makes a little "bump" + toast whenever a new high bid lands.
 
 - Page: <https://tsripata.github.io/thor-events/auction/>
 - Preview with fake data: <https://tsripata.github.io/thor-events/auction/?demo>
@@ -83,7 +83,8 @@ const CONFIG = {
   DEFAULT_START_PRICE: 0,
   DEFAULT_MIN_INCREMENT: 10,
   ENFORCE_INCREMENT: false,  // false = any bid above the leader wins (no minimum raise shown)
-  REFRESH_SECONDS: 20,
+  REFRESH_SECONDS: 120,      // re-read bids every 2 min (keep it gentle, see §6 load)
+  ITEMS_REFRESH_MINUTES: 15, // Items tab is cached; re-read at most this often
   SHORT_PARENT_NAME: true,   // show only the parent's first name
   TEST_NAME_PATTERN: /^(test|ทดสอบ|เทส)/i  // rows with these names are ignored
 };
@@ -113,7 +114,7 @@ Sorting: item number, highest price, most bids, most recent, or unbid items firs
 **Item dropdown (ดูของ).** Above the grid is a dropdown. It defaults to **ทั้งหมด (N ชิ้น)**, which shows every item.
 Each option reads `#NN <name> — <top bid> บาท · <leader>`, or `ยังไม่มีคนประมูล (เริ่ม <start>)` when nobody has bid.
 Picking one shows only that card, plus a "← ดูของทั้งหมด" link back. The sort control is disabled while one item is picked.
-The selection and the option labels survive the 20-second refresh.
+The selection and the option labels survive the automatic refresh.
 The URL updates to `#item-<no>`, so you can share a link straight to one item, e.g. `…/auction/#item-3`, or print it as a QR code on that item's poster.
 
 ## 5b. Item list page (`items.html`)
@@ -139,7 +140,15 @@ In **demo mode** with no `FORM_URL`, bid buttons show a short "this would open t
 - **Timezone.** Form timestamps carry no timezone. The browser reads them as its own local time, so `END_TIME` must include `+07:00`, and it works correctly for anyone browsing in Thailand.
 - **The sheet is the source of truth.** To cancel a bid (a joke bid, a typo of 100000), delete or edit that row in the responses tab. The page picks up the change on its next refresh.
 - **Privacy.** The page is public (GitHub Pages). It shows only the parent's first name, the child's nickname and รุ่น, and never the phone number. It has `noindex`, but anyone with the link can see it. The sheet itself is viewable by anyone with the sheet link, so share the **page** link, not the sheet link. Remove the footer "เปิดชีท" link if that matters (`#sheetLinkWrap`).
-- **"Real-time"** means polling every `REFRESH_SECONDS`. Polling pauses while the tab is hidden and refreshes immediately when you come back.
+- **"Real-time"** means polling every `REFRESH_SECONDS` (2 min). Prices can be up to ~2 minutes behind the sheet; the form is never affected.
+- **Load on Google (why 2 minutes).** Pages read the sheet through Google's unofficial `gviz` endpoint, which has no published quota and starts refusing requests if one sheet is hit too often. GitHub Pages itself is no concern: it's a static CDN, and these pages are under 100 KB. The polling in `startPolling()` (auction-core.js) is deliberately gentle:
+  - Bids are re-read every 2 min **±15% random**, so phones don't all hit Google in the same second.
+  - The **Items tab is read once** and then cached for `ITEMS_REFRESH_MINUTES` (15). After the first load, each refresh is a single request.
+  - **Errors back off:** waits of 2×, 4×, 8× (max 10 min). The last good prices stay on screen with a warning.
+  - **Hidden tab or locked phone = no requests.** Coming back reloads only if the data is more than 30 s old.
+  - The **รีเฟรช button** works at most once per 15 s.
+  - Result: about **0.5 request/min per open page**, so 300 people watching ≈ 2.5 requests/s total, versus ~30/s with the original 20-second, two-tab polling.
+  - If you expect a really big crowd, the next step is a small Cloudflare Worker that caches the sheet for ~10 s, so Google sees the same load however many people watch. Item photos from Google Drive can also get rate-limited under load, so put them in the repo instead.
 
 ## 7. Regenerating the page
 
@@ -150,7 +159,7 @@ To rebuild the auction pages from scratch (by hand or with an AI assistant), giv
 > Logic: follow §5 exactly (sheet order, start price, any higher bid wins with no minimum raise, first bidder wins ties, end-time cutoff, test-row filter, rejected bids kept with reasons).
 > UI (Thai): bunting header, event name in handwritten font (Mali), status pill with live dot + last-updated time + refresh button, optional countdown, 4 stat tiles, a horizontally scrolling "ประมูลล่าสุด" feed of the last 10 counted bids, then an item dropdown ("ทั้งหมด" by default; each option = item + current top bid + leader; picking one filters the grid to that card and sets `#item-<no>` for deep links) and a sort select, then a grid of item cards styled after the poster: circular photo with a blue-grey ring and a 🎀 bow, a tilted wooden "Item no. NN" plank, and a lemon-yellow board in a brown wood frame holding name, description, donor, current price, 👑 leader (`คุณ<first name>` + `น้อง<nick> · รุ่น X`), bid count (no ขั้นต่ำ / next-minimum text anywhere), a "ประมูลชิ้นนี้" button (pre-filled form link) and a "ประวัติ" button that opens a history dialog.
 > Palette: paper `#f6f0dc`, red `#e2553f`, olive `#7f8f52`, lemon `#e9ea8c`, ring `#a3a9c6`, wood `#9a4423`. Fonts: Mali (headings), Sarabun (body).
-> Behaviour: poll every 20 s (pause when the tab is hidden), animate cards and show a toast when an item's top bid rises, keep showing the last good data if a fetch fails, demo mode with fake data when no SHEET_ID or `?demo`. Escape all sheet text before inserting it into HTML. Never display phone numbers. Works at 390 px width with no horizontal scroll. Add `noindex` meta.
+> Behaviour: poll bids every 2 min ±15% jitter, cache the Items tab for 15 min, exponential backoff on errors, no polling while hidden, manual refresh throttled to 15 s, animate cards and show a toast when an item's top bid rises, keep showing the last good data if a fetch fails, demo mode with fake data when no SHEET_ID or `?demo`. Escape all sheet text before inserting it into HTML. Never display phone numbers. Works at 390 px width with no horizontal scroll. Add `noindex` meta.
 > Also add a card linking to `auction/` in the root `index.html`.
 
 ## 8. Publish
