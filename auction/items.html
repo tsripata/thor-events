@@ -145,6 +145,8 @@ footer{color:var(--dim);font-size:13px;text-align:center;padding:18px 16px 28px}
 </style>
 </head>
 <body>
+<script src="auction-core.js"></script>
+<script src="girl.js"></script>
 
 <svg class="bunting" viewBox="0 0 1200 46" preserveAspectRatio="none" aria-hidden="true">
   <path d="M0 4 Q600 34 1200 4" fill="none" stroke="#e2553f" stroke-width="3"/>
@@ -198,7 +200,6 @@ footer{color:var(--dim);font-size:13px;text-align:center;padding:18px 16px 28px}
   · รายได้ทั้งหมดสมทบกิจกรรมการกุศล
 </footer>
 
-<script src="auction-core.js"></script>
 <script>
 "use strict";
 
@@ -285,6 +286,7 @@ async function load(){
     $("errBanner").textContent = `โหลดข้อมูลไม่สำเร็จ: ${e.message}` + (model ? " (แสดงข้อมูลล่าสุดที่โหลดได้)" : "");
   } finally {
     loading = false;
+    GirlLoader.done();
   }
 }
 

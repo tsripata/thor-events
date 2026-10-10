@@ -11,6 +11,7 @@ It refreshes itself every 2 minutes and makes a little "bump" + toast whenever a
 - Files (no build step, no server):
   - `auction/auction-core.js` holds **`CONFIG`**, sheet reading, the bidding rules, demo data and the form link. Both pages load it, so **you edit settings in one place**.
   - `auction/index.html` is the **live board**: big poster-style cards, toasts and an item dropdown.
+  - `auction/girl.js` draws the poster's **little red-hood girl** (SVG) and the **loading screen**. Both pages load it right after `<body>`.
   - `auction/items.html` is the **item list**: every item with its current (or winning) price, made for browsing and nudging people to bid again.
   - `auction/item.html?no=N` is the **item detail page**: a photo gallery, the full description, the current price and the bid history.
 - Design reference: `auction/poster-template.jpg` (the event's item-poster template)
@@ -136,7 +137,7 @@ The board's header no longer has the 📝 form / 📋 item-list buttons, the sta
 
 In **demo mode** with no `FORM_URL`, bid buttons show a short "this would open the Google Form" notice instead of going nowhere.
 
-## 5c. Item detail page (`item.html?no=N`)
+## 5d. Item detail page (`item.html?no=N`)
 
 - Opened from **รายละเอียด** on a board card, **ดูรายละเอียด** on the list, or by tapping a photo or name. `N` is the item number.
 - **Gallery:** every photo of the item (see §3, "More photos"), swipe on phones or use the ‹ › arrows / ← → keys, thumbnails below, `2 / 4` counter, tap a photo to see it full size. Drive photos load at 1600 px here (600 px on the other pages). With no photo, the item's emoji is shown.
@@ -144,6 +145,13 @@ In **demo mode** with no `FORM_URL`, bid buttons show a short "this would open t
 - **ประวัติการประมูล:** the full history table (rejected bids struck through with the reason). This replaces the board's old history dialog.
 - **← ชิ้นก่อนหน้า / ชิ้นถัดไป →** to walk through items in number order.
 - Refreshes every `REFRESH_SECONDS` without resetting the gallery position. `?demo` is carried over on its links.
+
+## 5c. The red-hood girl and the loading screen (`girl.js`)
+
+- `girlSvg({ pose })` draws the girl from the poster: heart-shaped red hood, pink face, black fringe, blushing cheeks, red nose, bow on the coat. `pose: "stand"` raises one hand; `pose: "walk"` swings a basket and steps.
+- On the live board, every item card has her **standing to the left of the photo circle**, holding it by a string tied with a red bow, as if it were her balloon. She sways gently.
+- **Loading screen** (both pages): a portrait (9:16) scene that fills the phone screen. Bunting sways at the top, she walks through the market (stalls and flowers scroll past) holding the balloon, and item emojis pop up inside it. Text: "กำลังเดินเลือกของประมูล…". On wider screens the scene stays centred and the ground and stalls stretch to the edges.
+- It shows for at least 3 s, then fades out after the first load finishes (success or error). Add `?noloader` to the URL to skip it. Motion stops for people with "reduce motion" turned on.
 
 ## 6. Gotchas
 

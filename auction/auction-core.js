@@ -75,7 +75,9 @@ function imageUrl(raw, size = 600){
   if (!s) return "";
   const id = driveId(s);
   if (id && /google\.com/.test(s)) return `https://drive.google.com/thumbnail?id=${id}&sz=w${size}`;
-  return /^https?:\/\//.test(s) ? s : "";
+  if (/^https?:\/\//.test(s)) return s;
+  // A path inside this site, e.g. "img/01-2.jpg" (files committed next to the pages)
+  return /^[\w\-./]+\.(jpe?g|png|webp|gif)$/i.test(s) && !s.includes("..") ? s : "";
 }
 // All photos of an item: every "รูป…" column, each cell may hold several links (space, comma or new line).
 function imageList(cells){
