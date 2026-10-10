@@ -24,7 +24,8 @@ const CONFIG = {
   DEFAULT_MIN_INCREMENT: 10,
   // A new bid must beat the leader by at least the increment. false = any higher amount wins.
   ENFORCE_INCREMENT: false,
-  REFRESH_SECONDS: 20,
+  // How often the pages re-read the sheet (120 = every 2 minutes)
+  REFRESH_SECONDS: 120,
   // Show only the first word of the parent's name publicly
   SHORT_PARENT_NAME: true,
   // Rows whose names match this are ignored (form test rows)
@@ -36,7 +37,6 @@ if (qs.get("sheet")) CONFIG.SHEET_ID = qs.get("sheet");
 if (qs.get("gid")) CONFIG.BIDS_GID = qs.get("gid");
 if (qs.get("end")) CONFIG.END_TIME = qs.get("end");
 const DEMO = qs.has("demo") || !CONFIG.SHEET_ID;
-if (DEMO) CONFIG.REFRESH_SECONDS = 8;
 
 /* ==================================================================
    HELPERS
@@ -70,12 +70,36 @@ function driveId(url){
   const m = /(?:id=|\/d\/)([\w-]{20,})/.exec(url || "");
   return m ? m[1] : null;
 }
-function imageUrl(raw){
+function imageUrl(raw, size = 600){
   const s = norm(raw);
   if (!s) return "";
   const id = driveId(s);
-  if (id && /google\.com/.test(s)) return `https://drive.google.com/thumbnail?id=${id}&sz=w600`;
-  return /^https?:\/\//.test(s) ? s : "";
+  if (id && /google\.com/.test(s)) return `https://drive.google.com/thumbnail?id=${id}&sz=w${size}`;
+  if (/^https?:\/\//.test(s)) return s;
+  // A path inside this site, e.g. "img/01-2.jpg" (files committed next to the pages)
+  return /^[\w\-./]+\.(jpe?g|png|webp|gif)$/i.test(s) && !s.includes("..") ? s : "";
+}
+// All photos of an item: every "รูป…" column, each cell may hold several links (space, comma or new line).
+function imageList(cells){
+  const out = [];
+  for (const cell of cells) for (const raw of norm(cell).split(/[\s,]+/)) {
+    const thumb = imageUrl(raw);
+    if (thumb && !out.some(x => x.thumb === thumb)) out.push({ thumb, full:imageUrl(raw, 1600) });
+  }
+  return out;
+}
+// Shown in the photo circle when an item has no photo (or it fails to load)
+const NO_PHOTO = `<span class="nophoto">ยังไม่มีรูป</span>`;
+const imgFallback = `this.outerHTML='<span class=&quot;nophoto&quot;>ยังไม่มีรูป</span>'`;
+// "every 2 minutes" / "every 20 seconds" in Thai
+const refreshLabel = () => CONFIG.REFRESH_SECONDS % 60 === 0
+  ? `${CONFIG.REFRESH_SECONDS / 60} นาที` : `${CONFIG.REFRESH_SECONDS} วินาที`;
+// Link to the item detail page (keeps ?demo and other URL overrides)
+function itemPage(it){
+  const p = new URLSearchParams(location.search);
+  p.delete("no");
+  const rest = p.toString().replace(/=(&|$)/g, "$1");
+  return `item.html?no=${encodeURIComponent(it.key)}${rest ? "&" + rest : ""}`;
 }
 function timeAgo(d){
   if (!d) return "";
@@ -141,8 +165,7 @@ const ITEM_COLS = [
   ["image", h => /รูป|ภาพ|image|photo|picture/i.test(h)],
   ["donor", h => /บริจาค|donor|donated|ผู้ให้/i.test(h)],
   ["desc",  h => /รายละเอียด|desc|detail/i.test(h)],
-  ["name",  h => /ชื่อ|name|item|สินค้า/i.test(h)],
-  ["emoji", h => /emoji|อีโมจิ/i.test(h)]
+  ["name",  h => /ชื่อ|name|item|สินค้า/i.test(h)]
 ];
 
 /* ==================================================================
@@ -152,19 +175,22 @@ function buildItems(grid){
   if (!grid) return [];
   const c = mapColumns(grid.headers, ITEM_COLS);
   const get = (r, k) => c[k] == null ? "" : r[c[k]].f;
+  const isImage = ITEM_COLS.find(d => d[0] === "image")[1];
+  const imgCols = grid.headers.map((h, i) => isImage(h) ? i : -1).filter(i => i >= 0);
   return grid.rows.map(r => {
     const rawNo = get(r, "no") || get(r, "name");
     if (!norm(rawNo)) return null;
     const start = parseAmount(get(r, "start"));
     const step = parseAmount(get(r, "step"));
+    const images = imageList(imgCols.map(i => r[i].f));
     return {
       key: itemKey(rawNo),
       no: (rawNo.match(/\d+/) || [""])[0],
       name: get(r, "name") || itemLabelText(rawNo) || `ชิ้นที่ ${rawNo}`,
       desc: get(r, "desc"),
       donor: get(r, "donor"),
-      image: imageUrl(get(r, "image")),
-      emoji: get(r, "emoji") || "🎁",
+      image: images.length ? images[0].thumb : "",
+      images,
       start: isNaN(start) ? CONFIG.DEFAULT_START_PRICE : start,
       step: isNaN(step) || step <= 0 ? CONFIG.DEFAULT_MIN_INCREMENT : step
     };
@@ -200,7 +226,7 @@ function buildModel(itemsGrid, bidsGrid){
     if (!byKey.has(key)) {
       const it = {
         key, no:(rawItem.match(/\d+/) || [""])[0], name:itemLabelText(rawItem) || rawItem,
-        desc:"", donor:"", image:"", emoji:"🎁",
+        desc:"", donor:"", image:"", images:[],
         start:CONFIG.DEFAULT_START_PRICE, step:CONFIG.DEFAULT_MIN_INCREMENT, fromBidsOnly:true
       };
       byKey.set(key, it); items.push(it);
@@ -241,12 +267,12 @@ function it_step(s){ return CONFIG.ENFORCE_INCREMENT ? s.item.step : 1; }
    DEMO DATA (used when SHEET_ID is empty or ?demo is in the URL)
    ================================================================== */
 const DEMO_ITEMS = [
-  ["1","ตุ๊กตาหมีถักมือ","ถักจากไหมพรมคอตตอน สูง 30 ซม. ทำโดยคุณยายของน้องข้าวปั้น","ครอบครัวน้องข้าวปั้น",100,20,"🧸"],
-  ["2","ภาพวาดสีน้ำ “ตลาดนัด”","ผลงานเด็ก ๆ รุ่น 5 ใส่กรอบไม้พร้อมแขวน","เด็ก ๆ รุ่น 5",200,50,"🖼️"],
-  ["3","เซตขนมไทยโบราณ","ขนมชั้น ทองหยิบ ฝอยทอง 1 กล่องใหญ่ รับวันงาน","บ้านขนมแม่น้อย",150,10,"🍮"],
-  ["4","กระถางต้นไม้เพนต์มือ","ต้นกุหลาบหินในกระถางดินเผาลายดอกไม้","คุณครูฝ้าย",80,10,"🪴"],
-  ["5","บัตรทำขนมปังกับเชฟ","Workshop 2 ชม. สำหรับเด็ก 1 คน + ผู้ปกครอง 1 คน","Little Bakery",500,100,"🥐"],
-  ["6","ผ้าพันคอมัดย้อม","ผ้าฝ้ายมัดย้อมครามธรรมชาติ ขนาด 50×180 ซม.","ครอบครัวน้องภูผา",120,20,"🧣"]
+  ["1","ตุ๊กตาหมีถักมือ","ถักจากไหมพรมคอตตอน สูง 30 ซม. ทำโดยคุณยายของน้องข้าวปั้น","ครอบครัวน้องข้าวปั้น",100,20],
+  ["2","ภาพวาดสีน้ำ “ตลาดนัด”","ผลงานเด็ก ๆ รุ่น 5 ใส่กรอบไม้พร้อมแขวน","เด็ก ๆ รุ่น 5",200,50],
+  ["3","เซตขนมไทยโบราณ","ขนมชั้น ทองหยิบ ฝอยทอง 1 กล่องใหญ่ รับวันงาน","บ้านขนมแม่น้อย",150,10],
+  ["4","กระถางต้นไม้เพนต์มือ","ต้นกุหลาบหินในกระถางดินเผาลายดอกไม้","คุณครูฝ้าย",80,10],
+  ["5","บัตรทำขนมปังกับเชฟ","Workshop 2 ชม. สำหรับเด็ก 1 คน + ผู้ปกครอง 1 คน","Little Bakery",500,100],
+  ["6","ผ้าพันคอมัดย้อม","ผ้าฝ้ายมัดย้อมครามธรรมชาติ ขนาด 50×180 ซม.","ครอบครัวน้องภูผา",120,20]
 ];
 const DEMO_PEOPLE = [
   ["สมใจ","มะลิ","3"],["วรรณา","ภูผา","1"],["ปกรณ์","ข้าวปั้น","2"],["นิดา","ต้นกล้า","5"],
@@ -255,8 +281,8 @@ const DEMO_PEOPLE = [
 let demoBids = null;
 function demoGrids(){
   // Like the real sheet: no start/step columns. DEMO_ITEMS keeps them only to make up plausible amounts.
-  const items = { headers:["Item no.","ชื่อของ","รายละเอียด","ผู้บริจาค","Emoji"],
-    rows: DEMO_ITEMS.map(r => [r[0], r[1], r[2], r[3], r[6]].map(v => ({ v, f:String(v) }))) };
+  const items = { headers:["Item no.","ชื่อของ","รายละเอียด","ผู้บริจาค"],
+    rows: DEMO_ITEMS.map(r => [r[0], r[1], r[2], r[3]].map(v => ({ v, f:String(v) }))) };
   const cur = new Map();
   const add = (minsAgo) => {
     const it = DEMO_ITEMS[Math.floor(Math.random() * DEMO_ITEMS.length)];
