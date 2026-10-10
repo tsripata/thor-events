@@ -212,7 +212,7 @@ const GirlLoader = (() => {
     setTimeout(() => {
       node.classList.add("out");
       setTimeout(() => { clearInterval(timer); node.remove(); }, 500);
-    }, Math.max(0, 1800 - (Date.now() - shownAt)));
+    }, Math.max(0, 3000 - (Date.now() - shownAt)));
   }
 
   mount();

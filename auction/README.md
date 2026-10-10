@@ -138,7 +138,7 @@ In **demo mode** with no `FORM_URL`, bid buttons show a short "this would open t
 - `girlSvg({ pose })` draws the girl from the poster: heart-shaped red hood, pink face, black fringe, blushing cheeks, red nose, bow on the coat. `pose: "stand"` raises one hand; `pose: "walk"` swings a basket and steps.
 - On the live board, every item card has her **standing to the left of the photo circle**, holding it by a string tied with a red bow, as if it were her balloon. She sways gently.
 - **Loading screen** (both pages): a portrait (9:16) scene that fills the phone screen. Bunting sways at the top, she walks through the market (stalls and flowers scroll past) holding the balloon, and item emojis pop up inside it. Text: "กำลังเดินเลือกของประมูล…". On wider screens the scene stays centred and the ground and stalls stretch to the edges.
-- It shows for at least 1.8 s, then fades out after the first load finishes (success or error). Add `?noloader` to the URL to skip it. Motion stops for people with "reduce motion" turned on.
+- It shows for at least 3 s, then fades out after the first load finishes (success or error). Add `?noloader` to the URL to skip it. Motion stops for people with "reduce motion" turned on.
 
 ## 6. Gotchas
 
