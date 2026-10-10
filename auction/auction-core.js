@@ -14,7 +14,7 @@ const CONFIG = {
   // Name of the tab (same spreadsheet) that lists the items. Leave "" to derive items from bids only.
   ITEMS_SHEET: "Items",
   // Google Form link (…/viewform). Empty = hide the "bid" button.
-  FORM_URL: "",
+  FORM_URL: "https://forms.gle/MeZZc31gytVR3W529",
   // Pre-fill field id for the item question, e.g. "entry.123456789". Empty = no pre-fill.
   FORM_ITEM_ENTRY: "",
   // Auction closes at this time (ISO with timezone). Bids stamped after it are ignored. "" = no end.
