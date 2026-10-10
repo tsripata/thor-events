@@ -6,14 +6,15 @@
 
 const GIRL = { red: "#e5574a", redDeep: "#b93a2c" };
 
-// Hand-painted cut-outs of her (transparent WebP, in hood/). The four single poses stand beside the
+// Hand-painted cut-outs of her (transparent WebP, in hood/). The five single poses stand beside the
 // items; the wagon one walks across the loading screen.
 const HOOD_V = "20261010c";
 const HOODS = [
   { src: "hood/flower.webp",   alt: "หนูหมวกแดงถือดอกไม้" },
   { src: "hood/palette.webp",  alt: "หนูหมวกแดงถือจานสี" },
   { src: "hood/shopping.webp", alt: "หนูหมวกแดงหิ้วถุงช้อปปิ้ง" },
-  { src: "hood/painting.webp", alt: "หนูหมวกแดงนั่งระบายสีแก้ว" }
+  { src: "hood/painting.webp", alt: "หนูหมวกแดงนั่งระบายสีแก้ว" },
+  { src: "hood/dance.webp",    alt: "หนูหมวกแดงเต้นขาเตะ ขยิบตา" }
 ];
 const HOOD_WAGON = "hood/wagon.webp";
 
