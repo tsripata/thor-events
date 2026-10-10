@@ -8,11 +8,11 @@
 const CONFIG = {
   EVENT_NAME: "ตลาดน้ำจิตน้ำใจ #25",
   // Spreadsheet that receives the Google Form responses (must be shared: Anyone with the link → Viewer)
-  SHEET_ID: "",
+  SHEET_ID: "168t6JMmVf2-r0brGKiuOhFEPlRdxwR6xhEDPxYjd6As",
   // gid of the form-responses tab (the number after #gid= in the sheet URL)
-  BIDS_GID: "0",
+  BIDS_GID: "1736783461",
   // Name of the tab (same spreadsheet) that lists the items. Leave "" to derive items from bids only.
-  ITEMS_SHEET: "Items",
+  ITEMS_SHEET: "Item",
   // Google Form link (…/viewform). Empty = hide the "bid" button.
   FORM_URL: "",
   // Pre-fill field id for the item question, e.g. "entry.123456789". Empty = no pre-fill.
