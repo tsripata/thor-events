@@ -10,6 +10,7 @@ It refreshes itself every 20 seconds and makes a little "bump" + toast whenever 
 - Files (no build step, no server):
   - `auction/auction-core.js` holds **`CONFIG`**, sheet reading, the bidding rules, demo data and the form link. Both pages load it, so **you edit settings in one place**.
   - `auction/index.html` is the **live board**: big poster-style cards, latest-bid feed, toasts, an item dropdown and a history dialog.
+  - `auction/girl.js` draws the poster's **little red-hood girl** (SVG) and the **loading screen**. Both pages load it right after `<body>`.
   - `auction/items.html` is the **item list**: every item with its current (or winning) price, made for browsing and nudging people to bid again.
 - Design reference: `auction/poster-template.jpg` (the event's item-poster template)
 
@@ -131,6 +132,13 @@ Goal: get people to **browse everything and bid more**.
 The live board (`index.html`) links to this page (📋 ดูรายการของทั้งหมด) next to its own 📝 form button.
 
 In **demo mode** with no `FORM_URL`, bid buttons show a short "this would open the Google Form" notice instead of going nowhere.
+
+## 5c. The red-hood girl and the loading screen (`girl.js`)
+
+- `girlSvg({ pose })` draws the girl from the poster: heart-shaped red hood, pink face, black fringe, blushing cheeks, red nose, bow on the coat. `pose: "stand"` raises one hand; `pose: "walk"` swings a basket and steps.
+- On the live board, every item card has her **standing to the left of the photo circle**, holding it by a string tied with a red bow, as if it were her balloon. She sways gently.
+- **Loading screen** (both pages): a portrait (9:16) scene that fills the phone screen. Bunting sways at the top, she walks through the market (stalls and flowers scroll past) holding the balloon, and item emojis pop up inside it. Text: "กำลังเดินเลือกของประมูล…". On wider screens the scene stays centred and the ground and stalls stretch to the edges.
+- It shows for at least 1.8 s, then fades out after the first load finishes (success or error). Add `?noloader` to the URL to skip it. Motion stops for people with "reduce motion" turned on.
 
 ## 6. Gotchas
 
