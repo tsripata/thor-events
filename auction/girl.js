@@ -77,7 +77,7 @@ function bowSvg(cls = ""){
 }
 
 /* ==================================================================
-   LOADING SCREEN — portrait (9:16) scene: she walks through the market
+   LOADING SCREEN — portrait (9:16) scene: Jittamett Family logo on top, she walks through the market
    holding a balloon while item emojis pop up inside it.
    ================================================================== */
 const GirlLoader = (() => {
@@ -148,9 +148,10 @@ const GirlLoader = (() => {
 
   function sceneSvg(){
     const tiles = (fn, n) => Array.from({ length: n }, (_, i) => fn(-720 + i * 180)).join("");
-    return `<svg class="gl-scene" viewBox="0 0 360 640" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-  <text x="180" y="70" text-anchor="middle" font-size="21" font-weight="600" fill="#7f8f52" class="gl-event"></text>
-  <text x="180" y="106" text-anchor="middle" font-size="34" font-weight="700" fill="#e2553f">ประมูลการกุศล</text>
+    return `<svg class="gl-scene" viewBox="0 -100 360 740" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+  <image href="jittamett-logo.png?v=20261010" x="140" y="-42" width="80" height="92"/>
+  <text x="180" y="78" text-anchor="middle" font-size="21" font-weight="600" fill="#7f8f52" class="gl-event"></text>
+  <text x="180" y="114" text-anchor="middle" font-size="34" font-weight="700" fill="#e2553f">ประมูลการกุศล</text>
   <g class="gl-far">${tiles(stallTile, 12)}</g>
   <rect x="-2000" y="512" width="4360" height="2000" fill="#ecebc0"/>
   <path d="M-2000 512 H2360" stroke="#d6d39a" stroke-width="3"/>
