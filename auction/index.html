@@ -162,8 +162,8 @@ footer{max-width:1120px;margin:0 auto;padding:0 16px 40px;color:var(--dim);font-
 </style>
 </head>
 <body>
-<script src="auction-core.js"></script>
-<script src="girl.js"></script>
+<script src="auction-core.js?v=20261010"></script>
+<script src="girl.js?v=20261010"></script>
 
 <svg class="bunting" viewBox="0 0 1200 64" preserveAspectRatio="none" aria-hidden="true">
   <path d="M0 6 Q600 46 1200 6" fill="none" stroke="#e2553f" stroke-width="3"/>
@@ -344,8 +344,8 @@ async function load(){
     $("errBanner").textContent = `โหลดข้อมูลไม่สำเร็จ: ${e.message}` + (model ? " (แสดงข้อมูลล่าสุดที่โหลดได้)" : "");
   } finally {
     loading = false;
-    updateStatus();
     GirlLoader.done();
+    updateStatus();
   }
 }
 
