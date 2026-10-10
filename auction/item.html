@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="theme-color" content="#f6f0dc">
+<title>รายละเอียดของประมูล — ตลาดน้ำจิตน้ำใจ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --paper:#f6f0dc;
+  --paper-2:#fffaf0;
+  --line:#eadfc2;
+  --ink:#3b2f27;
+  --dim:#857766;
+  --red:#e2553f;
+  --red-deep:#c23b28;
+  --olive:#7f8f52;
+  --lemon:#e9ea8c;
+  --lemon-2:#f2f2b4;
+  --ring:#a3a9c6;
+  --wood:#9a4423;
+  --wood-2:#b9592e;
+  --shadow:0 5px 0 rgba(59,47,39,.09);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Sarabun",-apple-system,"Segoe UI",Tahoma,sans-serif;
+  font-size:16px;line-height:1.5;font-variant-numeric:tabular-nums;overflow-x:hidden;
+}
+a{color:var(--red-deep)}
+button{font:inherit;cursor:pointer}
+
+.bunting{display:block;width:100%;height:46px}
+.shell{max-width:980px;margin:0 auto;padding:0 16px}
+
+.topnav{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:4px 0 12px;font-weight:600}
+.topnav a{text-decoration:none}
+.event{margin:0;color:var(--olive);font-family:"Mali",cursive;font-weight:600}
+@media (max-width:520px){.topnav .event{display:none}}
+
+.layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:760px){.layout{grid-template-columns:minmax(0,1fr);gap:16px}}
+
+/* ---------- gallery ---------- */
+.gallery{position:relative}
+.frame{
+  position:relative;border:7px solid var(--ring);border-radius:24px;background:#fff;overflow:hidden;box-shadow:var(--shadow)
+}
+.track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;aspect-ratio:1/1}
+.track::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100%;scroll-snap-align:center;display:grid;place-items:center;background:#fff;border:0;padding:0}
+.slide img{width:100%;height:100%;object-fit:contain;display:block}
+.slide.emoji{font-size:clamp(90px,28vw,180px);cursor:default}
+.arrow{
+  position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;
+  border:0;background:rgba(255,250,240,.92);color:var(--ink);font-size:22px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.15)
+}
+.arrow.prev{left:10px}.arrow.next{right:10px}
+.arrow[hidden]{display:none}
+.counter{position:absolute;right:12px;bottom:12px;background:rgba(59,47,39,.8);color:#fff;font-size:13px;font-weight:700;padding:3px 10px;border-radius:999px}
+.counter[hidden]{display:none}
+.bow{position:absolute;right:-4px;top:-14px;font-size:40px;transform:rotate(14deg);z-index:2}
+.thumbs{display:flex;gap:8px;overflow-x:auto;padding:12px 2px 4px;scrollbar-width:thin}
+.thumbs:empty{display:none}
+.thumbs button{flex:none;width:68px;height:68px;padding:0;border-radius:14px;border:3px solid var(--line);background:#fff;overflow:hidden}
+.thumbs button[aria-current="true"]{border-color:var(--red)}
+.thumbs img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* ---------- details ---------- */
+.plank{
+  display:inline-block;padding:4px 16px 6px;background:linear-gradient(180deg,var(--wood-2),var(--wood));color:#fff6ea;
+  border-radius:8px 14px 9px 12px;transform:rotate(-2deg);box-shadow:0 3px 0 rgba(0,0,0,.15);
+  font-family:"Mali",cursive;font-weight:600;font-size:15px
+}
+.plank b{font-size:20px;margin-left:4px}
+h1{margin:10px 0 4px;font-family:"Mali",cursive;font-size:clamp(26px,6.5vw,36px);line-height:1.25}
+.donor{margin:0;color:#6d6047}
+.desc{margin:10px 0 0;white-space:pre-line}
+
+.board{
+  margin-top:16px;background:var(--lemon);border:7px solid var(--wood);border-radius:6px;padding:14px;
+  display:flex;flex-direction:column;gap:6px
+}
+.board .lbl{font-size:14px;color:#6d6047}
+.board .amt{font-family:"Mali",cursive;font-weight:700;font-size:40px;line-height:1.1;color:var(--red-deep)}
+.board .amt small{font-size:17px;font-weight:600;color:#6d6047;margin-left:4px}
+.leader{font-weight:600;font-size:16px;word-break:break-word}
+.leader .sub{display:block;font-weight:400;font-size:13px;color:#6d6047}
+.leader.none{color:#4f5a2f}
+.meta{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:14px;color:#6d6047}
+.countdown{font-weight:700;color:var(--red-deep)}
+.countdown.closed{color:var(--olive)}
+.countdown[hidden]{display:none}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;
+  border-radius:14px;padding:12px 18px;font-weight:700;border:2px solid var(--wood);background:var(--paper-2);color:var(--wood)
+}
+.btn.primary{background:var(--red);border-color:var(--red-deep);color:#fff;box-shadow:var(--shadow)}
+.btn:hover,.btn:focus-visible{filter:brightness(1.05);transform:translateY(-1px);outline:none}
+.board .btn{margin-top:6px;font-size:18px}
+
+/* ---------- history ---------- */
+.card{margin-top:22px;background:var(--paper-2);border:2px solid var(--line);border-radius:18px;padding:14px 16px}
+.card h2{margin:0 0 6px;font-family:"Mali",cursive;font-size:19px}
+.rule{margin:0 0 8px;color:var(--dim);font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--dim);font-weight:600}
+td.num{text-align:right;font-weight:700;white-space:nowrap}
+tr.lead td{background:#f7f3c9}
+tr.rej td{color:#a3968a}
+tr.rej td.num{text-decoration:line-through}
+.why{display:block;font-size:12px;color:#b0553f}
+.who-sub{display:block;font-size:12px;color:var(--dim)}
+
+.pager{display:flex;justify-content:space-between;gap:10px;margin:22px 0 0}
+.pager a{flex:1;max-width:48%;text-decoration:none;background:var(--paper-2);border:2px solid var(--line);border-radius:14px;padding:10px 12px;color:var(--ink);min-width:0}
+.pager a.next{text-align:right;margin-left:auto}
+.pager small{display:block;color:var(--dim)}
+.pager span{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.banner{margin:12px 0;padding:10px 14px;border-radius:14px;font-size:14px}
+.banner.err{background:#fbe6e2;color:#8c2618;border:2px solid #f3c2b8}
+.banner.info{background:#eef0dc;color:#4f5a2f;border:2px solid #d9ddb5}
+.banner:empty{display:none}
+.empty{color:var(--dim);text-align:center;padding:48px 0}
+footer{color:var(--dim);font-size:13px;text-align:center;padding:22px 16px 30px}
+
+/* ---------- full-size photo ---------- */
+dialog{border:0;padding:0;background:transparent;max-width:100vw;max-height:100vh}
+dialog::backdrop{background:rgba(20,15,10,.88)}
+dialog img{display:block;max-width:calc(100vw - 24px);max-height:calc(100vh - 80px);object-fit:contain;border-radius:10px}
+dialog button{display:block;margin:10px auto 0;border:0;border-radius:999px;padding:8px 18px;background:#fff;color:var(--ink);font-weight:700}
+
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<svg class="bunting" viewBox="0 0 1200 46" preserveAspectRatio="none" aria-hidden="true">
+  <path d="M0 4 Q600 34 1200 4" fill="none" stroke="#e2553f" stroke-width="3"/>
+  <g id="flags"></g>
+</svg>
+
+<div class="shell">
+  <nav class="topnav">
+    <a href="index.html">← กระดานประมูล</a>
+    <span class="event" id="eventName">ตลาดน้ำจิตน้ำใจ #25</span>
+    <a href="items.html">📋 ของทั้งหมด</a>
+  </nav>
+
+  <div class="banner err" id="errBanner"></div>
+  <div class="banner info" id="infoBanner"></div>
+
+  <div id="page"><p class="empty">กำลังโหลด…</p></div>
+</div>
+
+<footer class="shell">
+  ราคาอัปเดตเองทุก <span id="every">2 นาที</span> · อัปเดตล่าสุด <span id="updated">–</span>
+  · รายได้ทั้งหมดสมทบกิจกรรมการกุศล
+</footer>
+
+<dialog id="zoom">
+  <img id="zoomImg" alt="">
+  <button type="button" id="zoomClose">ปิด ×</button>
+</dialog>
+
+<script src="auction-core.js"></script>
+<script>
+"use strict";
+
+const wantKey = itemKey(qs.get("no") || (/^#item-(.+)$/.exec(location.hash) || [])[1] || "");
+let model = null, loading = false, galleryFor = "", closedShown = false;
+
+function galleryHtml(it){
+  const pics = it.images;
+  const slides = pics.length
+    ? pics.map((p, i) => `<button type="button" class="slide" data-zoom="${i}" aria-label="ดูรูปที่ ${i + 1} ขนาดใหญ่">
+        <img src="${esc(p.full)}" alt="${esc(it.name)} รูปที่ ${i + 1}" ${i ? 'loading="lazy"' : ""} referrerpolicy="no-referrer"
+          onerror="if(this.src!=='${esc(p.thumb)}')this.src='${esc(p.thumb)}'"></button>`).join("")
+    : `<div class="slide emoji">${esc(it.emoji)}</div>`;
+  const many = pics.length > 1;
+  return `<div class="gallery">
+    <span class="bow" aria-hidden="true">🎀</span>
+    <div class="frame">
+      <div class="track" id="track">${slides}</div>
+      <button type="button" class="arrow prev" data-step="-1" aria-label="รูปก่อนหน้า" ${many ? "" : "hidden"}>‹</button>
+      <button type="button" class="arrow next" data-step="1" aria-label="รูปถัดไป" ${many ? "" : "hidden"}>›</button>
+      <span class="counter" id="counter" ${many ? "" : "hidden"}>1 / ${pics.length}</span>
+    </div>
+    <div class="thumbs" id="thumbs">${many ? pics.map((p, i) =>
+      `<button type="button" data-go="${i}" aria-label="รูปที่ ${i + 1}" aria-current="${i === 0}"><img src="${esc(p.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer"></button>`).join("") : ""}</div>
+  </div>`;
+}
+
+function dealHtml(s){
+  const it = s.item, L = s.leader;
+  const closed = endTime && Date.now() > endTime;
+  const link = closed ? "" : formUrl(it);
+  return `
+    <div class="lbl">${L ? (closed ? "ราคาที่ชนะ 🏆" : "ราคาสูงสุดตอนนี้") : closed ? "ไม่มีผู้ประมูล" : it.start > 0 ? "ราคาเริ่มต้น" : "ราคาสูงสุดตอนนี้"}</div>
+    <div class="amt">${L || it.start > 0 ? `${baht(L ? L.amount : it.start)}<small>บาท</small>` : "–"}</div>
+    ${L ? `<div class="leader">👑 ${esc(L.who.main)}${L.who.sub ? `<span class="sub">${esc(L.who.sub)}</span>` : ""}</div>`
+        : closed ? "" : `<div class="leader none">ยังไม่มีใครประมูล เป็นคนแรกเลย!</div>`}
+    <div class="meta">
+      <span>ประมูลแล้ว ${s.valid} ครั้ง${s.lastAt ? ` · ล่าสุด ${timeAgo(s.lastAt)}` : ""}</span>
+      ${!closed && s.next > 0 ? `<span>ขั้นต่ำถัดไป <b>${baht(s.next)}</b> บาท</span>` : ""}
+    </div>
+    <div class="countdown" id="countdown" hidden></div>
+    ${link ? `<a class="btn primary" href="${esc(link)}" target="_blank" rel="noopener">📝 ประมูลชิ้นนี้</a>` : ""}`;
+}
+
+function historyHtml(s){
+  const rows = s.history.slice().reverse().map(b => `<tr class="${b === s.leader ? "lead" : b.reject ? "rej" : ""}">
+      <td>${b.time ? b.time.toLocaleString("th-TH", { day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" }) : "แถว " + b.row}</td>
+      <td>${b === s.leader ? "👑 " : ""}${esc(b.who.main)}${b.who.sub ? `<span class="who-sub">${esc(b.who.sub)}</span>` : ""}
+        ${b.reject ? `<span class="why">ไม่นับ: ${esc(b.reject)}</span>` : ""}</td>
+      <td class="num">${isNaN(b.amount) ? "–" : baht(b.amount)}</td></tr>`).join("");
+  const rule = [
+    s.item.start > 0 ? `ราคาเริ่มต้น ${baht(s.item.start)} บาท` : "",
+    CONFIG.ENFORCE_INCREMENT ? `เพิ่มครั้งละอย่างน้อย ${baht(s.item.step)} บาท` : "ให้ราคาสูงกว่าคนก่อนก็ชนะ"
+  ].filter(Boolean).join(" · ");
+  return `<h2>📜 ประวัติการประมูล</h2><p class="rule">${esc(rule)}</p>
+    ${s.history.length ? `<table><thead><tr><th>เวลา</th><th>ผู้ประมูล</th><th style="text-align:right">บาท</th></tr></thead><tbody>${rows}</tbody></table>`
+      : `<p class="rule">ยังไม่มีใครประมูลชิ้นนี้</p>`}`;
+}
+
+function pagerHtml(s){
+  const num = x => parseInt(x.item.no, 10) || 9999;
+  const order = model.lots.slice().sort((a, b) => num(a) - num(b));
+  const i = order.indexOf(s), prev = order[i - 1], next = order[i + 1];
+  const link = (x, cls, lbl) => x ? `<a class="${cls}" href="${esc(itemPage(x.item))}"><small>${lbl}</small><span>#${esc((x.item.no || "").padStart(2, "0"))} ${esc(x.item.name)}</span></a>` : "";
+  return link(prev, "prev", "← ชิ้นก่อนหน้า") + link(next, "next", "ชิ้นถัดไป →");
+}
+
+function render(){
+  const s = model.lots.find(x => x.item.key === wantKey);
+  const info = [];
+  if (DEMO) info.push("โหมดตัวอย่าง: ข้อมูลในหน้านี้เป็นข้อมูลสมมติ ใส่ SHEET_ID ใน auction-core.js เพื่อเชื่อมกับชีทจริง");
+  $("infoBanner").innerHTML = info.map(esc).join("<br>");
+  if (!s) {
+    galleryFor = "";
+    $("page").innerHTML = `<p class="empty">ไม่พบของประมูลหมายเลขนี้<br><a href="items.html">ดูของทั้งหมด</a></p>`;
+    return;
+  }
+  const it = s.item;
+  document.title = `#${(it.no || "").padStart(2, "0")} ${it.name} — ประมูลการกุศล`;
+
+  // Build the page once; on refresh only update the parts that change, so the gallery keeps its position.
+  const sig = it.key + "|" + it.images.map(p => p.thumb).join(",");
+  if (galleryFor !== sig) {
+    galleryFor = sig;
+    $("page").innerHTML = `
+      <div class="layout">
+        ${galleryHtml(it)}
+        <div>
+          <div class="plank">Item no.<b>${esc(it.no ? it.no.padStart(2, "0") : "–")}</b></div>
+          <h1 id="name"></h1>
+          <p class="donor" id="donor"></p>
+          <p class="desc" id="desc"></p>
+          <div class="board" id="deal"></div>
+        </div>
+      </div>
+      <section class="card" id="history"></section>
+      <nav class="pager" id="pager"></nav>`;
+  }
+  $("name").textContent = it.name;
+  $("donor").textContent = it.donor ? `💝 บริจาคโดย ${it.donor}` : "";
+  $("desc").textContent = it.desc;
+  $("deal").innerHTML = dealHtml(s);
+  $("history").innerHTML = historyHtml(s);
+  $("pager").innerHTML = pagerHtml(s);
+  tickCountdown();
+}
+
+/* ---------- gallery behaviour ---------- */
+function slideIndex(){
+  const t = $("track");
+  return t ? Math.round(t.scrollLeft / t.clientWidth) : 0;
+}
+function goTo(i){
+  const t = $("track");
+  if (!t) return;
+  const n = t.children.length;
+  i = (i + n) % n;
+  t.scrollTo({ left:i * t.clientWidth, behavior:"smooth" });
+}
+function syncGallery(){
+  const t = $("track");
+  if (!t || !$("counter")) return;
+  const i = slideIndex();
+  $("counter").textContent = `${i + 1} / ${t.children.length}`;
+  $("thumbs").querySelectorAll("button").forEach((b, j) => b.setAttribute("aria-current", String(i === j)));
+}
+$("page").addEventListener("scroll", e => { if (e.target.id === "track") syncGallery(); }, true);
+$("page").addEventListener("click", e => {
+  const step = e.target.closest("[data-step]");
+  if (step) return goTo(slideIndex() + Number(step.dataset.step));
+  const go = e.target.closest("[data-go]");
+  if (go) return goTo(Number(go.dataset.go));
+  const z = e.target.closest("[data-zoom]");
+  if (z) {
+    const s = model.lots.find(x => x.item.key === wantKey);
+    $("zoomImg").src = s.item.images[Number(z.dataset.zoom)].full;
+    $("zoomImg").alt = s.item.name;
+    $("zoom").showModal();
+  }
+});
+document.addEventListener("keydown", e => {
+  if ($("zoom").open || !$("track")) return;
+  if (e.key === "ArrowLeft") goTo(slideIndex() - 1);
+  if (e.key === "ArrowRight") goTo(slideIndex() + 1);
+});
+$("zoomClose").addEventListener("click", () => $("zoom").close());
+$("zoom").addEventListener("click", e => { if (e.target === $("zoom")) $("zoom").close(); });
+
+/* ---------- load ---------- */
+async function load(){
+  if (loading) return;
+  loading = true;
+  try {
+    model = await fetchModel();
+    $("errBanner").textContent = "";
+    $("updated").textContent = clock(new Date());
+    render();
+  } catch (e) {
+    $("errBanner").textContent = `โหลดข้อมูลไม่สำเร็จ: ${e.message}` + (model ? " (แสดงข้อมูลล่าสุดที่โหลดได้)" : "");
+  } finally {
+    loading = false;
+  }
+}
+
+function tickCountdown(){
+  const el = $("countdown");
+  if (!el || !endTime || isNaN(endTime)) return;
+  el.hidden = false;
+  const ms = endTime - Date.now();
+  if (ms <= 0) {
+    if (!closedShown && model) { closedShown = true; render(); return; }
+    el.classList.add("closed");
+    el.textContent = "🏁 ปิดประมูลแล้ว";
+    return;
+  }
+  const s = Math.floor(ms / 1000), pad = n => String(n).padStart(2, "0");
+  const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+  el.textContent = `⏰ ปิดประมูลในอีก ${d ? d + " วัน " : ""}${pad(h)}:${pad(m)}:${pad(s % 60)}`;
+}
+
+(function drawBunting(){
+  const colors = ["#e2553f", "#e9ea8c", "#7f8f52", "#e8774d", "#f3a7a3"];
+  let html = "";
+  for (let i = 0; i < 30; i++) {
+    const x = i * 40 + 4, t = (x + 15) / 1200, y = 4 + 60 * t * (1 - t);
+    html += `<path d="M${x} ${y.toFixed(1)} L${x + 30} ${y.toFixed(1)} L${x + 15} ${(y + 32).toFixed(1)} Z" fill="${colors[i % colors.length]}" opacity=".92"/>`;
+  }
+  $("flags").innerHTML = html;
+})();
+
+$("eventName").textContent = CONFIG.EVENT_NAME;
+$("every").textContent = refreshLabel();
+
+load();
+setInterval(() => { if (!document.hidden) load(); }, CONFIG.REFRESH_SECONDS * 1000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+setInterval(tickCountdown, 1000);
+</script>
+</body>
+</html>

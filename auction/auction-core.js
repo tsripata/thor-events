@@ -24,7 +24,8 @@ const CONFIG = {
   DEFAULT_MIN_INCREMENT: 10,
   // A new bid must beat the leader by at least the increment. false = any higher amount wins.
   ENFORCE_INCREMENT: false,
-  REFRESH_SECONDS: 20,
+  // How often the pages re-read the sheet (120 = every 2 minutes)
+  REFRESH_SECONDS: 120,
   // Show only the first word of the parent's name publicly
   SHORT_PARENT_NAME: true,
   // Rows whose names match this are ignored (form test rows)
@@ -36,7 +37,6 @@ if (qs.get("sheet")) CONFIG.SHEET_ID = qs.get("sheet");
 if (qs.get("gid")) CONFIG.BIDS_GID = qs.get("gid");
 if (qs.get("end")) CONFIG.END_TIME = qs.get("end");
 const DEMO = qs.has("demo") || !CONFIG.SHEET_ID;
-if (DEMO) CONFIG.REFRESH_SECONDS = 8;
 
 /* ==================================================================
    HELPERS
@@ -70,12 +70,31 @@ function driveId(url){
   const m = /(?:id=|\/d\/)([\w-]{20,})/.exec(url || "");
   return m ? m[1] : null;
 }
-function imageUrl(raw){
+function imageUrl(raw, size = 600){
   const s = norm(raw);
   if (!s) return "";
   const id = driveId(s);
-  if (id && /google\.com/.test(s)) return `https://drive.google.com/thumbnail?id=${id}&sz=w600`;
+  if (id && /google\.com/.test(s)) return `https://drive.google.com/thumbnail?id=${id}&sz=w${size}`;
   return /^https?:\/\//.test(s) ? s : "";
+}
+// All photos of an item: every "รูป…" column, each cell may hold several links (space, comma or new line).
+function imageList(cells){
+  const out = [];
+  for (const cell of cells) for (const raw of norm(cell).split(/[\s,]+/)) {
+    const thumb = imageUrl(raw);
+    if (thumb && !out.some(x => x.thumb === thumb)) out.push({ thumb, full:imageUrl(raw, 1600) });
+  }
+  return out;
+}
+// "every 2 minutes" / "every 20 seconds" in Thai
+const refreshLabel = () => CONFIG.REFRESH_SECONDS % 60 === 0
+  ? `${CONFIG.REFRESH_SECONDS / 60} นาที` : `${CONFIG.REFRESH_SECONDS} วินาที`;
+// Link to the item detail page (keeps ?demo and other URL overrides)
+function itemPage(it){
+  const p = new URLSearchParams(location.search);
+  p.delete("no");
+  const rest = p.toString().replace(/=(&|$)/g, "$1");
+  return `item.html?no=${encodeURIComponent(it.key)}${rest ? "&" + rest : ""}`;
 }
 function timeAgo(d){
   if (!d) return "";
@@ -152,18 +171,22 @@ function buildItems(grid){
   if (!grid) return [];
   const c = mapColumns(grid.headers, ITEM_COLS);
   const get = (r, k) => c[k] == null ? "" : r[c[k]].f;
+  const isImage = ITEM_COLS.find(d => d[0] === "image")[1];
+  const imgCols = grid.headers.map((h, i) => isImage(h) ? i : -1).filter(i => i >= 0);
   return grid.rows.map(r => {
     const rawNo = get(r, "no") || get(r, "name");
     if (!norm(rawNo)) return null;
     const start = parseAmount(get(r, "start"));
     const step = parseAmount(get(r, "step"));
+    const images = imageList(imgCols.map(i => r[i].f));
     return {
       key: itemKey(rawNo),
       no: (rawNo.match(/\d+/) || [""])[0],
       name: get(r, "name") || itemLabelText(rawNo) || `ชิ้นที่ ${rawNo}`,
       desc: get(r, "desc"),
       donor: get(r, "donor"),
-      image: imageUrl(get(r, "image")),
+      image: images.length ? images[0].thumb : "",
+      images,
       emoji: get(r, "emoji") || "🎁",
       start: isNaN(start) ? CONFIG.DEFAULT_START_PRICE : start,
       step: isNaN(step) || step <= 0 ? CONFIG.DEFAULT_MIN_INCREMENT : step
@@ -200,7 +223,7 @@ function buildModel(itemsGrid, bidsGrid){
     if (!byKey.has(key)) {
       const it = {
         key, no:(rawItem.match(/\d+/) || [""])[0], name:itemLabelText(rawItem) || rawItem,
-        desc:"", donor:"", image:"", emoji:"🎁",
+        desc:"", donor:"", image:"", images:[], emoji:"🎁",
         start:CONFIG.DEFAULT_START_PRICE, step:CONFIG.DEFAULT_MIN_INCREMENT, fromBidsOnly:true
       };
       byKey.set(key, it); items.push(it);

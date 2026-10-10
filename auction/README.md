@@ -2,15 +2,17 @@
 
 A live auction board for the ตลาดน้ำจิตน้ำใจ market. People bid by submitting a **Google Form**.
 The page reads the form's **Google Sheet** and shows each item's **current highest bid and bidder**.
-It refreshes itself every 20 seconds and makes a little "bump" + toast whenever a new high bid lands.
+It refreshes itself every 2 minutes and makes a little "bump" + toast whenever a new high bid lands.
 
 - Page: <https://tsripata.github.io/thor-events/auction/>
 - Preview with fake data: <https://tsripata.github.io/thor-events/auction/?demo>
 - Item list: <https://tsripata.github.io/thor-events/auction/items.html>
+- One item (detail page with all its photos): <https://tsripata.github.io/thor-events/auction/item.html?no=3>
 - Files (no build step, no server):
   - `auction/auction-core.js` holds **`CONFIG`**, sheet reading, the bidding rules, demo data and the form link. Both pages load it, so **you edit settings in one place**.
-  - `auction/index.html` is the **live board**: big poster-style cards, latest-bid feed, toasts, an item dropdown and a history dialog.
+  - `auction/index.html` is the **live board**: big poster-style cards, toasts and an item dropdown.
   - `auction/items.html` is the **item list**: every item with its current (or winning) price, made for browsing and nudging people to bid again.
+  - `auction/item.html?no=N` is the **item detail page**: a photo gallery, the full description, the current price and the bid history.
 - Design reference: `auction/poster-template.jpg` (the event's item-poster template)
 
 This README is the full spec. Use it to set the page up, change it, or regenerate it from scratch (see §7).
@@ -65,6 +67,7 @@ The button pre-fills `NN · <item name from Items tab>`. To get an exact match, 
 
    - Header keywords: `Item no`/`หมายเลข`/`ลำดับ`, `ชื่อ`/`name`, `รายละเอียด`/`desc`, `บริจาค`/`donor`, `เริ่ม`/`start`, `ขั้นต่ำ`/`increment`/`step`, `รูป`/`ภาพ`/`image`, `emoji`.
    - **รูป**: either a Google Drive link (the file must be shared *Anyone with the link*) or any direct image URL. Drive links are shown through `drive.google.com/thumbnail?id=…`. With no picture, the Emoji (default 🎁) is shown in the circle.
+   - **More photos**: put several links in the รูป cell (separated by a space, comma or new line), and/or add more columns whose header contains `รูป`/`ภาพ`/`image` (e.g. `รูป 2`, `รูปเพิ่มเติม`). The first photo is the one on the board and list; the detail page shows all of them as a gallery.
    - **No starting price or minimum step** for this event: any first bid above 0 counts, and any higher amount beats the leader (`ENFORCE_INCREMENT: false`).
      Items with no bids show `–` instead of a price.
    - Optional: you can still add `ราคาเริ่มต้น` / `เพิ่มขั้นต่ำ` columns later. Blank cells fall back to `DEFAULT_START_PRICE` / `DEFAULT_MIN_INCREMENT`, and the step only applies with `ENFORCE_INCREMENT: true`.
@@ -84,7 +87,7 @@ const CONFIG = {
   DEFAULT_START_PRICE: 0,
   DEFAULT_MIN_INCREMENT: 10,
   ENFORCE_INCREMENT: false,  // false = any higher amount wins; true = must be ≥ leader + increment
-  REFRESH_SECONDS: 20,
+  REFRESH_SECONDS: 120,      // 120 = every 2 minutes
   SHORT_PARENT_NAME: true,   // show only the parent's first name
   TEST_NAME_PATTERN: /^(test|ทดสอบ|เทส)/i  // rows with these names are ignored
 };
@@ -105,8 +108,7 @@ The page walks the responses **in sheet order**, which is submission order, and 
 3. **Ties go to whoever bid first**, because a later equal bid doesn't beat the leader.
 4. Bids that don't count are kept in the item's **ประวัติ** (history) dialog, struck through, with the reason (`ต้องอย่างน้อย 140`, `ส่งหลังปิดประมูล`, …). This makes disputes easy to settle.
 5. "ขั้นต่ำถัดไป" (next minimum) on each card = leader + 1 baht (or + increment when enforced). It's hidden while nobody has bid and there's no starting price.
-6. Stats: number of items · number of counted bids · unique bidders (by phone, or by name if no phone) · **sum of all current top bids** (money raised if everyone pays).
-7. After `END_TIME`, the countdown changes to "ปิดประมูลแล้ว", the bid button disappears, and leaders get a `ผู้ชนะ 🏆` badge.
+6. After `END_TIME`, the countdown changes to "ปิดประมูลแล้ว", the bid button disappears, and leaders get a `ผู้ชนะ 🏆` badge.
 
 Badges: `ยังว่าง` = no bids yet, `ฮอต 🔥` = 5+ counted bids, `ผู้ชนะ 🏆` = winner after close.
 Sorting: item number, highest price, most bids, most recent, or unbid items first.
@@ -114,7 +116,7 @@ Sorting: item number, highest price, most bids, most recent, or unbid items firs
 **Item dropdown (ดูของ).** Above the grid is a dropdown. It defaults to **ทั้งหมด (N ชิ้น)**, which shows every item.
 Each option reads `#NN <name> — <top bid> บาท · <leader>`, or `ยังไม่มีคนประมูล` when nobody has bid (plus `(เริ่ม <start>)` if the item has a starting price).
 Picking one shows only that card, plus a "← ดูของทั้งหมด" link back. The sort control is disabled while one item is picked.
-The selection and the option labels survive the 20-second refresh.
+The selection and the option labels survive the refresh.
 The URL updates to `#item-<no>`, so you can share a link straight to one item, e.g. `…/auction/#item-3`, or print it as a QR code on that item's poster.
 
 ## 5b. Item list page (`items.html`)
@@ -125,14 +127,23 @@ Goal: get people to **browse everything and bid more**.
 - **Summary line:** number of items · how many have bids · how many are still waiting for a first bid · running total.
 - **Filters:** ทั้งหมด / ยังไม่มีคนประมูล / มีคนประมูลแล้ว, plus a search box (name, description, donor, number) and a sort (number, price low→high, high→low, most bids).
 - **One row per item:** photo circle, `#NN` wood tag, name, description, donor, then the **current price + 👑 leader + next minimum**.
-  - Each row has **ประมูลเลย →**, which opens the form pre-filled with that item, and **ดูบนกระดาน**, which links to `index.html#item-N`.
+  - Each row has **ประมูลเลย →**, which opens the form pre-filled with that item, and **ดูรายละเอียด**, which opens `item.html?no=N`. The photo and name link there too.
   - Items with no bids get a green tint and the tag "ยังไม่มีใครประมูล เป็นคนแรกเลย!" to draw bids to them.
 - **After `END_TIME`:** the labels change to **ราคาที่ชนะ 🏆** or "ไม่มีผู้ประมูล", all bid buttons disappear, and the page becomes the **winners list**. It prints cleanly (buttons and filters are hidden) if you want to post it at the event.
 - It refreshes quietly every `REFRESH_SECONDS` (no toasts) and keeps your filter, search and sort.
 
-The live board (`index.html`) links to this page (📋 ดูรายการของทั้งหมด) next to its own 📝 form button.
+The board's header no longer has the 📝 form / 📋 item-list buttons, the stat tiles or the latest-bid feed (removed to keep the board short). Each card links to the item's detail page instead.
 
 In **demo mode** with no `FORM_URL`, bid buttons show a short "this would open the Google Form" notice instead of going nowhere.
+
+## 5c. Item detail page (`item.html?no=N`)
+
+- Opened from **รายละเอียด** on a board card, **ดูรายละเอียด** on the list, or by tapping a photo or name. `N` is the item number.
+- **Gallery:** every photo of the item (see §3, "More photos"), swipe on phones or use the ‹ › arrows / ← → keys, thumbnails below, `2 / 4` counter, tap a photo to see it full size. Drive photos load at 1600 px here (600 px on the other pages). With no photo, the item's emoji is shown.
+- **Details:** `Item no.` plank, name, donor, the full description (line breaks kept), then the yellow board with the current price, 👑 leader, bid count, next minimum, countdown and **📝 ประมูลชิ้นนี้** (pre-filled form).
+- **ประวัติการประมูล:** the full history table (rejected bids struck through with the reason). This replaces the board's old history dialog.
+- **← ชิ้นก่อนหน้า / ชิ้นถัดไป →** to walk through items in number order.
+- Refreshes every `REFRESH_SECONDS` without resetting the gallery position. `?demo` is carried over on its links.
 
 ## 6. Gotchas
 
@@ -149,9 +160,9 @@ To rebuild the auction pages from scratch (by hand or with an AI assistant), giv
 > Build static pages for a Thai school charity auction (no build step, GitHub Pages): `auction/auction-core.js` (CONFIG, gviz fetch, column mapping, bidding rules, demo data, `fetchModel()`, `formUrl(item|null)`), `auction/index.html` (live board) and `auction/items.html` (item list, as described in §5b). Both pages load the core script.
 > Data: read a Google Sheet via `https://docs.google.com/spreadsheets/d/<ID>/gviz/tq?tqx=out:json&headers=1&gid=<gid>` (form responses) and `&sheet=Items` (catalog), parse the JSON out of the `setResponse(...)` wrapper, and map columns by header keywords exactly as in §2–3.
 > Logic: follow §5 exactly (sheet order, start price, minimum increment, first bidder wins ties, end-time cutoff, test-row filter, rejected bids kept with reasons).
-> UI (Thai): bunting header, event name in handwritten font (Mali), status pill with live dot + last-updated time + refresh button, optional countdown, 4 stat tiles, a horizontally scrolling "ประมูลล่าสุด" feed of the last 10 counted bids, then an item dropdown ("ทั้งหมด" by default; each option = item + current top bid + leader; picking one filters the grid to that card and sets `#item-<no>` for deep links) and a sort select, then a grid of item cards styled after the poster: circular photo with a blue-grey ring and a 🎀 bow, a tilted wooden "Item no. NN" plank, and a lemon-yellow board in a brown wood frame holding name, description, donor, current price, 👑 leader (`คุณ<first name>` + `น้อง<nick> · รุ่น X`), bid count, next minimum, a "ประมูลชิ้นนี้" button (pre-filled form link) and a "ประวัติ" button that opens a history dialog.
+> UI (Thai): bunting header, event name in handwritten font (Mali), status pill with live dot + last-updated time + refresh button, optional countdown, then an item dropdown ("ทั้งหมด" by default; each option = item + current top bid + leader; picking one filters the grid to that card and sets `#item-<no>` for deep links) and a sort select, then a grid of item cards styled after the poster: circular photo with a blue-grey ring and a 🎀 bow, a tilted wooden "Item no. NN" plank, and a lemon-yellow board in a brown wood frame holding name, description, donor, current price, 👑 leader (`คุณ<first name>` + `น้อง<nick> · รุ่น X`), bid count, next minimum, a "ประมูลชิ้นนี้" button (pre-filled form link) and a "รายละเอียด" button linking to `item.html?no=N` (gallery of all photos, full description, price box, bid history, prev/next item; see §5c).
 > Palette: paper `#f6f0dc`, red `#e2553f`, olive `#7f8f52`, lemon `#e9ea8c`, ring `#a3a9c6`, wood `#9a4423`. Fonts: Mali (headings), Sarabun (body).
-> Behaviour: poll every 20 s (pause when the tab is hidden), animate cards and show a toast when an item's top bid rises, keep showing the last good data if a fetch fails, demo mode with fake data when no SHEET_ID or `?demo`. Escape all sheet text before inserting it into HTML. Never display phone numbers. Works at 390 px width with no horizontal scroll. Add `noindex` meta.
+> Behaviour: poll every 2 minutes (pause when the tab is hidden), animate cards and show a toast when an item's top bid rises, keep showing the last good data if a fetch fails, demo mode with fake data when no SHEET_ID or `?demo`. Escape all sheet text before inserting it into HTML. Never display phone numbers. Works at 390 px width with no horizontal scroll. Add `noindex` meta.
 > Also add a card linking to `auction/` in the root `index.html`.
 
 ## 8. Publish
