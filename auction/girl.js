@@ -1,65 +1,26 @@
-/* The little red-hood girl from the event poster (poster-template.jpg), drawn as SVG so she can
-   stand beside every item card and walk across the loading screen. Shared by index.html and items.html.
+/* The little red-hood girl, from hand-painted illustrations (hood/*.webp): she stands beside the
+   items and pulls her wagon across the loading screen. Shared by index.html and items.html.
    Load it right after <body> opens: it mounts the loading screen before the rest of the page paints.
    The page calls GirlLoader.done() after its first load. See auction/README.md §5c */
 "use strict";
 
-const GIRL = {
-  red: "#e5574a", redDeep: "#b93a2c", skin: "#f4a79c", cheek: "#e8645c",
-  ink: "#2b221d", wood: "#9a4423", wood2: "#c8743f", lemon: "#e9ea8c"
-};
+const GIRL = { red: "#e5574a", redDeep: "#b93a2c" };
 
-// pose "stand": right hand raised holding a balloon string (item cards)
-// pose "walk":  legs step, a basket swings (loading screen)
-function girlSvg({ pose = "stand", cls = "" } = {}){
-  const c = GIRL, walk = pose === "walk";
-  const legs = `
-    <g class="g-leg g-leg-l"><rect x="38" y="112" width="8" height="18" rx="3" fill="${c.skin}"/><ellipse cx="41" cy="131" rx="7" ry="4" fill="${c.wood}"/></g>
-    <g class="g-leg g-leg-r"><rect x="54" y="112" width="8" height="18" rx="3" fill="${c.skin}"/><ellipse cx="59" cy="131" rx="7" ry="4" fill="${c.wood}"/></g>`;
-  const basket = walk ? `
-      <g class="g-basket">
-        <path d="M10 100 Q12 84 22 86 Q30 88 30 100" fill="none" stroke="${c.wood}" stroke-width="2.4"/>
-        <path d="M18 92 l-4 -16 l6 -1 z" fill="${c.wood2}"/>
-        <circle cx="25" cy="90" r="5" fill="${c.red}"/><path d="M25 85 q2 -3 5 -3" stroke="#6f8a45" stroke-width="1.6" fill="none"/>
-        <path d="M5 98 H35 L31 114 Q20 117 9 114 Z" fill="${c.wood2}" stroke="${c.wood}" stroke-width="1.6" stroke-linejoin="round"/>
-        <path d="M8 104 H32 M9 109 H31" stroke="${c.wood}" stroke-width="1.2" opacity=".7"/>
-        <path d="M4 97 H36" stroke="${c.lemon}" stroke-width="3" stroke-linecap="round"/>
-      </g>` : "";
-  return `<svg class="girl ${cls}" viewBox="0 0 100 140" aria-hidden="true" focusable="false">
-  ${legs}
-  <g class="g-body">
-    <g class="g-arm-l">
-      ${basket}
-      <path d="M33 84 Q24 92 22 101" stroke="${c.red}" stroke-width="10" stroke-linecap="round" fill="none"/>
-      <circle cx="21" cy="102" r="5" fill="${c.skin}"/>
-    </g>
-    <path d="M32 78 Q50 72 68 78 L79 114 Q50 122 21 114 Z" fill="${c.red}" filter="url(#girlRough)"/>
-    <path d="M32 112 Q50 117 68 112" stroke="${c.redDeep}" stroke-width="1.4" fill="none" opacity=".5"/>
-    <g class="g-head">
-      <path d="M50 18 C44 6 30 2 22 9 C12 17 12 34 14 48 C15 62 18 74 26 82 Q50 90 74 82 C82 74 85 62 86 48 C88 34 88 17 78 9 C70 2 56 6 50 18 Z"
-            fill="${c.red}" filter="url(#girlRough)"/>
-      <circle cx="50" cy="54" r="24" fill="${c.skin}"/>
-      <path d="M27 47 Q50 25 73 47" stroke="${c.ink}" stroke-width="1.6" fill="none"/>
-      <g stroke="${c.ink}" stroke-width="1.7" stroke-linecap="round" fill="none">
-        <path d="M31 44 q1 -6 4 -9"/><path d="M36 40 q0 -6 3 -9"/><path d="M41 38 q0 -5 2 -8"/><path d="M46 37 q0 -5 1 -8"/>
-        <path d="M51 37 q1 -5 0 -8"/><path d="M56 37 q1 -5 -1 -8"/><path d="M61 39 q1 -5 -2 -8"/><path d="M66 42 q1 -5 -3 -8"/><path d="M70 45 q0 -4 -3 -7"/>
-      </g>
-      <circle cx="33" cy="62" r="6.5" fill="${c.cheek}" opacity=".55" filter="url(#girlBlur)"/>
-      <circle cx="67" cy="62" r="6.5" fill="${c.cheek}" opacity=".55" filter="url(#girlBlur)"/>
-      <g class="g-eyes" fill="${c.ink}"><circle cx="40" cy="54" r="2.3"/><circle cx="60" cy="54" r="2.3"/></g>
-      <circle cx="50" cy="61" r="2.8" fill="${c.red}"/>
-      <path d="M44 66 Q50 72 56 66" stroke="${c.ink}" stroke-width="1.6" stroke-linecap="round" fill="none"/>
-    </g>
-    <g fill="none" stroke="${c.redDeep}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M50 86 C44 80 37 82 39 88 C41 93 47 90 50 86 C53 90 59 93 61 88 C63 82 56 80 50 86 Z"/>
-      <path d="M48 88 L43 99 M52 88 L57 99"/>
-    </g>
-    <g class="g-arm-r">
-      <path d="M67 84 Q78 76 82 62" stroke="${c.red}" stroke-width="10" stroke-linecap="round" fill="none"/>
-      <circle cx="83" cy="58" r="5" fill="${c.skin}"/>
-    </g>
-  </g>
-</svg>`;
+// Hand-painted cut-outs of her (transparent WebP, in hood/). The four single poses stand beside the
+// items; the wagon one walks across the loading screen.
+const HOOD_V = "20261010c";
+const HOODS = [
+  { src: "hood/flower.webp",   alt: "หนูหมวกแดงถือดอกไม้" },
+  { src: "hood/palette.webp",  alt: "หนูหมวกแดงถือจานสี" },
+  { src: "hood/shopping.webp", alt: "หนูหมวกแดงหิ้วถุงช้อปปิ้ง" },
+  { src: "hood/painting.webp", alt: "หนูหมวกแดงนั่งระบายสีแก้ว" }
+];
+const HOOD_WAGON = "hood/wagon.webp";
+
+// One of her poses as an <img>; pick cycles through the poses so neighbouring items differ
+function hoodImg(pick = 0, cls = "hood"){
+  const h = HOODS[((pick % HOODS.length) + HOODS.length) % HOODS.length];
+  return `<img class="${cls}" src="${h.src}?v=${HOOD_V}" alt="" aria-hidden="true" loading="lazy" decoding="async" draggable="false">`;
 }
 
 // A hand-drawn red ribbon bow, like the one tied on the poster's balloon
@@ -77,27 +38,16 @@ function bowSvg(cls = ""){
 }
 
 /* ==================================================================
-   LOADING SCREEN — portrait (9:16) scene: Jittamett Family logo on top, she walks through the market
-   holding a balloon while item emojis pop up inside it.
+   LOADING SCREEN — portrait (9:16) scene: Jittamett Family logo on top, she pulls her wagon of goodies
+   through the market while item emojis hop out of it.
    ================================================================== */
 const GirlLoader = (() => {
   const css = `
-.girl{display:block;overflow:visible}
-.girl .g-leg,.girl .g-arm-l,.girl .g-arm-r,.girl .g-head,.girl .g-basket{transform-box:fill-box}
-.girl .g-leg{transform-origin:50% 0}
-.girl .g-arm-l{transform-origin:85% 10%}
-.girl .g-head{transform-origin:50% 90%}
-.girl .g-eyes{transform-box:fill-box;transform-origin:50% 50%;animation:gBlink 4.6s infinite}
-.girl.walk .g-leg-l{animation:gStep .64s ease-in-out infinite}
-.girl.walk .g-leg-r{animation:gStep .64s ease-in-out infinite reverse}
-.girl.walk .g-body{animation:gBob .32s ease-in-out infinite alternate}
-.girl.walk .g-arm-l{animation:gSwing .64s ease-in-out infinite}
-.girl.walk .g-head{animation:gTilt 1.28s ease-in-out infinite}
-@keyframes gStep{0%,100%{transform:rotate(-16deg)}50%{transform:rotate(16deg)}}
-@keyframes gBob{from{transform:translateY(0)}to{transform:translateY(-3px)}}
-@keyframes gSwing{0%,100%{transform:rotate(9deg)}50%{transform:rotate(-9deg)}}
-@keyframes gTilt{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
-@keyframes gBlink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+/* the walk: she bobs on every step and the whole picture rocks a little, like the wagon is rolling */
+#girlLoader .gl-walker{transform-box:fill-box;transform-origin:50% 100%;animation:glWalk .64s ease-in-out infinite}
+#girlLoader .gl-shadow{transform-box:fill-box;transform-origin:50% 50%;animation:glShadow .32s ease-in-out infinite alternate}
+@keyframes glWalk{0%,100%{transform:translateY(0) rotate(-1.2deg)}25%{transform:translateY(-6px) rotate(0)}50%{transform:translateY(0) rotate(1.2deg)}75%{transform:translateY(-6px) rotate(0)}}
+@keyframes glShadow{from{transform:scaleX(1);opacity:.22}to{transform:scaleX(.92);opacity:.14}}
 
 #girlLoader{
   position:fixed;inset:0;z-index:100;background:#f6f0dc;overflow:hidden;
@@ -113,15 +63,14 @@ const GirlLoader = (() => {
 #girlLoader .gl-far{animation:glScroll 9s linear infinite}
 #girlLoader .gl-near{animation:glScroll 3.2s linear infinite}
 @keyframes glScroll{from{transform:translateX(0)}to{transform:translateX(-180px)}}
-#girlLoader .gl-balloon{animation:glFloat 1.28s ease-in-out infinite;transform-origin:206px 400px}
-@keyframes glFloat{0%,100%{transform:translate(0,0) rotate(-2deg)}50%{transform:translate(2px,-4px) rotate(2deg)}}
-#girlLoader .gl-item{transform-box:fill-box;transform-origin:50% 50%;animation:glPop .5s cubic-bezier(.3,1.6,.5,1)}
-@keyframes glPop{from{transform:scale(.2);opacity:0}to{transform:none;opacity:1}}
+#girlLoader .gl-item{transform-box:fill-box;transform-origin:50% 100%;animation:glHop 1.7s cubic-bezier(.3,1.4,.5,1) forwards}
+@keyframes glHop{0%{transform:translate(0,40px) scale(.2);opacity:0}25%{transform:translate(0,0) scale(1.1);opacity:1}
+  70%{transform:translate(-14px,-34px) scale(1);opacity:1}100%{transform:translate(-30px,-70px) scale(.8);opacity:0}}
 #girlLoader .gl-dots tspan{animation:glDot 1.2s infinite}
 #girlLoader .gl-dots tspan:nth-child(2){animation-delay:.2s}
 #girlLoader .gl-dots tspan:nth-child(3){animation-delay:.4s}
 @keyframes glDot{0%,60%,100%{opacity:.15}30%{opacity:1}}
-@media (prefers-reduced-motion:reduce){#girlLoader *,.girl *{animation:none!important}}
+@media (prefers-reduced-motion:reduce){#girlLoader *{animation:none!important}}
 `;
   const ITEMS = ["🧸", "🎨", "🧁", "🪴", "📚", "🧺", "🎁", "👗", "🍯", "🪁"];
   let el = null, shownAt = 0, timer = null;
@@ -156,13 +105,9 @@ const GirlLoader = (() => {
   <rect x="-2000" y="512" width="4360" height="2000" fill="#ecebc0"/>
   <path d="M-2000 512 H2360" stroke="#d6d39a" stroke-width="3"/>
   <g class="gl-near">${tiles(groundTile, 12)}</g>
-  <g class="gl-balloon">
-    <path d="M232 286 Q236 350 207 412" stroke="#a3a9c6" stroke-width="2" fill="none"/>
-    <circle cx="190" cy="210" r="72" fill="#fffdf6" stroke="#a3a9c6" stroke-width="9"/>
-    <g class="gl-item-wrap"><text class="gl-item" x="190" y="232" text-anchor="middle" font-size="62">🧸</text></g>
-    <g transform="translate(213 262) rotate(14)">${bowSvg().replace("<svg ", '<svg width="40" height="34" ')}</g>
-  </g>
-  <svg class="girl walk" x="98" y="338" width="130" height="182" viewBox="0 0 100 140" overflow="visible">${girlSvg({ pose: "walk", cls: "walk" }).replace(/^<svg[^>]*>|<\/svg>$/g, "")}</svg>
+  <ellipse class="gl-shadow" cx="180" cy="514" rx="150" ry="9" fill="#3b2f27"/>
+  <image class="gl-walker" href="${HOOD_WAGON}?v=${HOOD_V}" x="22" y="236" width="316" height="280"/>
+  <g class="gl-item-wrap"></g>
   <text x="180" y="572" text-anchor="middle" font-size="19" font-weight="600" fill="#3b2f27">กำลังเดินเลือกของประมูล<tspan class="gl-dots"><tspan>.</tspan><tspan>.</tspan><tspan>.</tspan></tspan></text>
   <text x="180" y="600" text-anchor="middle" font-size="14" fill="#857766" font-family="Sarabun,sans-serif">รอแป๊บนึงนะ กำลังดึงราคาล่าสุด</text>
 </svg>`;
@@ -183,11 +128,6 @@ const GirlLoader = (() => {
     const style = document.createElement("style");
     style.textContent = css;
     document.head.appendChild(style);
-    // Shared filters: a little brush roughness on the hood and coat, soft blush on the cheeks
-    document.body.insertAdjacentHTML("afterbegin", `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-      <filter id="girlRough" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".06" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="3"/></filter>
-      <filter id="girlBlur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.8"/></filter>
-    </defs></svg>`);
     if (new URLSearchParams(location.search).has("noloader")) return;
     el = document.createElement("div");
     el.id = "girlLoader";
@@ -197,12 +137,22 @@ const GirlLoader = (() => {
     document.body.appendChild(el);
     el.querySelector(".gl-event").textContent = typeof CONFIG !== "undefined" ? CONFIG.EVENT_NAME : "ตลาดน้ำจิตน้ำใจ #25";
     shownAt = Date.now();
+    // item emojis hop out of the wagon one after another
     let i = 0;
     const wrap = el.querySelector(".gl-item-wrap");
-    timer = setInterval(() => {
-      i = (i + 1) % ITEMS.length;
-      wrap.innerHTML = `<text class="gl-item" x="190" y="232" text-anchor="middle" font-size="62">${ITEMS[i]}</text>`;
-    }, 850);
+    const hop = () => {
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      t.setAttribute("class", "gl-item");
+      t.setAttribute("x", 262 + (i % 3) * 14 - 14);
+      t.setAttribute("y", 418);
+      t.setAttribute("text-anchor", "middle");
+      t.setAttribute("font-size", "34");
+      t.textContent = ITEMS[i++ % ITEMS.length];
+      wrap.appendChild(t);
+      setTimeout(() => t.remove(), 1800);
+    };
+    hop();
+    timer = setInterval(hop, 650);
   }
 
   // Keep her on screen long enough to take a few steps, then fade out

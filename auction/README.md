@@ -146,11 +146,13 @@ In **demo mode** with no `FORM_URL`, bid buttons show a short "this would open t
 - **← ชิ้นก่อนหน้า / ชิ้นถัดไป →** to walk through items in number order.
 - Refreshes every `REFRESH_SECONDS` without resetting the gallery position. `?demo` is carried over on its links.
 
-## 5c. The red-hood girl and the loading screen (`girl.js`)
+## 5c. The red-hood girl and the loading screen (`girl.js`, `hood/`)
 
-- `girlSvg({ pose })` draws the girl from the poster: heart-shaped red hood, pink face, black fringe, blushing cheeks, red nose, bow on the coat. `pose: "stand"` raises one hand; `pose: "walk"` swings a basket and steps.
-- On the live board, every item card has her **standing to the left of the photo circle**, holding it by a string tied with a red bow, as if it were her balloon. She sways gently.
-- **Loading screen** (both pages): a portrait (9:16) scene that fills the phone screen. Bunting sways at the top, the Jittamett Family logo sits above the event name, she walks through the market (stalls and flowers scroll past) holding the balloon, and item emojis pop up inside it. Text: "กำลังเดินเลือกของประมูล…". On wider screens the scene stays centred and the ground and stalls stretch to the edges.
+- She comes from five hand-painted illustrations, cut out onto transparent WebP in `hood/`: `flower`, `palette`, `shopping`, `painting` (single poses) and `wagon` (pulling a wagon of goodies, with a kite). To replace one, keep the file name, and bump `HOOD_V` in `girl.js`.
+- `hoodImg(n)` returns one of the four single poses as an `<img>`, cycling by `n`. Both pages pass the item number, so an item keeps the same pose whatever the sort order.
+- **Live board** (`index.html`): every item card has her standing to the left of the photo circle, swaying very slightly. The photo stays centred and she shrinks to the space on its left, so she never spills out of the card.
+- **Item list** (`items.html`): on screens 1120 px and wider she stands in the side margin next to each row, left and right in turn, swaying very slightly. The margin is too narrow on phones, so she is hidden there.
+- **Loading screen** (both pages): a portrait (9:16) scene that fills the phone screen. Bunting sways at the top, the Jittamett Family logo sits above the event name, she pulls her wagon through the market (she bobs with each step while stalls and flowers scroll past) and item emojis hop out of the wagon. Text: "กำลังเดินเลือกของประมูล…". On wider screens the scene stays centred and the ground and stalls stretch to the edges.
 - It shows for at least 3 s, then fades out after the first load finishes (success or error). Add `?noloader` to the URL to skip it. Motion stops for people with "reduce motion" turned on.
 
 ## 6. Gotchas
