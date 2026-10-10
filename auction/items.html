@@ -61,12 +61,7 @@ h1{margin:2px 0 4px;font-size:clamp(28px,7.5vw,42px);line-height:1.2;color:var(-
 .btn:hover,.btn:focus-visible{filter:brightness(1.05);transform:translateY(-1px);outline:none}
 .btn[hidden]{display:none}
 
-/* ---------- summary + tools ---------- */
-.summary{
-  margin:16px 0 0;padding:12px 14px;border-radius:16px;background:var(--paper-2);border:2px solid var(--line);
-  display:flex;flex-wrap:wrap;gap:4px 18px;justify-content:center;font-size:15px
-}
-.summary b{font-family:"Mali",cursive;font-size:19px;color:var(--red-deep)}
+/* ---------- tools ---------- */
 .tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:16px 0 10px}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .chip{
@@ -170,7 +165,6 @@ footer{color:var(--dim);font-size:13px;text-align:center;padding:18px 16px 28px}
   <div class="banner err" id="errBanner"></div>
   <div class="banner info" id="infoBanner"></div>
 
-  <div class="summary" id="summary">กำลังโหลด…</div>
 
   <div class="tools">
     <div class="chips" role="group" aria-label="กรอง">
@@ -241,15 +235,7 @@ function rowHtml(s){
 
 function render(){
   const lots = model.lots;
-  const bidOn = lots.filter(s => s.leader);
-  const total = bidOn.reduce((t, s) => t + s.leader.amount, 0);
   const closed = endTime && Date.now() > endTime;
-  $("summary").innerHTML = `
-    <span><b>${lots.length}</b> ชิ้น</span>
-    <span><b>${bidOn.length}</b> ชิ้นมีคนประมูลแล้ว</span>
-    <span><b>${lots.length - bidOn.length}</b> ชิ้น${closed ? "ไม่มีคนประมูล" : "ยังรอคนแรก"}</span>
-    <span>${closed ? "ยอดรวมที่ชนะ" : "ยอดรวมตอนนี้"} <b>${baht(total)}</b> บาท</span>`;
-
   const q = norm($("q").value).toLowerCase();
   let rows = lots.filter(s =>
     (filter === "all" || (filter === "open" ? !s.leader : !!s.leader)) &&
