@@ -243,7 +243,8 @@ function dealHtml(s){
 }
 
 function historyHtml(s){
-  const rows = s.history.slice().reverse().map(b => `<tr class="${b === s.leader ? "lead" : b.reject ? "rej" : ""}">
+  // newest first by bid time; untimed bids sink to the bottom, then by sheet row
+  const rows = s.history.slice().sort((a, b) => (b.time || 0) - (a.time || 0) || b.row - a.row).map(b => `<tr class="${b === s.leader ? "lead" : b.reject ? "rej" : ""}">
       <td>${b.time ? b.time.toLocaleString("th-TH", { day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" }) : "แถว " + b.row}</td>
       <td>${b === s.leader ? "👑 " : ""}${esc(b.who.main)}${b.who.sub ? `<span class="who-sub">${esc(b.who.sub)}</span>` : ""}
         ${b.reject ? `<span class="why">ไม่นับ: ${esc(b.reject)}</span>` : ""}</td>
