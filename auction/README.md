@@ -14,6 +14,7 @@ It refreshes itself every 2 minutes and makes a little "bump" + toast whenever a
   - `auction/girl.js` draws the poster's **little red-hood girl** (SVG) and the **loading screen**. Both pages load it right after `<body>`.
   - `auction/items.html` is the **item list**: every item with its current (or winning) price, made for browsing and nudging people to bid again.
   - `auction/item.html?no=N` is the **item detail page**: a photo gallery, the full description, the current price and the bid history.
+- **Changed a `.js` file? Bump its `?v=` tag** in every page that loads it, or phones keep the old cached script (see §6).
 - Design reference: `auction/poster-template.jpg` (the event's item-poster template)
 
 This README is the full spec. Use it to set the page up, change it, or regenerate it from scratch (see §7).
@@ -157,6 +158,7 @@ In **demo mode** with no `FORM_URL`, bid buttons show a short "this would open t
 
 ## 6. Gotchas
 
+- **Bump the script version after every JS change.** The pages load `auction-core.js?v=…` and `girl.js?v=…` in `index.html`, `items.html` and `item.html`. Browsers cache by that exact address, so if you edit a `.js` file but leave the `?v=` tag alone, people keep running the old copy. For example, the event name was fixed in `auction-core.js` but phones still showed the old one. Use the date, plus a letter for more changes the same day (`20261011`, `20261011b`, …), and change it in all three pages. Images in `hood/` work the same way through `HOOD_V` in `girl.js`.
 - **Keep the amount column numbers only.** Google's gviz endpoint guesses one type per column. If most answers are numbers and a few are text like `1,000 บาท`, the text ones come back **empty** and those bids are silently lost. Number validation on the form question prevents this.
 - **Timezone.** Form timestamps carry no timezone. The browser reads them as its own local time, so `END_TIME` must include `+07:00`, and it works correctly for anyone browsing in Thailand.
 - **The sheet is the source of truth.** To cancel a bid (a joke bid, a typo of 100000), delete or edit that row in the responses tab. The page picks up the change on its next refresh.
