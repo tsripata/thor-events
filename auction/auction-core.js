@@ -8,13 +8,13 @@
 const CONFIG = {
   EVENT_NAME: "ตลาดน้ำจิตน้ำใจ #25",
   // Spreadsheet that receives the Google Form responses (must be shared: Anyone with the link → Viewer)
-  SHEET_ID: "",
+  SHEET_ID: "168t6JMmVf2-r0brGKiuOhFEPlRdxwR6xhEDPxYjd6As",
   // gid of the form-responses tab (the number after #gid= in the sheet URL)
-  BIDS_GID: "0",
+  BIDS_GID: "1536047083",
   // Name of the tab (same spreadsheet) that lists the items. Leave "" to derive items from bids only.
   ITEMS_SHEET: "Items",
   // Google Form link (…/viewform). Empty = hide the "bid" button.
-  FORM_URL: "",
+  FORM_URL: "https://forms.gle/MeZZc31gytVR3W529",
   // Pre-fill field id for the item question, e.g. "entry.123456789". Empty = no pre-fill.
   FORM_ITEM_ENTRY: "",
   // Auction closes at this time (ISO with timezone). Bids stamped after it are ignored. "" = no end.
@@ -23,7 +23,7 @@ const CONFIG = {
   DEFAULT_START_PRICE: 0,
   DEFAULT_MIN_INCREMENT: 10,
   // A new bid must beat the leader by at least the increment. false = any higher amount wins.
-  ENFORCE_INCREMENT: true,
+  ENFORCE_INCREMENT: false,
   REFRESH_SECONDS: 20,
   // Show only the first word of the parent's name publicly
   SHORT_PARENT_NAME: true,
@@ -222,7 +222,8 @@ function buildModel(itemsGrid, bidsGrid){
     const min = s.leader ? s.leader.amount + (CONFIG.ENFORCE_INCREMENT ? it.step : 0.01) : it.start;
     if (isNaN(b.amount) || b.amount <= 0) b.reject = "อ่านราคาไม่ได้";
     else if (endTime && b.time && b.time > endTime) b.reject = "ส่งหลังปิดประมูล";
-    else if (b.amount < min) b.reject = s.leader ? `ต้องอย่างน้อย ${baht(min)}` : `ต่ำกว่าราคาเริ่มต้น ${baht(it.start)}`;
+    else if (b.amount < min) b.reject = !s.leader ? `ต่ำกว่าราคาเริ่มต้น ${baht(it.start)}`
+      : CONFIG.ENFORCE_INCREMENT ? `ต้องอย่างน้อย ${baht(min)}` : `ต้องมากกว่า ${baht(s.leader.amount)}`;
     if (!b.reject) { s.leader = b; s.valid++; s.lastAt = b.time; }
     s.history.push(b);
   }
@@ -253,8 +254,9 @@ const DEMO_PEOPLE = [
 ];
 let demoBids = null;
 function demoGrids(){
-  const items = { headers:["Item no.","ชื่อของ","รายละเอียด","ผู้บริจาค","ราคาเริ่มต้น","เพิ่มขั้นต่ำ","Emoji"],
-    rows: DEMO_ITEMS.map(r => r.map(v => ({ v, f:String(v) }))) };
+  // Like the real sheet: no start/step columns. DEMO_ITEMS keeps them only to make up plausible amounts.
+  const items = { headers:["Item no.","ชื่อของ","รายละเอียด","ผู้บริจาค","Emoji"],
+    rows: DEMO_ITEMS.map(r => [r[0], r[1], r[2], r[3], r[6]].map(v => ({ v, f:String(v) }))) };
   const cur = new Map();
   const add = (minsAgo) => {
     const it = DEMO_ITEMS[Math.floor(Math.random() * DEMO_ITEMS.length)];

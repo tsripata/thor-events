@@ -59,13 +59,15 @@ The button pre-fills `NN · <item name from Items tab>`. To get an exact match, 
 1. **Share** the spreadsheet: *Anyone with the link → Viewer*. Without this the page can't read it.
 2. Add a tab named **`Items`** (the name is set in `CONFIG.ITEMS_SHEET`). The first row is the header:
 
-| Item no. | ชื่อของ | รายละเอียด | ผู้บริจาค | ราคาเริ่มต้น | เพิ่มขั้นต่ำ | รูป | Emoji |
-|---|---|---|---|---|---|---|---|
-| 1 | ตุ๊กตาหมีถักมือ | ถักจากไหมพรม สูง 30 ซม. | ครอบครัวน้องข้าวปั้น | 100 | 20 | Drive or image link | 🧸 |
+| Item no. | ชื่อของ | รายละเอียด | ผู้บริจาค | รูป | Emoji |
+|---|---|---|---|---|---|
+| 1 | ตุ๊กตาหมีถักมือ | ถักจากไหมพรม สูง 30 ซม. | ครอบครัวน้องข้าวปั้น | Drive or image link | 🧸 |
 
    - Header keywords: `Item no`/`หมายเลข`/`ลำดับ`, `ชื่อ`/`name`, `รายละเอียด`/`desc`, `บริจาค`/`donor`, `เริ่ม`/`start`, `ขั้นต่ำ`/`increment`/`step`, `รูป`/`ภาพ`/`image`, `emoji`.
    - **รูป**: either a Google Drive link (the file must be shared *Anyone with the link*) or any direct image URL. Drive links are shown through `drive.google.com/thumbnail?id=…`. With no picture, the Emoji (default 🎁) is shown in the circle.
-   - Blank `ราคาเริ่มต้น` / `เพิ่มขั้นต่ำ` fall back to `DEFAULT_START_PRICE` / `DEFAULT_MIN_INCREMENT`.
+   - **No starting price or minimum step** for this event: any first bid above 0 counts, and any higher amount beats the leader (`ENFORCE_INCREMENT: false`).
+     Items with no bids show `–` instead of a price.
+   - Optional: you can still add `ราคาเริ่มต้น` / `เพิ่มขั้นต่ำ` columns later. Blank cells fall back to `DEFAULT_START_PRICE` / `DEFAULT_MIN_INCREMENT`, and the step only applies with `ENFORCE_INCREMENT: true`.
 3. If the `Items` tab is missing, the page still works. It builds items from whatever people bid on, using the dropdown text as the name.
 
 ## 4. CONFIG (in `auction/auction-core.js`)
@@ -81,7 +83,7 @@ const CONFIG = {
   END_TIME: "",              // e.g. "2026-10-25T15:00:00+07:00"; "" = never closes
   DEFAULT_START_PRICE: 0,
   DEFAULT_MIN_INCREMENT: 10,
-  ENFORCE_INCREMENT: true,   // new bid must be ≥ leader + increment
+  ENFORCE_INCREMENT: false,  // false = any higher amount wins; true = must be ≥ leader + increment
   REFRESH_SECONDS: 20,
   SHORT_PARENT_NAME: true,   // show only the parent's first name
   TEST_NAME_PATTERN: /^(test|ทดสอบ|เทส)/i  // rows with these names are ignored
@@ -99,10 +101,10 @@ The page walks the responses **in sheet order**, which is submission order, and 
    - the amount is a readable number > 0
    - it was submitted before `END_TIME` (if set)
    - no leader yet: amount ≥ the item's **starting price**
-   - leader exists: amount ≥ **leader + minimum increment**. With `ENFORCE_INCREMENT: false`, any amount above the leader counts.
+   - leader exists: amount **> leader** (current setting, `ENFORCE_INCREMENT: false`). With `ENFORCE_INCREMENT: true` it must be ≥ **leader + minimum increment**.
 3. **Ties go to whoever bid first**, because a later equal bid doesn't beat the leader.
 4. Bids that don't count are kept in the item's **ประวัติ** (history) dialog, struck through, with the reason (`ต้องอย่างน้อย 140`, `ส่งหลังปิดประมูล`, …). This makes disputes easy to settle.
-5. "ขั้นต่ำถัดไป" (next minimum) on each card = leader + increment, or the starting price if nobody has bid yet.
+5. "ขั้นต่ำถัดไป" (next minimum) on each card = leader + 1 baht (or + increment when enforced). It's hidden while nobody has bid and there's no starting price.
 6. Stats: number of items · number of counted bids · unique bidders (by phone, or by name if no phone) · **sum of all current top bids** (money raised if everyone pays).
 7. After `END_TIME`, the countdown changes to "ปิดประมูลแล้ว", the bid button disappears, and leaders get a `ผู้ชนะ 🏆` badge.
 
@@ -110,7 +112,7 @@ Badges: `ยังว่าง` = no bids yet, `ฮอต 🔥` = 5+ counted bid
 Sorting: item number, highest price, most bids, most recent, or unbid items first.
 
 **Item dropdown (ดูของ).** Above the grid is a dropdown. It defaults to **ทั้งหมด (N ชิ้น)**, which shows every item.
-Each option reads `#NN <name> — <top bid> บาท · <leader>`, or `ยังไม่มีคนประมูล (เริ่ม <start>)` when nobody has bid.
+Each option reads `#NN <name> — <top bid> บาท · <leader>`, or `ยังไม่มีคนประมูล` when nobody has bid (plus `(เริ่ม <start>)` if the item has a starting price).
 Picking one shows only that card, plus a "← ดูของทั้งหมด" link back. The sort control is disabled while one item is picked.
 The selection and the option labels survive the 20-second refresh.
 The URL updates to `#item-<no>`, so you can share a link straight to one item, e.g. `…/auction/#item-3`, or print it as a QR code on that item's poster.

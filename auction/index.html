@@ -295,14 +295,14 @@ function lotCard(s){
       ${it.desc ? `<p class="desc">${esc(it.desc)}</p>` : ""}
       ${it.donor ? `<p class="donor">💝 บริจาคโดย ${esc(it.donor)}</p>` : ""}
       <div class="price">
-        <div class="lbl">${L ? (closed ? "ราคาที่ชนะ" : "ราคาสูงสุดตอนนี้") : "ราคาเริ่มต้น"}</div>
-        <div class="amt">${baht(L ? L.amount : it.start)}<small>บาท</small></div>
+        <div class="lbl">${L ? (closed ? "ราคาที่ชนะ" : "ราคาสูงสุดตอนนี้") : it.start > 0 ? "ราคาเริ่มต้น" : "ราคาสูงสุดตอนนี้"}</div>
+        <div class="amt">${L || it.start > 0 ? `${baht(L ? L.amount : it.start)}<small>บาท</small>` : "–"}</div>
         ${L ? `<div class="leader">👑 ${esc(L.who.main)}${L.who.sub ? `<span class="sub">${esc(L.who.sub)}</span>` : ""}</div>`
             : `<div class="leader none">ยังไม่มีใครประมูล เป็นคนแรกเลย!</div>`}
       </div>
       <div class="meta">
         <span>${s.valid} ครั้ง${s.lastAt ? ` · ${timeAgo(s.lastAt)}` : ""}</span>
-        ${closed ? "<span>ปิดแล้ว</span>" : `<span>ขั้นต่ำถัดไป <b>${baht(s.next)}</b></span>`}
+        ${closed ? "<span>ปิดแล้ว</span>" : s.next > 0 ? `<span>ขั้นต่ำถัดไป <b>${baht(s.next)}</b></span>` : ""}
       </div>
       <div class="actions">
         ${formLink && !closed ? `<a class="btn primary" href="${esc(formLink)}" target="_blank" rel="noopener">ประมูลชิ้นนี้</a>` : ""}
@@ -318,7 +318,7 @@ function fillPicker(lots){
   const no = s => parseInt(s.item.no, 10) || 9999;
   const opts = lots.slice().sort((a, b) => no(a) - no(b)).map(s => {
     const L = s.leader;
-    const tail = L ? `${baht(L.amount)} บาท · ${L.who.main}` : `ยังไม่มีคนประมูล (เริ่ม ${baht(s.item.start)})`;
+    const tail = L ? `${baht(L.amount)} บาท · ${L.who.main}` : `ยังไม่มีคนประมูล${s.item.start > 0 ? ` (เริ่ม ${baht(s.item.start)})` : ""}`;
     return `<option value="${esc(s.item.key)}">#${esc((s.item.no || "").padStart(2, "0"))} ${esc(s.item.name)} — ${esc(tail)}</option>`;
   });
   sel.innerHTML = `<option value="">ทั้งหมด (${lots.length} ชิ้น)</option>` + opts.join("");
@@ -447,7 +447,10 @@ function openHistory(key){
         ${b.reject ? `<span class="why">ไม่นับ: ${esc(b.reject)}</span>` : ""}</td>
       <td class="num">${isNaN(b.amount) ? "–" : baht(b.amount)}</td></tr>`).join("");
   $("dlgBody").innerHTML = `
-    <p style="margin:0 0 10px;color:#857766;font-size:14px">ราคาเริ่มต้น ${baht(s.item.start)} บาท · เพิ่มครั้งละอย่างน้อย ${baht(s.item.step)} บาท</p>
+    <p style="margin:0 0 10px;color:#857766;font-size:14px">${[
+      s.item.start > 0 ? `ราคาเริ่มต้น ${baht(s.item.start)} บาท` : "",
+      CONFIG.ENFORCE_INCREMENT ? `เพิ่มครั้งละอย่างน้อย ${baht(s.item.step)} บาท` : "ให้ราคาสูงกว่าคนก่อนก็ชนะ"
+    ].filter(Boolean).join(" · ")}</p>
     ${s.history.length ? `<table><thead><tr><th>เวลา</th><th>ผู้ประมูล</th><th style="text-align:right">บาท</th></tr></thead><tbody>${rows}</tbody></table>`
       : `<p>ยังไม่มีใครประมูลชิ้นนี้</p>`}`;
   $("dlg").showModal();
