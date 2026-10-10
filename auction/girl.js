@@ -149,17 +149,18 @@ const GirlLoader = (() => {
   function sceneSvg(){
     const tiles = (fn, n) => Array.from({ length: n }, (_, i) => fn(-720 + i * 180)).join("");
     return `<svg class="gl-scene" viewBox="0 0 360 640" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-  <text x="180" y="70" text-anchor="middle" font-size="21" font-weight="600" fill="#7f8f52" class="gl-event"></text>
-  <text x="180" y="106" text-anchor="middle" font-size="34" font-weight="700" fill="#e2553f">ประมูลการกุศล</text>
+  <image href="logo.png" x="149" y="34" width="62" height="72"/>
+  <text x="180" y="138" text-anchor="middle" font-size="19" font-weight="600" fill="#7f8f52" class="gl-event"></text>
+  <text x="180" y="170" text-anchor="middle" font-size="30" font-weight="700" fill="#e2553f">ประมูลการกุศล</text>
   <g class="gl-far">${tiles(stallTile, 12)}</g>
   <rect x="-2000" y="512" width="4360" height="2000" fill="#ecebc0"/>
   <path d="M-2000 512 H2360" stroke="#d6d39a" stroke-width="3"/>
   <g class="gl-near">${tiles(groundTile, 12)}</g>
   <g class="gl-balloon">
-    <path d="M232 286 Q236 350 207 412" stroke="#a3a9c6" stroke-width="2" fill="none"/>
-    <circle cx="190" cy="210" r="72" fill="#fffdf6" stroke="#a3a9c6" stroke-width="9"/>
-    <g class="gl-item-wrap"><text class="gl-item" x="190" y="232" text-anchor="middle" font-size="62">🧸</text></g>
-    <g transform="translate(213 262) rotate(14)">${bowSvg().replace("<svg ", '<svg width="40" height="34" ')}</g>
+    <path d="M226 300 Q234 360 207 412" stroke="#a3a9c6" stroke-width="2" fill="none"/>
+    <circle cx="190" cy="250" r="58" fill="#fffdf6" stroke="#a3a9c6" stroke-width="9"/>
+    <g class="gl-item-wrap"><text class="gl-item" x="190" y="268" text-anchor="middle" font-size="50">🧸</text></g>
+    <g transform="translate(211 290) rotate(14)">${bowSvg().replace("<svg ", '<svg width="34" height="29" ')}</g>
   </g>
   <svg class="girl walk" x="98" y="338" width="130" height="182" viewBox="0 0 100 140" overflow="visible">${girlSvg({ pose: "walk", cls: "walk" }).replace(/^<svg[^>]*>|<\/svg>$/g, "")}</svg>
   <text x="180" y="572" text-anchor="middle" font-size="19" font-weight="600" fill="#3b2f27">กำลังเดินเลือกของประมูล<tspan class="gl-dots"><tspan>.</tspan><tspan>.</tspan><tspan>.</tspan></tspan></text>
@@ -200,7 +201,7 @@ const GirlLoader = (() => {
     const wrap = el.querySelector(".gl-item-wrap");
     timer = setInterval(() => {
       i = (i + 1) % ITEMS.length;
-      wrap.innerHTML = `<text class="gl-item" x="190" y="232" text-anchor="middle" font-size="62">${ITEMS[i]}</text>`;
+      wrap.innerHTML = `<text class="gl-item" x="190" y="268" text-anchor="middle" font-size="50">${ITEMS[i]}</text>`;
     }, 850);
   }
 
