@@ -6,7 +6,7 @@
    CONFIG — edit here only (both pages use it). See auction/README.md
    ================================================================== */
 const CONFIG = {
-  EVENT_NAME: "ตลาดน้ำจิตน้ำใจ #25",
+  EVENT_NAME: "ตลาดน้ำจิตต์น้ำใจ #25",
   // Spreadsheet that receives the Google Form responses (must be shared: Anyone with the link → Viewer)
   SHEET_ID: "168t6JMmVf2-r0brGKiuOhFEPlRdxwR6xhEDPxYjd6As",
   // gid of the form-responses tab (the number after #gid= in the sheet URL)

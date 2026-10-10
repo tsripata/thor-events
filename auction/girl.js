@@ -135,7 +135,7 @@ const GirlLoader = (() => {
     el.setAttribute("aria-label", "กำลังโหลด");
     el.innerHTML = flagsSvg() + sceneSvg();
     document.body.appendChild(el);
-    el.querySelector(".gl-event").textContent = typeof CONFIG !== "undefined" ? CONFIG.EVENT_NAME : "ตลาดน้ำจิตน้ำใจ #25";
+    el.querySelector(".gl-event").textContent = typeof CONFIG !== "undefined" ? CONFIG.EVENT_NAME : "ตลาดน้ำจิตต์น้ำใจ #25";
     shownAt = Date.now();
     // item emojis hop out of the wagon one after another
     let i = 0;

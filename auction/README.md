@@ -1,6 +1,6 @@
 # Charity Auction · ประมูลการกุศล
 
-A live auction board for the ตลาดน้ำจิตน้ำใจ market. People bid by submitting a **Google Form**.
+A live auction board for the ตลาดน้ำจิตต์น้ำใจ market. People bid by submitting a **Google Form**.
 The page reads the form's **Google Sheet** and shows each item's **current highest bid and bidder**.
 It refreshes itself every 2 minutes and makes a little "bump" + toast whenever a new high bid lands.
 
@@ -78,7 +78,7 @@ The button pre-fills `NN · <item name from Items tab>`. To get an exact match, 
 
 ```js
 const CONFIG = {
-  EVENT_NAME: "ตลาดน้ำจิตน้ำใจ #25",
+  EVENT_NAME: "ตลาดน้ำจิตต์น้ำใจ #25",
   SHEET_ID: "",              // from the sheet URL: /spreadsheets/d/<SHEET_ID>/edit
   BIDS_GID: "0",             // the #gid= number of the "Form Responses 1" tab
   ITEMS_SHEET: "Items",      // tab name for the catalog ("" = derive from bids)
