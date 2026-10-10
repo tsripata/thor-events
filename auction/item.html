@@ -134,6 +134,31 @@ tr.rej td.num{text-decoration:line-through}
 .empty{color:var(--dim);text-align:center;padding:48px 0}
 footer{color:var(--dim);font-size:13px;text-align:center;padding:22px 16px 30px}
 
+/* phones: smaller photo and price board */
+@media (max-width:560px){
+  .gallery{max-width:300px;margin:0 auto;width:100%}
+  .frame{border-width:6px;border-radius:20px}
+  .arrow{width:34px;height:34px;font-size:19px}
+  .arrow.prev{left:8px}.arrow.next{right:8px}
+  .counter{font-size:12px;right:10px;bottom:10px}
+  .bow{font-size:32px;top:-12px}
+  .thumbs{padding-top:10px}
+  .thumbs button:first-child{margin-left:auto}.thumbs button:last-child{margin-right:auto}
+  .thumbs button{width:54px;height:54px;border-radius:12px}
+  .plank{font-size:13px;padding:3px 14px 5px}
+  .plank b{font-size:17px}
+  h1{font-size:24px;margin:8px 0 2px}
+  .donor{font-size:14px}
+  .desc{font-size:15px;margin-top:6px}
+  .board{margin-top:12px;border-width:6px;padding:12px;gap:4px}
+  .board .lbl{font-size:13px}
+  .board .amt{font-size:32px}
+  .board .amt small{font-size:15px}
+  .leader{font-size:15px}
+  .meta{font-size:13px}
+  .board .btn{font-size:16px;padding:10px 14px}
+}
+
 /* ---------- full-size photo ---------- */
 dialog{border:0;padding:0;background:transparent;max-width:100vw;max-height:100vh}
 dialog::backdrop{background:rgba(20,15,10,.88)}
