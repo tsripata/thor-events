@@ -10,7 +10,7 @@ const CONFIG = {
   // Spreadsheet that receives the Google Form responses (must be shared: Anyone with the link → Viewer)
   SHEET_ID: "168t6JMmVf2-r0brGKiuOhFEPlRdxwR6xhEDPxYjd6As",
   // gid of the form-responses tab (the number after #gid= in the sheet URL)
-  BIDS_GID: "1736783461",
+  BIDS_GID: "1536047083",
   // Name of the tab (same spreadsheet) that lists the items. Leave "" to derive items from bids only.
   ITEMS_SHEET: "Items",
   // Google Form link (…/viewform). Empty = hide the "bid" button.
