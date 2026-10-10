@@ -39,7 +39,7 @@ function bowSvg(cls = ""){
 
 /* ==================================================================
    LOADING SCREEN — portrait (9:16) scene: Jittamett Family logo on top, she pulls her wagon of goodies
-   through the market while item emojis hop out of it.
+   through the market.
    ================================================================== */
 const GirlLoader = (() => {
   const css = `
@@ -63,17 +63,13 @@ const GirlLoader = (() => {
 #girlLoader .gl-far{animation:glScroll 9s linear infinite}
 #girlLoader .gl-near{animation:glScroll 3.2s linear infinite}
 @keyframes glScroll{from{transform:translateX(0)}to{transform:translateX(-180px)}}
-#girlLoader .gl-item{transform-box:fill-box;transform-origin:50% 100%;animation:glHop 1.7s cubic-bezier(.3,1.4,.5,1) forwards}
-@keyframes glHop{0%{transform:translate(0,40px) scale(.2);opacity:0}25%{transform:translate(0,0) scale(1.1);opacity:1}
-  70%{transform:translate(-14px,-34px) scale(1);opacity:1}100%{transform:translate(-30px,-70px) scale(.8);opacity:0}}
 #girlLoader .gl-dots tspan{animation:glDot 1.2s infinite}
 #girlLoader .gl-dots tspan:nth-child(2){animation-delay:.2s}
 #girlLoader .gl-dots tspan:nth-child(3){animation-delay:.4s}
 @keyframes glDot{0%,60%,100%{opacity:.15}30%{opacity:1}}
 @media (prefers-reduced-motion:reduce){#girlLoader *{animation:none!important}}
 `;
-  const ITEMS = ["🧸", "🎨", "🧁", "🪴", "📚", "🧺", "🎁", "👗", "🍯", "🪁"];
-  let el = null, shownAt = 0, timer = null;
+  let el = null, shownAt = 0;
 
   // Grass tufts and flowers for the ground strip; drawn over 2 tiles so the strip loops seamlessly
   function groundTile(off){
@@ -107,7 +103,6 @@ const GirlLoader = (() => {
   <g class="gl-near">${tiles(groundTile, 12)}</g>
   <ellipse class="gl-shadow" cx="180" cy="514" rx="150" ry="9" fill="#3b2f27"/>
   <image class="gl-walker" href="${HOOD_WAGON}?v=${HOOD_V}" x="22" y="236" width="316" height="280"/>
-  <g class="gl-item-wrap"></g>
   <text x="180" y="572" text-anchor="middle" font-size="19" font-weight="600" fill="#3b2f27">กำลังเดินเลือกของประมูล<tspan class="gl-dots"><tspan>.</tspan><tspan>.</tspan><tspan>.</tspan></tspan></text>
   <text x="180" y="600" text-anchor="middle" font-size="14" fill="#857766" font-family="Sarabun,sans-serif">รอแป๊บนึงนะ กำลังดึงราคาล่าสุด</text>
 </svg>`;
@@ -137,22 +132,6 @@ const GirlLoader = (() => {
     document.body.appendChild(el);
     el.querySelector(".gl-event").textContent = typeof CONFIG !== "undefined" ? CONFIG.EVENT_NAME : "ตลาดน้ำจิตต์น้ำใจ #25";
     shownAt = Date.now();
-    // item emojis hop out of the wagon one after another
-    let i = 0;
-    const wrap = el.querySelector(".gl-item-wrap");
-    const hop = () => {
-      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      t.setAttribute("class", "gl-item");
-      t.setAttribute("x", 262 + (i % 3) * 14 - 14);
-      t.setAttribute("y", 418);
-      t.setAttribute("text-anchor", "middle");
-      t.setAttribute("font-size", "34");
-      t.textContent = ITEMS[i++ % ITEMS.length];
-      wrap.appendChild(t);
-      setTimeout(() => t.remove(), 1800);
-    };
-    hop();
-    timer = setInterval(hop, 650);
   }
 
   // Keep her on screen long enough to take a few steps, then fade out
@@ -162,7 +141,7 @@ const GirlLoader = (() => {
     el = null;
     setTimeout(() => {
       node.classList.add("out");
-      setTimeout(() => { clearInterval(timer); node.remove(); }, 500);
+      setTimeout(() => node.remove(), 500);
     }, Math.max(0, 3000 - (Date.now() - shownAt)));
   }
 
