@@ -88,6 +88,9 @@ function imageList(cells){
   }
   return out;
 }
+// Shown in the photo circle when an item has no photo (or it fails to load)
+const NO_PHOTO = `<span class="nophoto">ยังไม่มีรูป</span>`;
+const imgFallback = `this.outerHTML='<span class=&quot;nophoto&quot;>ยังไม่มีรูป</span>'`;
 // "every 2 minutes" / "every 20 seconds" in Thai
 const refreshLabel = () => CONFIG.REFRESH_SECONDS % 60 === 0
   ? `${CONFIG.REFRESH_SECONDS / 60} นาที` : `${CONFIG.REFRESH_SECONDS} วินาที`;
@@ -162,8 +165,7 @@ const ITEM_COLS = [
   ["image", h => /รูป|ภาพ|image|photo|picture/i.test(h)],
   ["donor", h => /บริจาค|donor|donated|ผู้ให้/i.test(h)],
   ["desc",  h => /รายละเอียด|desc|detail/i.test(h)],
-  ["name",  h => /ชื่อ|name|item|สินค้า/i.test(h)],
-  ["emoji", h => /emoji|อีโมจิ/i.test(h)]
+  ["name",  h => /ชื่อ|name|item|สินค้า/i.test(h)]
 ];
 
 /* ==================================================================
@@ -189,7 +191,6 @@ function buildItems(grid){
       donor: get(r, "donor"),
       image: images.length ? images[0].thumb : "",
       images,
-      emoji: get(r, "emoji") || "🎁",
       start: isNaN(start) ? CONFIG.DEFAULT_START_PRICE : start,
       step: isNaN(step) || step <= 0 ? CONFIG.DEFAULT_MIN_INCREMENT : step
     };
@@ -225,7 +226,7 @@ function buildModel(itemsGrid, bidsGrid){
     if (!byKey.has(key)) {
       const it = {
         key, no:(rawItem.match(/\d+/) || [""])[0], name:itemLabelText(rawItem) || rawItem,
-        desc:"", donor:"", image:"", images:[], emoji:"🎁",
+        desc:"", donor:"", image:"", images:[],
         start:CONFIG.DEFAULT_START_PRICE, step:CONFIG.DEFAULT_MIN_INCREMENT, fromBidsOnly:true
       };
       byKey.set(key, it); items.push(it);
@@ -266,12 +267,12 @@ function it_step(s){ return CONFIG.ENFORCE_INCREMENT ? s.item.step : 1; }
    DEMO DATA (used when SHEET_ID is empty or ?demo is in the URL)
    ================================================================== */
 const DEMO_ITEMS = [
-  ["1","ตุ๊กตาหมีถักมือ","ถักจากไหมพรมคอตตอน สูง 30 ซม. ทำโดยคุณยายของน้องข้าวปั้น","ครอบครัวน้องข้าวปั้น",100,20,"🧸"],
-  ["2","ภาพวาดสีน้ำ “ตลาดนัด”","ผลงานเด็ก ๆ รุ่น 5 ใส่กรอบไม้พร้อมแขวน","เด็ก ๆ รุ่น 5",200,50,"🖼️"],
-  ["3","เซตขนมไทยโบราณ","ขนมชั้น ทองหยิบ ฝอยทอง 1 กล่องใหญ่ รับวันงาน","บ้านขนมแม่น้อย",150,10,"🍮"],
-  ["4","กระถางต้นไม้เพนต์มือ","ต้นกุหลาบหินในกระถางดินเผาลายดอกไม้","คุณครูฝ้าย",80,10,"🪴"],
-  ["5","บัตรทำขนมปังกับเชฟ","Workshop 2 ชม. สำหรับเด็ก 1 คน + ผู้ปกครอง 1 คน","Little Bakery",500,100,"🥐"],
-  ["6","ผ้าพันคอมัดย้อม","ผ้าฝ้ายมัดย้อมครามธรรมชาติ ขนาด 50×180 ซม.","ครอบครัวน้องภูผา",120,20,"🧣"]
+  ["1","ตุ๊กตาหมีถักมือ","ถักจากไหมพรมคอตตอน สูง 30 ซม. ทำโดยคุณยายของน้องข้าวปั้น","ครอบครัวน้องข้าวปั้น",100,20],
+  ["2","ภาพวาดสีน้ำ “ตลาดนัด”","ผลงานเด็ก ๆ รุ่น 5 ใส่กรอบไม้พร้อมแขวน","เด็ก ๆ รุ่น 5",200,50],
+  ["3","เซตขนมไทยโบราณ","ขนมชั้น ทองหยิบ ฝอยทอง 1 กล่องใหญ่ รับวันงาน","บ้านขนมแม่น้อย",150,10],
+  ["4","กระถางต้นไม้เพนต์มือ","ต้นกุหลาบหินในกระถางดินเผาลายดอกไม้","คุณครูฝ้าย",80,10],
+  ["5","บัตรทำขนมปังกับเชฟ","Workshop 2 ชม. สำหรับเด็ก 1 คน + ผู้ปกครอง 1 คน","Little Bakery",500,100],
+  ["6","ผ้าพันคอมัดย้อม","ผ้าฝ้ายมัดย้อมครามธรรมชาติ ขนาด 50×180 ซม.","ครอบครัวน้องภูผา",120,20]
 ];
 const DEMO_PEOPLE = [
   ["สมใจ","มะลิ","3"],["วรรณา","ภูผา","1"],["ปกรณ์","ข้าวปั้น","2"],["นิดา","ต้นกล้า","5"],
@@ -280,8 +281,8 @@ const DEMO_PEOPLE = [
 let demoBids = null;
 function demoGrids(){
   // Like the real sheet: no start/step columns. DEMO_ITEMS keeps them only to make up plausible amounts.
-  const items = { headers:["Item no.","ชื่อของ","รายละเอียด","ผู้บริจาค","Emoji"],
-    rows: DEMO_ITEMS.map(r => [r[0], r[1], r[2], r[3], r[6]].map(v => ({ v, f:String(v) }))) };
+  const items = { headers:["Item no.","ชื่อของ","รายละเอียด","ผู้บริจาค"],
+    rows: DEMO_ITEMS.map(r => [r[0], r[1], r[2], r[3]].map(v => ({ v, f:String(v) }))) };
   const cur = new Map();
   const add = (minsAgo) => {
     const it = DEMO_ITEMS[Math.floor(Math.random() * DEMO_ITEMS.length)];

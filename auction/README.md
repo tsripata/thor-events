@@ -62,12 +62,12 @@ The button pre-fills `NN · <item name from Items tab>`. To get an exact match, 
 1. **Share** the spreadsheet: *Anyone with the link → Viewer*. Without this the page can't read it.
 2. Add a tab named **`Items`** (the name is set in `CONFIG.ITEMS_SHEET`). The first row is the header:
 
-| Item no. | ชื่อของ | รายละเอียด | ผู้บริจาค | รูป | Emoji |
-|---|---|---|---|---|---|
-| 1 | ตุ๊กตาหมีถักมือ | ถักจากไหมพรม สูง 30 ซม. | ครอบครัวน้องข้าวปั้น | Drive or image link | 🧸 |
+| Item no. | ชื่อของ | รายละเอียด | ผู้บริจาค | รูป | รูป 2 | รูป 3 |
+|---|---|---|---|---|---|---|
+| 1 | ตุ๊กตาหมีถักมือ | ถักจากไหมพรม สูง 30 ซม. | ครอบครัวน้องข้าวปั้น | photo link | photo link | photo link |
 
-   - Header keywords: `Item no`/`หมายเลข`/`ลำดับ`, `ชื่อ`/`name`, `รายละเอียด`/`desc`, `บริจาค`/`donor`, `เริ่ม`/`start`, `ขั้นต่ำ`/`increment`/`step`, `รูป`/`ภาพ`/`image`, `emoji`.
-   - **รูป**: either a Google Drive link (the file must be shared *Anyone with the link*) or any direct image URL. Drive links are shown through `drive.google.com/thumbnail?id=…`. With no picture, the Emoji (default 🎁) is shown in the circle.
+   - Header keywords: `Item no`/`หมายเลข`/`ลำดับ`, `ชื่อ`/`name`, `รายละเอียด`/`desc`, `บริจาค`/`donor`, `เริ่ม`/`start`, `ขั้นต่ำ`/`increment`/`step`, `รูป`/`ภาพ`/`image`.
+   - **รูป**: either a Google Drive link (the file must be shared *Anyone with the link*) or any direct image URL. Drive links are shown through `drive.google.com/thumbnail?id=…`. Also accepted: a path inside this site such as `img/01.jpg`. With no picture, the circle shows "ยังไม่มีรูป" (items have no emoji).
    - **More photos**: put several links in the รูป cell (separated by a space, comma or new line), and/or add more columns whose header contains `รูป`/`ภาพ`/`image` (e.g. `รูป 2`, `รูปเพิ่มเติม`). The first photo is the one on the board and list; the detail page shows all of them as a gallery.
    - **No starting price or minimum step** for this event: any first bid above 0 counts, and any higher amount beats the leader (`ENFORCE_INCREMENT: false`).
      Items with no bids show `–` instead of a price.
@@ -140,7 +140,7 @@ In **demo mode** with no `FORM_URL`, bid buttons show a short "this would open t
 ## 5d. Item detail page (`item.html?no=N`)
 
 - Opened from **รายละเอียด** on a board card, **ดูรายละเอียด** on the list, or by tapping a photo or name. `N` is the item number.
-- **Gallery:** every photo of the item (see §3, "More photos"), swipe on phones or use the ‹ › arrows / ← → keys, thumbnails below, `2 / 4` counter, tap a photo to see it full size. Drive photos load at 1600 px here (600 px on the other pages). With no photo, the item's emoji is shown.
+- **Gallery:** every photo of the item (see §3, "More photos"), swipe on phones or use the ‹ › arrows / ← → keys, thumbnails below, `2 / 4` counter, tap a photo to see it full size. Drive photos load at 1600 px here (600 px on the other pages). With no photo, it shows "ยังไม่มีรูป".
 - **Details:** `Item no.` plank, name, donor, the full description (line breaks kept), then the yellow board with the current price, 👑 leader, bid count, next minimum, countdown and **📝 ประมูลชิ้นนี้** (pre-filled form).
 - **ประวัติการประมูล:** the full history table (rejected bids struck through with the reason). This replaces the board's old history dialog.
 - **← ชิ้นก่อนหน้า / ชิ้นถัดไป →** to walk through items in number order.
