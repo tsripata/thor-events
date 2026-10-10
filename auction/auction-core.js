@@ -12,7 +12,7 @@ const CONFIG = {
   // gid of the form-responses tab (the number after #gid= in the sheet URL)
   BIDS_GID: "1736783461",
   // Name of the tab (same spreadsheet) that lists the items. Leave "" to derive items from bids only.
-  ITEMS_SHEET: "Item",
+  ITEMS_SHEET: "Items",
   // Google Form link (…/viewform). Empty = hide the "bid" button.
   FORM_URL: "",
   // Pre-fill field id for the item question, e.g. "entry.123456789". Empty = no pre-fill.
