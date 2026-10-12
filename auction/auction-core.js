@@ -240,9 +240,12 @@ function buildModel(itemsGrid, bidsGrid){
     });
   });
 
-  // Sheet order = submission order. Walk it and keep the leader per item.
+  // Walk bids in submission order (form timestamp, then sheet row) and keep the leader per item.
+  // Sheet row order alone isn't reliable: rows typed in by hand or a re-sorted sheet put
+  // older bids below newer ones, and they'd then be judged against a later, higher leader.
+  const ordered = bids.slice().sort((a, b) => (a.time || 0) - (b.time || 0) || a.row - b.row);
   const state = new Map(items.map(it => [it.key, { item:it, leader:null, history:[], valid:0, lastAt:null }]));
-  for (const b of bids) {
+  for (const b of ordered) {
     const s = state.get(b.key);
     const it = s.item;
     const min = s.leader ? s.leader.amount + (CONFIG.ENFORCE_INCREMENT ? it.step : 0.01) : it.start;
