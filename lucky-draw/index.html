@@ -360,6 +360,9 @@ function dl(name,text){
   document.body.appendChild(a);a.click();a.remove();
 }
 const keyOf=p=>p.n+'|'+p.r+'|'+p.h;
+// 1 ชื่อ 1 สิทธิ์: duplicates are judged on the child's real name alone. Spaces,
+// zero-width chars and letter case are ignored so "สมชาย  ใจดี" = "สมชายใจดี".
+const nameKey=n=>n.normalize('NFC').replace(/[\s\u200b-\u200d\ufeff]+/g,'').toLowerCase();
 // red ribbon bow (same drawing as auction/girl.js) tied on each winner's board
 const BOW=`<svg class="bow" viewBox="0 0 60 50" aria-hidden="true" focusable="false">
   <g fill="#ee6a5c" stroke="#b93a2c" stroke-width="2.2" stroke-linejoin="round">
@@ -409,7 +412,8 @@ function parsePrizes(rows){
 
 // Registrations: find the header row with ชื่อ, map ชื่อ/รุ่น/ห้อง by name.
 // Headers are matched by "contains" so form questions like
-// "ชื่อเด็กจริง ---- (1 ชื่อ 1 สิทธ์)" still work. A column headed
+// "ชื่อเด็กจริง ---- (1 ชื่อ 1 สิทธ์)" still work; a header containing
+// "ชื่อเด็กจริง" wins over any other ชื่อ column (e.g. a parent's name). A column headed
 // "ไม่ใช้แล้ว" (retired question) is used for รุ่น only when the รุ่น cell is empty.
 function parseRegs(rows){
   const isName=c=>c.includes('ชื่อ')||c.toLowerCase()==='name';
@@ -420,6 +424,8 @@ function parseRegs(rows){
   if(h>=0){
     const seen={};
     const set=(k,i)=>{if(!seen[k]){ci[k]=i;seen[k]=1;}};
+    const real=rows[h].findIndex(c=>c.includes('ชื่อเด็กจริง'));
+    if(real>=0)set('n',real);
     rows[h].forEach((c,i)=>{const l=c.toLowerCase();
       if(isName(c))set('n',i);
       else if(c.includes('รุ่น')||l==='year')set('r',i);
@@ -438,7 +444,7 @@ function parseRegs(rows){
 }
 function dedupe(list){
   const seen={},keep=[],dups=[];
-  list.forEach(p=>{const k=keyOf(p);if(seen[k]){dups.push(p);}else{seen[k]=1;keep.push(p);}});
+  list.forEach(p=>{const k=nameKey(p.n);if(seen[k]){dups.push(p);}else{seen[k]=1;keep.push(p);}});
   return {keep,dups};
 }
 
@@ -473,7 +479,7 @@ function showPreview(){
   $('pvDup').textContent=raw.dups.length;
   $('pvNet').textContent=raw.regs.length;
   $('dupList').innerHTML=raw.dups.length
-    ? 'ตัดออกเพราะซ้ำ (ชื่อ+รุ่น+ห้อง เหมือนกัน): '+raw.dups.slice(0,12).map(p=>p.n).join(' · ')+
+    ? 'ตัดออกเพราะชื่อเด็กซ้ำ (1 ชื่อ 1 สิทธิ์): '+raw.dups.slice(0,12).map(p=>p.n).join(' · ')+
       (raw.dups.length>12?' …และอีก '+(raw.dups.length-12):'')
     : '';
   const tot=raw.prizes.reduce((s,p)=>s+p.qty,0);
