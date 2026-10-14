@@ -304,23 +304,31 @@ function parsePrizes(rows){
 }
 
 // Registrations: find the header row with ชื่อ, map ชื่อ/รุ่น/ห้อง by name.
+// Headers are matched by "contains" so form questions like
+// "ชื่อเด็กจริง ---- (1 ชื่อ 1 สิทธ์)" still work. A column headed
+// "ไม่ใช้แล้ว" (retired question) is used for รุ่น only when the รุ่น cell is empty.
 function parseRegs(rows){
+  const isName=c=>c.includes('ชื่อ')||c.toLowerCase()==='name';
   let h=-1;
   for(let i=0;i<rows.length;i++)
-    if(rows[i].some(c=>c==='ชื่อ'||c.toLowerCase()==='name')){h=i;break;}
-  let ci={n:0,r:1,h:2};
+    if(rows[i].some(isName)){h=i;break;}
+  const ci={n:0,r:1,h:2,old:-1};
   if(h>=0){
-    rows[h].forEach((c,i)=>{
-      if(c==='ชื่อ'||c.toLowerCase()==='name')ci.n=i;
-      if(c==='รุ่น'||c.toLowerCase()==='year')ci.r=i;
-      if(c==='ห้อง'||c.toLowerCase()==='room'||c.toLowerCase()==='class')ci.h=i;});
-  }else h=-1;
+    const seen={};
+    const set=(k,i)=>{if(!seen[k]){ci[k]=i;seen[k]=1;}};
+    rows[h].forEach((c,i)=>{const l=c.toLowerCase();
+      if(isName(c))set('n',i);
+      else if(c.includes('รุ่น')||l==='year')set('r',i);
+      else if(c.includes('ห้อง')||l==='room'||l==='class')set('h',i);
+      else if(c.includes('ไม่ใช้แล้ว'))set('old',i);});
+  }
   const out=[];
   for(let i=h+1;i<rows.length;i++){
     const r=rows[i];if(!r)continue;
     const n=(r[ci.n]||'').trim();
     if(!n)continue;
-    out.push({n,r:(r[ci.r]||'').trim(),h:(r[ci.h]||'').trim()});
+    const gen=(r[ci.r]||'').trim()||(ci.old>=0?(r[ci.old]||'').trim():'');
+    out.push({n,r:gen,h:(r[ci.h]||'').trim()});
   }
   return out;
 }
