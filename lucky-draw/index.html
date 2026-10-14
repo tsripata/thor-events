@@ -42,23 +42,14 @@ header h1 span{color:var(--gold)}
 .pill b{color:var(--gold)}
 .spacer{flex:1}
 
-/* ---------- setup ---------- */
+/* ---------- loading / status ---------- */
 #setup{max-width:860px;margin:32px auto;padding:26px;background:var(--card);
   border:1px solid var(--line);border-radius:16px}
-#setup h2{margin:0 0 6px;font-size:22px}
-.field{margin:16px 0}
-.field label{display:block;font-size:14px;color:var(--dim);margin-bottom:6px}
-.field input{width:100%}
 .row{display:flex;gap:12px;flex-wrap:wrap}
-.row .field{flex:1;min-width:220px}
 .note{font-size:13px;color:var(--dim);line-height:1.65}
-#loadMsg{margin-top:14px;font-size:14px;min-height:22px;line-height:1.6}
+#loadMsg{font-size:15px;min-height:22px;line-height:1.6}
 .err{color:var(--no)}
 .good{color:var(--ok)}
-details{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
-summary{cursor:pointer;color:var(--dim);font-size:14px}
-textarea{width:100%;min-height:130px;background:var(--bg2);color:var(--txt);
-  border:1px solid var(--line);border-radius:10px;padding:10px;font-family:ui-monospace,monospace;font-size:13px;margin-top:10px}
 
 /* ---------- preview / freeze ---------- */
 #preview{max-width:980px;margin:0 auto 40px;padding:0 18px}
@@ -132,38 +123,13 @@ td.num,th.num{text-align:center;width:90px}
   <button class="btn" id="fsBtn">⛶ เต็มจอ</button>
 </header>
 
-<!-- ============ SETUP ============ -->
+<!-- ============ LOADING / STATUS ============ -->
 <section id="setup">
-  <h2>ตั้งค่า</h2>
-  <p class="note">อ่านรายชื่อจาก Google Sheet โดยตรง — ไม่มีการเขียนกลับไปที่ Google</p>
-
-  <div class="field">
-    <label>Sheet ID (ส่วนยาวใน URL ระหว่าง /d/ กับ /edit)</label>
-    <input id="inSheet" value="1Z0fg03PqXRkHUvxk9VOnHNTXxpv33ku5nD82znZYcHg">
+  <div id="loadMsg">กำลังโหลดข้อมูลจาก Google Sheet…</div>
+  <div class="row hidden" id="setupBtns" style="margin-top:16px">
+    <button class="btn-primary btn hidden" id="resumeBtn">ทำต่องานที่ค้างไว้</button>
+    <button class="btn" id="loadBtn">โหลดข้อมูลจาก Google Sheet</button>
   </div>
-  <div class="row">
-    <div class="field"><label>ชื่อแท็บรางวัล</label><input id="inPrizeTab" value="Prizes"></div>
-    <div class="field"><label>ชื่อแท็บรายชื่อผู้สมัคร</label><input id="inRespTab" value="Form Responses 1"></div>
-  </div>
-  <div class="field"><label>ชื่องาน (แสดงบนหัวจอ)</label><input id="inEvent" value="งานโรงเรียน 2569"></div>
-
-  <div class="row" style="margin-top:20px">
-    <button class="btn-primary btn" id="loadBtn">โหลดข้อมูลจาก Google Sheet</button>
-    <button class="btn" id="resumeBtn">กู้คืนงานที่ค้างไว้</button>
-  </div>
-  <div id="loadMsg"></div>
-
-  <details>
-    <summary>สำรอง — วางรายชื่อเอง (ใช้เมื่อเน็ตมีปัญหา)</summary>
-    <p class="note">วางข้อมูลแบบ CSV บรรทัดละคน: <code>ชื่อ,รุ่น,ห้อง</code> (บรรทัดหัวตารางใส่ได้ ระบบจะข้ามให้)</p>
-    <textarea id="pasteBox" placeholder="สมชาย ใจดี,รุ่น 12,ป.1/2&#10;สมหญิง รักเรียน,รุ่น 12,ป.1/1"></textarea>
-    <div class="row" style="margin-top:10px">
-      <button class="btn" id="pasteBtn">ใช้รายชื่อที่วาง</button>
-      <label class="btn" style="display:inline-block">
-        เลือกไฟล์ CSV<input type="file" id="fileIn" accept=".csv,text/csv" class="hidden">
-      </label>
-    </div>
-  </details>
 </section>
 
 <!-- ============ PREVIEW / FREEZE ============ -->
@@ -189,7 +155,7 @@ td.num,th.num{text-align:center;width:90px}
       และบันทึกผลไว้ทันที การหมุนบนเวทีเป็นเพียงการเปิดเผยผลที่สุ่มไว้แล้ว</p>
     <button class="btn-primary btn" id="freezeBtn" style="padding:15px 40px;font-size:19px;margin-top:6px">
       🔒 ปิดรับรายชื่อ &amp; สุ่มรางวัล</button>
-    <div style="margin-top:12px"><button class="btn" id="backToSetup">← กลับไปแก้ไขการตั้งค่า</button></div>
+    <div style="margin-top:12px"><button class="btn" id="reloadBtn">🔄 โหลดรายชื่อใหม่</button></div>
   </div>
 </section>
 
@@ -226,6 +192,13 @@ td.num,th.num{text-align:center;width:90px}
 'use strict';
 const $=id=>document.getElementById(id);
 const LS='luckydraw_v1';
+// Data source — edit here to point at a different sheet or event.
+const CFG={
+  sheetId:'1Z0fg03PqXRkHUvxk9VOnHNTXxpv33ku5nD82znZYcHg',
+  prizeTab:'Prizes',
+  respTab:'Form Responses 1',
+  event:'งานโรงเรียน 2569'
+};
 let S=null;              // application state
 let raw={prizes:[],regs:[],dups:[]};
 let spinning=false;
@@ -332,9 +305,9 @@ function dedupe(list){
 
 /* ================= loading ================= */
 async function loadAll(){
-  const id=$('inSheet').value.trim(),pt=$('inPrizeTab').value.trim(),rt=$('inRespTab').value.trim();
-  if(!id)return setMsg('กรุณาใส่ Sheet ID','err');
-  setMsg('กำลังโหลด…');
+  const id=CFG.sheetId,pt=CFG.prizeTab,rt=CFG.respTab;
+  showSetup(false);
+  setMsg('กำลังโหลดข้อมูลจาก Google Sheet…');
   try{
     const [pr,rr]=await Promise.all([
       fetch(gvizURL(id,pt)).then(r=>{if(!r.ok)throw new Error('แท็บ "'+pt+'" HTTP '+r.status);return r.text()}),
@@ -346,21 +319,17 @@ async function loadAll(){
     setMsg('โหลดสำเร็จ','good');
     showPreview();
   }catch(e){
-    setMsg('โหลดไม่สำเร็จ: '+e.message+
+    setMsg('โหลดไม่สำเร็จ: '+esc(e.message)+
       '<br><span class="note">ตรวจสอบว่า Sheet ตั้งค่าเป็น “ผู้ที่มีลิงก์ → ผู้อ่าน” และชื่อแท็บสะกดตรงกัน '+
-      'หากเปิดไฟล์แบบ double-click แล้วยังไม่ได้ ให้ใช้ช่อง “วางรายชื่อเอง” ด้านล่าง</span>','err');
+      '(“'+esc(pt)+'” และ “'+esc(rt)+'”) แล้วกดโหลดอีกครั้ง</span>','err');
+    showSetup(true);
   }
 }
 function setMsg(h,c){const m=$('loadMsg');m.innerHTML=h;m.className=c||'';}
-
-function usePasted(text){
-  if(!raw.prizes.length)return toast('ต้องโหลดรายการรางวัลจาก Sheet ก่อน');
-  const rows=parseCSV(text).filter(r=>r.some(c=>c));
-  const list=rows.filter(r=>!(r[0]==='ชื่อ')).map(r=>({n:(r[0]||'').trim(),r:(r[1]||'').trim(),h:(r[2]||'').trim()}))
-    .filter(p=>p.n);
-  if(!list.length)return toast('ไม่พบรายชื่อในข้อความที่วาง');
-  const d=dedupe(list);raw.regs=d.keep;raw.dups=d.dups;raw.rawCount=list.length;
-  toast('ใช้รายชื่อที่วาง '+d.keep.length+' คน');showPreview();
+// Show the status box; btns=true reveals the load (and, if a draw is saved, resume) buttons.
+function showSetup(btns){
+  $('preview').classList.add('hidden');$('setup').classList.remove('hidden');
+  $('setupBtns').classList.toggle('hidden',!btns);
 }
 
 /* ================= preview ================= */
@@ -400,8 +369,8 @@ function freeze(){
     alloc[p.id]=[];
     for(let k=0;k<p.qty&&i<bag.length;k++){const w=bag[i++];alloc[p.id].push({...w,status:null});}
   });
-  S={event:$('inEvent').value.trim()||'งานโรงเรียน',
-     sheetId:$('inSheet').value.trim(),prizeTab:$('inPrizeTab').value.trim(),respTab:$('inRespTab').value.trim(),
+  S={event:CFG.event,
+     sheetId:CFG.sheetId,prizeTab:CFG.prizeTab,respTab:CFG.respTab,
      frozenAt:new Date().toISOString(),pool,prizes:raw.prizes,alloc,
      revealed:{},history:[],dupCount:raw.dups.length};
   save();
@@ -422,7 +391,7 @@ function enterStage(){
   if(next){$('prizeSel').value=next.id;showPrize(next.id);}
 }
 function updHeader(){
-  $('hdrEvent').textContent=S?S.event:($('inEvent').value||'');
+  $('hdrEvent').textContent=S?S.event:CFG.event;
   $('pillPool').innerHTML='ผู้เข้าร่วม <b>'+(S?S.pool.length:raw.regs.length)+'</b> คน';
   const ps=S?S.prizes:raw.prizes;
   $('pillPrize').innerHTML='รางวัล <b>'+ps.reduce((s,p)=>s+p.qty,0)+'</b> ชิ้น';
@@ -568,10 +537,7 @@ function boom(){
 
 /* ================= wiring ================= */
 $('loadBtn').onclick=loadAll;
-$('pasteBtn').onclick=()=>usePasted($('pasteBox').value);
-$('fileIn').onchange=e=>{const f=e.target.files[0];if(!f)return;
-  const rd=new FileReader();rd.onload=()=>usePasted(rd.result);rd.readAsText(f,'utf-8');};
-$('backToSetup').onclick=()=>{$('preview').classList.add('hidden');$('setup').classList.remove('hidden');};
+$('reloadBtn').onclick=loadAll;
 $('freezeBtn').onclick=()=>{
   if(!confirm('ยืนยันปิดรับรายชื่อ '+raw.regs.length+' คน และสุ่มรางวัลทั้งหมด?\nหลังจากนี้รายชื่อจะไม่เปลี่ยนอีก'))return;
   freeze();};
@@ -584,9 +550,9 @@ $('resultsBtn').onclick=()=>$('resultsPanel').classList.toggle('open');
 $('closeResults').onclick=()=>$('resultsPanel').classList.remove('open');
 $('fsBtn').onclick=()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();
 $('resumeBtn').onclick=()=>{
-  const j=localStorage.getItem(LS);
-  if(!j)return toast('ไม่พบงานที่ค้างไว้ในเครื่องนี้');
-  S=JSON.parse(j);enterStage();toast('กู้คืนแล้ว');};
+  const s=savedDraw();
+  if(!s)return toast('ไม่พบงานที่ค้างไว้ในเครื่องนี้');
+  S=s;enterStage();toast('กู้คืนแล้ว');};
 addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
   if(e.code==='Space'&&!$('controls').classList.contains('hidden')){e.preventDefault();spin(false);}
@@ -594,11 +560,19 @@ addEventListener('keydown',e=>{
 addEventListener('resize',()=>{if(S&&!$('stage').classList.contains('hidden'))showPrize($('prizeSel').value);});
 addEventListener('beforeunload',e=>{if(S&&Object.keys(S.revealed).length<S.prizes.length){e.preventDefault();e.returnValue='';}});
 
-// auto-offer resume
-(function(){const j=localStorage.getItem(LS);
-  if(j){try{const s=JSON.parse(j);
-    setMsg('พบงานที่ค้างไว้ (ปิดรับเมื่อ '+new Date(s.frozenAt).toLocaleString('th-TH')+
-      ', ผู้เข้าร่วม '+s.pool.length+' คน) — กด “กู้คืนงานที่ค้างไว้” เพื่อทำต่อ','good');}catch(e){}}})();
+function savedDraw(){
+  try{const s=JSON.parse(localStorage.getItem(LS));return s&&s.pool&&s.prizes?s:null;}catch(e){return null;}
+}
+
+// start: offer to resume a saved draw, otherwise load straight from the sheet
+updHeader();
+(function(){const s=savedDraw();
+  if(!s)return loadAll();
+  const done=s.prizes.filter(p=>s.revealed&&s.revealed[p.id]).length;
+  setMsg('พบงานที่ค้างไว้ในเครื่องนี้ (ปิดรับเมื่อ '+new Date(s.frozenAt).toLocaleString('th-TH')+
+    ', ผู้เข้าร่วม '+s.pool.length+' คน, เปิดรางวัลแล้ว '+done+'/'+s.prizes.length+')','good');
+  $('resumeBtn').classList.remove('hidden');
+  showSetup(true);})();
 </script>
 </body>
 </html>
