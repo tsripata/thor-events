@@ -360,6 +360,8 @@ function dl(name,text){
   document.body.appendChild(a);a.click();a.remove();
 }
 const keyOf=p=>p.n+'|'+p.r+'|'+p.h;
+// "รุ่น 25 · บ้านยินดี" under a winner's name; a bare number gets the รุ่น prefix
+const metaOf=p=>[p.r&&p.r!==p.n?(/^\d+$/.test(p.r)?'รุ่น '+p.r:p.r):'',p.h].filter(Boolean).join(' · ');
 // 1 ชื่อ 1 สิทธิ์: duplicates are judged on the child's real name alone. Spaces,
 // zero-width chars and letter case are ignored so "สมชาย  ใจดี" = "สมชายใจดี".
 const nameKey=n=>n.normalize('NFC').replace(/[\s\u200b-\u200d\ufeff]+/g,'').toLowerCase();
@@ -420,7 +422,10 @@ function parseRegs(rows){
   let h=-1;
   for(let i=0;i<rows.length;i++)
     if(rows[i].some(isName)){h=i;break;}
-  const ci={n:0,r:1,h:2,old:-1};
+  // gviz blanks the text header of a mostly-numeric column (รุ่น holds "25"), so
+  // with a header row found, columns start unset and รุ่น falls back to content below
+  // rather than a positional guess that can land on the name column.
+  const ci=h>=0?{n:0,r:-1,h:-1,old:-1}:{n:0,r:1,h:2,old:-1};
   if(h>=0){
     const seen={};
     const set=(k,i)=>{if(!seen[k]){ci[k]=i;seen[k]=1;}};
@@ -431,13 +436,22 @@ function parseRegs(rows){
       else if(c.includes('รุ่น')||l==='year')set('r',i);
       else if(c.includes('ห้อง')||l==='room'||l==='class')set('h',i);
       else if(c.includes('ไม่ใช้แล้ว'))set('old',i);});
+    if(ci.r<0){
+      // an untitled column whose filled cells are all 1–3 digit numbers is the รุ่น column
+      const data=rows.slice(h+1).filter(r=>r&&(r[ci.n]||'').trim());
+      ci.r=rows[h].findIndex((c,i)=>{
+        if(c||i===ci.n||i===ci.h)return false;
+        const v=data.map(r=>(r[i]||'').trim()).filter(Boolean);
+        return v.length>0&&v.every(x=>/^\d{1,3}$/.test(x));});
+    }
   }
   const out=[];
   for(let i=h+1;i<rows.length;i++){
     const r=rows[i];if(!r)continue;
     const n=(r[ci.n]||'').trim();
     if(!n)continue;
-    const gen=(r[ci.r]||'').trim()||(ci.old>=0?(r[ci.old]||'').trim():'');
+    let gen=(r[ci.r]||'').trim()||(ci.old>=0?(r[ci.old]||'').trim():'');
+    if(nameKey(gen)===nameKey(n))gen='';
     out.push({n,r:gen,h:(r[ci.h]||'').trim()});
   }
   return out;
@@ -571,7 +585,7 @@ function reelHTML(n,item,h){
   const mf=Math.max(11,Math.floor(nf*0.52));
   return `<div class="item" style="height:${h}px">
       <div class="nm${item.q?' q':''}" style="font-size:${nf}px">${esc(item.n)}</div>
-      <div class="mt" style="font-size:${mf}px">${esc(item.r)}${item.r&&item.h?' · ':''}${esc(item.h)}</div>
+      <div class="mt" style="font-size:${mf}px">${esc(metaOf(item))}</div>
     </div>`;
 }
 function renderIdle(p){
@@ -655,7 +669,7 @@ function renderResults(){
       <div class="rline st-none"><span>ยังไม่เปิด</span><span>${p.qty} รางวัล</span></div></div>`;
     return `<div class="rgroup"><h4>${esc(p.name)}</h4>`+
       (ws.length?ws.map((w,i)=>`<div class="rline"><span>${esc(w.n)}</span>
-        <span class="muted">${esc(w.r)} ${esc(w.h)}</span></div>`).join('')
+        <span class="muted">${esc(metaOf(w))}</span></div>`).join('')
         :'<div class="rline st-none"><span>ไม่มีผู้รับ</span><span></span></div>')+'</div>';
   }).join('');
 }
