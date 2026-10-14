@@ -298,7 +298,7 @@ function demoGrids(){
   };
   if (!demoBids) { demoBids = []; for (let i = 24; i > 0; i--) add(i * 4); }
   else if (Math.random() < 0.7) add(0);
-  const bids = { headers:["ประทับเวลา","หมายเลขของที่ต้องการประมูล","ราคาที่ให้ (บาท)","ชื่อผู้ปกครอง","ชื่อเล่นเด็ก","รุ่น","เบอร์โทร"],
+  const bids = { headers:["ประทับเวลา","สิ่งของที่ต้องการประมูล","ราคาที่ให้ (บาท)","ชื่อผู้ปกครอง","ชื่อเล่นเด็ก","รุ่น","เบอร์โทร"],
     rows: demoBids.map(r => r.map(v => ({ v, f:v instanceof Date ? v.toISOString() : String(v) }))) };
   return { items, bids };
 }

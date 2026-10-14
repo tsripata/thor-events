@@ -44,7 +44,7 @@ Create a form with these questions. The page matches columns by **words in the q
 | `ชื่อเล่นเด็ก` | Short answer | `ชื่อเด็ก`, `ชื่อเล่น`, `ชื่อน้อง` | Shown as `น้อง…` under the parent's name |
 | `รุ่น` | Short answer or dropdown | title starts with `รุ่น`, `class`, `grade`, `ห้อง` | Shown as `รุ่น X` |
 | `เบอร์โทร` | Short answer | `เบอร์`, `phone`, `tel`, `line` | **Never shown.** Only used to count unique bidders, and for you to call the winner |
-| `หมายเลขของที่ต้องการประมูล` | **Dropdown** | `หมายเลข`, `สินค้า`, `รายการ`, `item`, `ของ`, `ชิ้น` | Options like `01 · ตุ๊กตาหมีถักมือ`. The page reads the **first number** as the item number |
+| `สิ่งของที่ต้องการประมูล` | **Dropdown** | `หมายเลข`, `สินค้า`, `รายการ`, `item`, `ของ`, `ชิ้น` | Options like `01 · ตุ๊กตาหมีถักมือ`. The page reads the **first number** as the item number |
 | `ราคาที่ให้ (บาท)` | Short answer + **Response validation → Number → Greater than 0** | `ราคา`, `bid`, `amount`, `บาท` | Must be numbers only (see the gotcha in §6) |
 | *(optional)* `ชื่อที่จะแสดง` | Short answer | `ชื่อที่แสดง`, `display` | If filled, it's shown instead of the parent/child name |
 
