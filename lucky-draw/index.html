@@ -385,10 +385,12 @@ function parsePrizes(rows){
     ['prize_id','prize_name_th','qty','sponsor','order'].forEach(n=>{
       if(k.includes(n)&&cols[n]===undefined)cols[n]=i;});});
   // A blank header cell must not kill the column — fall back to its normal position.
+  // Google's CSV export blanks text in mostly-numeric columns, so the "qty" and "order"
+  // headers always arrive empty; only a missing text header is worth a warning.
   const DEF={prize_id:0,prize_name_th:1,qty:2,sponsor:3,order:4};
   parsePrizes.missing=[];
   Object.keys(DEF).forEach(k=>{
-    if(cols[k]===undefined){cols[k]=DEF[k];parsePrizes.missing.push(k);}});
+    if(cols[k]===undefined){cols[k]=DEF[k];if(k!=='qty'&&k!=='order')parsePrizes.missing.push(k);}});
   const out=[];
   for(let i=h+1;i<rows.length;i++){
     const r=rows[i];
