@@ -68,6 +68,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
 th{color:var(--dim);font-weight:600;font-size:13px}
 td.num,th.num{text-align:center;width:90px}
+#seedIn{width:130px;font-size:22px;font-weight:700;text-align:center;color:var(--gold)}
 .warn{background:#3a2a10;border:1px solid #7a5a1a;color:#ffd88a;
   padding:12px 14px;border-radius:10px;font-size:14px;margin-bottom:14px;line-height:1.6}
 
@@ -186,7 +187,13 @@ td.num,th.num{text-align:center;width:90px}
   </div>
   <div class="card" style="text-align:center">
     <p class="note" style="font-size:15px">กดปุ่มนี้เมื่อปิดรับสมัครแล้ว ระบบจะสุ่มผู้ได้รับรางวัล<b>ทั้งหมดในครั้งเดียว</b><br>
-      และบันทึกผลไว้ทันที การหมุนบนเวทีเป็นเพียงการเปิดเผยผลที่สุ่มไว้แล้ว</p>
+      การหมุนบนเวทีเป็นเพียงการเปิดเผยผลที่สุ่มไว้แล้ว</p>
+    <div style="margin:14px 0 4px">
+      <label for="seedIn" style="font-size:15px">🎲 เลขสุ่ม (seed)</label><br>
+      <input id="seedIn" type="number" min="1" step="1" value="1" inputmode="numeric" style="margin-top:6px">
+    </div>
+    <p class="note" style="margin-top:4px">เลขเดิม + รายชื่อชุดเดิม = ผู้ได้รับรางวัลชุดเดิมเสมอ (ไม่ต้องเก็บไฟล์)<br>
+      เปลี่ยนเลข = ได้ผลชุดใหม่ · ลำดับแถวใน Sheet ไม่มีผล · รหัสรายชื่อ <b id="pvFp">—</b></p>
     <button class="btn-primary btn" id="freezeBtn" style="padding:15px 40px;font-size:19px;margin-top:6px">
       🔒 ปิดรับรายชื่อ &amp; สุ่มรางวัล</button>
     <div style="margin-top:12px"><button class="btn" id="backToSetup">← กลับไปแก้ไขการตั้งค่า</button></div>
@@ -248,6 +255,8 @@ function parseCSV(text){
   return rows.map(r=>r.map(x=>x.trim()));
 }
 
+const keyOf=p=>p.n+'|'+p.r+'|'+p.h;
+
 // cryptographically strong integer in [0,n)
 function rnd(n){
   if(n<=0)return 0;
@@ -255,11 +264,35 @@ function rnd(n){
   let v;do{crypto.getRandomValues(a);v=a[0];}while(v>=lim);
   return v%n;
 }
-function shuffle(arr){
+// Seeded generator: the same seed always yields the same number sequence (cyrb128 → sfc32).
+function cyrb128(str){
+  let h1=1779033703,h2=3144134277,h3=1013904242,h4=2773480762;
+  for(let i=0,k;i<str.length;i++){k=str.charCodeAt(i);
+    h1=h2^Math.imul(h1^k,597399067);h2=h3^Math.imul(h2^k,2869860233);
+    h3=h4^Math.imul(h3^k,951274213);h4=h1^Math.imul(h4^k,2716044179);}
+  h1=Math.imul(h3^(h1>>>18),597399067);h2=Math.imul(h4^(h2>>>22),2869860233);
+  h3=Math.imul(h1^(h3>>>17),951274213);h4=Math.imul(h2^(h4>>>19),2716044179);
+  h1^=(h2^h3^h4);h2^=h1;h3^=h1;h4^=h1;
+  return [h1>>>0,h2>>>0,h3>>>0,h4>>>0];
+}
+function seededRnd(seed){
+  let [a,b,c,d]=cyrb128('luckydraw:'+seed);
+  const next=()=>{a>>>=0;b>>>=0;c>>>=0;d>>>=0;
+    let t=(a+b)|0;a=b^(b>>>9);b=(c+(c<<3))|0;c=(c<<21)|(c>>>11);d=(d+1)|0;t=(t+d)|0;c=(c+t)|0;
+    return t>>>0;};
+  for(let i=0;i<15;i++)next();
+  return n=>{if(n<=0)return 0;const lim=Math.floor(0x100000000/n)*n;let v;do{v=next();}while(v>=lim);return v%n;};
+}
+function shuffle(arr,r=rnd){
   const a=arr.slice();
-  for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];}
+  for(let i=a.length-1;i>0;i--){const j=r(i+1);[a[i],a[j]]=[a[j],a[i]];}
   return a;
 }
+// Sheet row order must not affect the result, so draw from a fixed (code-point) ordering.
+const canon=list=>list.slice().sort((x,y)=>{const a=keyOf(x),b=keyOf(y);return a<b?-1:a>b?1:0;});
+// Short fingerprint of the list, so two draws can be checked to have used the same names.
+const fingerprint=list=>cyrb128(canon(list).map(keyOf).join('\n'))[0].toString(36).toUpperCase().padStart(7,'0').slice(-6);
+function readSeed(){const v=parseInt($('seedIn').value,10);return Number.isFinite(v)&&v>=1?v:null;}
 function gvizURL(id,tab){
   return 'https://docs.google.com/spreadsheets/d/'+encodeURIComponent(id)+
          '/gviz/tq?tqx=out:csv&headers=0&sheet='+encodeURIComponent(tab)+'&_='+Date.now();
@@ -269,7 +302,6 @@ function dl(name,text){
   const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;
   document.body.appendChild(a);a.click();a.remove();
 }
-const keyOf=p=>p.n+'|'+p.r+'|'+p.h;
 
 /* ================= parsing ================= */
 // Prizes: locate the header row containing prize_id, then read rows below it.
@@ -369,6 +401,7 @@ function showPreview(){
   $('pvRaw').textContent=raw.rawCount||raw.regs.length;
   $('pvDup').textContent=raw.dups.length;
   $('pvNet').textContent=raw.regs.length;
+  $('pvFp').textContent=raw.regs.length?fingerprint(raw.regs):'—';
   $('dupList').innerHTML=raw.dups.length
     ? 'ตัดออกเพราะซ้ำ (ชื่อ+รุ่น+ห้อง เหมือนกัน): '+raw.dups.slice(0,12).map(p=>p.n).join(' · ')+
       (raw.dups.length>12?' …และอีก '+(raw.dups.length-12):'')
@@ -392,9 +425,9 @@ function showPreview(){
 const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 /* ================= freeze + allocate ================= */
-function freeze(){
-  const pool=raw.regs.slice();
-  const bag=shuffle(pool);               // one uniform shuffle, drawn off the top
+function freeze(seed){
+  const pool=canon(raw.regs);
+  const bag=shuffle(pool,seededRnd(seed)); // one seeded shuffle, drawn off the top
   const alloc={};let i=0;
   raw.prizes.forEach(p=>{
     alloc[p.id]=[];
@@ -402,11 +435,10 @@ function freeze(){
   });
   S={event:$('inEvent').value.trim()||'งานโรงเรียน',
      sheetId:$('inSheet').value.trim(),prizeTab:$('inPrizeTab').value.trim(),respTab:$('inRespTab').value.trim(),
-     frozenAt:new Date().toISOString(),pool,prizes:raw.prizes,alloc,
+     frozenAt:new Date().toISOString(),seed,fp:fingerprint(pool),pool,prizes:raw.prizes,alloc,
      revealed:{},history:[],dupCount:raw.dups.length};
   save();
-  dl('allocation_'+stamp()+'.csv',csvAll());   // immediate audit trail
-  toast('สุ่มเรียบร้อย — บันทึกไฟล์ผลไว้แล้ว',3500);
+  toast('สุ่มเรียบร้อย — เลขสุ่ม '+seed,3500);
   enterStage();
 }
 function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');
@@ -428,7 +460,8 @@ function updHeader(){
   $('pillPrize').innerHTML='รางวัล <b>'+ps.reduce((s,p)=>s+p.qty,0)+'</b> ชิ้น';
   if(S){const d=new Date(S.frozenAt);
     $('pillFrozen').classList.remove('hidden');
-    $('pillFrozen').innerHTML='🔒 ปิดรับ '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+    $('pillFrozen').innerHTML='🔒 ปิดรับ '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+
+      (S.seed!=null?' · 🎲 <b>'+S.seed+'</b> · '+esc(S.fp||''):'');}
 }
 function buildPrizeSel(){
   $('prizeSel').innerHTML=S.prizes.map(p=>{
@@ -573,13 +606,15 @@ $('fileIn').onchange=e=>{const f=e.target.files[0];if(!f)return;
   const rd=new FileReader();rd.onload=()=>usePasted(rd.result);rd.readAsText(f,'utf-8');};
 $('backToSetup').onclick=()=>{$('preview').classList.add('hidden');$('setup').classList.remove('hidden');};
 $('freezeBtn').onclick=()=>{
-  if(!confirm('ยืนยันปิดรับรายชื่อ '+raw.regs.length+' คน และสุ่มรางวัลทั้งหมด?\nหลังจากนี้รายชื่อจะไม่เปลี่ยนอีก'))return;
-  freeze();};
+  const seed=readSeed();
+  if(seed==null){$('seedIn').focus();return toast('ใส่เลขสุ่มเป็นจำนวนเต็มตั้งแต่ 1 ขึ้นไป');}
+  if(!confirm('ยืนยันปิดรับรายชื่อ '+raw.regs.length+' คน และสุ่มรางวัลทั้งหมดด้วยเลขสุ่ม '+seed+'?\nหลังจากนี้รายชื่อจะไม่เปลี่ยนอีก'))return;
+  freeze(seed);};
 $('prizeSel').onchange=()=>showPrize($('prizeSel').value);
 $('spinBtn').onclick=()=>spin(false);
 $('instantBtn').onclick=()=>spin(true);
 $('undoBtn').onclick=undo;
-$('exportBtn').onclick=()=>dl('winners_'+stamp()+'.csv',csvAll());
+$('exportBtn').onclick=()=>dl('winners_'+(S.seed!=null?'seed'+S.seed+'_':'')+stamp()+'.csv',csvAll());
 $('resultsBtn').onclick=()=>$('resultsPanel').classList.toggle('open');
 $('closeResults').onclick=()=>$('resultsPanel').classList.remove('open');
 $('fsBtn').onclick=()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();
