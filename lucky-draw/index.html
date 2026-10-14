@@ -3,127 +3,202 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="theme-color" content="#f6f0dc">
 <title>จับรางวัล — Lucky Draw</title>
+<link rel="icon" href="../auction/jittamett-logo.png?v=20261010">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* Same palette as the auction pages (auction/index.html): the event poster's paper, bunting, wood and lemon board */
 :root{
-  --bg:#0b1020; --bg2:#141b35; --card:#1b2444; --line:#2c3763;
-  --gold:#ffd24a; --gold2:#ffb020; --txt:#f2f5ff; --dim:#93a0c8;
-  --ok:#31c48d; --no:#f0616d; --accent:#5b8cff;
+  color-scheme:light;
+  --paper:#f6f0dc; --paper-2:#fffaf0; --edge:#eadfc2;
+  --ink:#3b2f27; --dim:#857766; --dim-2:#6d6047;
+  --red:#e2553f; --red-deep:#c23b28; --orange:#e8774d;
+  --olive:#7f8f52; --lemon:#e9ea8c; --lemon-2:#f2f2b4;
+  --ring:#a3a9c6; --pink:#f3a7a3;
+  --wood:#9a4423; --wood-2:#b9592e;
+  --ok:#5aa469; --no:#e2553f;
+  --shadow:0 6px 0 rgba(59,47,39,.10);
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;height:100%}
+html{-webkit-text-size-adjust:100%}
 body{
-  background:radial-gradient(1200px 700px at 50% -10%,#26325e 0%,var(--bg) 60%);
-  color:var(--txt);
-  font-family:'Sarabun','Noto Sans Thai',Tahoma,'Leelawadee UI',sans-serif;
+  background:var(--paper);color:var(--ink);
+  font-family:"Sarabun",-apple-system,"Segoe UI",Tahoma,"Leelawadee UI",sans-serif;
+  font-variant-numeric:tabular-nums;
   display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden;
 }
-button{font-family:inherit;cursor:pointer;border:none;border-radius:10px;transition:.15s}
-button:disabled{opacity:.35;cursor:not-allowed}
-select,input{font-family:inherit;border-radius:10px;border:1px solid var(--line);
-  background:var(--bg2);color:var(--txt);padding:10px 12px;font-size:15px}
-.btn{background:var(--card);color:var(--txt);border:1px solid var(--line);padding:10px 16px;font-size:15px}
-.btn:hover:not(:disabled){background:#243059}
-.btn-primary{background:linear-gradient(180deg,var(--gold),var(--gold2));color:#3a2600;font-weight:700}
-.btn-primary:hover:not(:disabled){filter:brightness(1.08)}
-.btn-ok{background:var(--ok);color:#04231a;font-weight:700}
-.btn-no{background:var(--no);color:#2a0407;font-weight:700}
+.hand{font-family:"Mali","Sarabun",cursive}
+button{font-family:inherit;cursor:pointer;border-radius:12px;transition:transform .12s,filter .12s,box-shadow .12s}
+button:disabled{opacity:.4;cursor:not-allowed}
+select,input{font-family:inherit;border-radius:12px;border:2px solid var(--edge);
+  background:#fff;color:var(--ink);padding:10px 12px;font-size:15px}
+select:focus,input:focus,textarea:focus{outline:none;border-color:var(--orange)}
+.btn{background:var(--paper-2);color:var(--wood);border:2px solid var(--wood);
+  padding:9px 16px;font-size:15px;font-weight:700}
+.btn:hover:not(:disabled),.btn:focus-visible{filter:brightness(1.04);transform:translateY(-1px);outline:none}
+.btn-primary{background:var(--red);border-color:var(--red-deep);color:#fff;box-shadow:0 4px 0 var(--red-deep)}
+.btn-primary:hover:not(:disabled){filter:brightness(1.06)}
+.btn-primary:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--red-deep)}
 .muted{color:var(--dim)}
 .hidden{display:none !important}
 
+/* ---------- bunting ---------- */
+.bunting{display:block;width:100%;height:48px;flex:none}
+.bunting g{transform-box:fill-box;transform-origin:50% 0;animation:flag 2.6s ease-in-out infinite alternate}
+.bunting g:nth-child(2n){animation-delay:-1.3s}
+@keyframes flag{from{transform:rotate(-4deg)}to{transform:rotate(4deg)}}
+
 /* ---------- header ---------- */
-header{display:flex;align-items:center;gap:16px;padding:10px 18px;
-  border-bottom:1px solid var(--line);background:rgba(11,16,32,.75);backdrop-filter:blur(8px);
-  position:sticky;top:0;z-index:50;flex-wrap:wrap}
-header h1{font-size:19px;margin:0;font-weight:700;letter-spacing:.3px}
-header h1 span{color:var(--gold)}
-.pill{background:var(--card);border:1px solid var(--line);border-radius:999px;
-  padding:5px 14px;font-size:14px;white-space:nowrap}
-.pill b{color:var(--gold)}
+header{display:flex;align-items:center;gap:10px 14px;padding:2px 18px 10px;flex-wrap:wrap;flex:none}
+.brand{display:flex;align-items:center;gap:12px;margin-right:6px}
+.brand img{width:46px;height:auto;display:block}
+.brand .ev{font-size:14px;font-weight:600;color:var(--olive);line-height:1.2;min-height:1em}
+header h1{margin:0;font-size:24px;line-height:1.15;color:var(--red);font-weight:700}
+.pill{background:var(--paper-2);border:2px solid var(--edge);border-radius:999px;
+  padding:4px 13px;font-size:14px;color:var(--dim);white-space:nowrap}
+.pill b{color:var(--red-deep)}
 .spacer{flex:1}
 
 /* ---------- setup ---------- */
-#setup{max-width:860px;margin:32px auto;padding:26px;background:var(--card);
-  border:1px solid var(--line);border-radius:16px}
-#setup h2{margin:0 0 6px;font-size:22px}
+.sheet{background:var(--paper-2);border:2px solid var(--edge);border-radius:22px;box-shadow:var(--shadow)}
+#setup{width:min(860px,calc(100% - 32px));margin:12px auto 40px;padding:26px 26px 22px}
+.hero{text-align:center;margin-bottom:8px}
+.hero img{width:96px;height:auto}
+.hero h2{margin:6px 0 2px;font-size:30px;color:var(--red);font-weight:700}
+.hero p{margin:0}
 .field{margin:16px 0}
-.field label{display:block;font-size:14px;color:var(--dim);margin-bottom:6px}
+.field label{display:block;font-size:14px;color:var(--dim-2);margin-bottom:6px;font-weight:600}
 .field input{width:100%}
 .row{display:flex;gap:12px;flex-wrap:wrap}
 .row .field{flex:1;min-width:220px}
 .note{font-size:13px;color:var(--dim);line-height:1.65}
 #loadMsg{margin-top:14px;font-size:14px;min-height:22px;line-height:1.6}
-.err{color:var(--no)}
-.good{color:var(--ok)}
-details{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
-summary{cursor:pointer;color:var(--dim);font-size:14px}
-textarea{width:100%;min-height:130px;background:var(--bg2);color:var(--txt);
-  border:1px solid var(--line);border-radius:10px;padding:10px;font-family:ui-monospace,monospace;font-size:13px;margin-top:10px}
+.err{color:var(--red-deep)}
+.good{color:#3f7a4c}
+details{margin-top:18px;border-top:2px dashed var(--edge);padding-top:14px}
+summary{cursor:pointer;color:var(--dim-2);font-size:14px;font-weight:600}
+code{background:var(--lemon-2);border-radius:6px;padding:1px 6px}
+textarea{width:100%;min-height:130px;background:#fff;color:var(--ink);
+  border:2px solid var(--edge);border-radius:12px;padding:10px;font-family:ui-monospace,monospace;font-size:13px;margin-top:10px}
 
 /* ---------- preview / freeze ---------- */
-#preview{max-width:980px;margin:0 auto 40px;padding:0 18px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
-.card h3{margin:0 0 12px;font-size:17px}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+#preview{width:min(980px,calc(100% - 32px));margin:12px auto 40px}
+.card{padding:20px;margin-bottom:18px}
+.card h3{margin:0 0 12px;font-size:20px;color:var(--red)}
+.stats{display:flex;gap:12px;flex-wrap:wrap}
+.stat{flex:1;min-width:150px;background:var(--lemon-2);border-radius:14px;padding:10px 14px}
+.stat .k{font-size:13px;color:var(--dim-2)}
+.stat .v{font-family:"Mali",cursive;font-size:30px;font-weight:700;line-height:1.2}
+.stat.hi{background:var(--lemon)}
+.stat.hi .v{color:var(--red-deep)}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:9px 10px;border-bottom:2px dashed var(--edge)}
 th{color:var(--dim);font-weight:600;font-size:13px}
 td.num,th.num{text-align:center;width:90px}
-.warn{background:#3a2a10;border:1px solid #7a5a1a;color:#ffd88a;
-  padding:12px 14px;border-radius:10px;font-size:14px;margin-bottom:14px;line-height:1.6}
+td.num{font-family:"Mali",cursive;font-weight:700;color:var(--red-deep)}
+.warn{background:#fbe6e2;border:2px solid #f3c2b8;color:#8c2618;
+  padding:12px 14px;border-radius:14px;font-size:14px;margin-bottom:14px;line-height:1.6}
+.freeze{text-align:center;background:var(--lemon);border:7px solid var(--wood);border-radius:8px;box-shadow:var(--shadow)}
+.freeze .note{font-size:15px;color:var(--dim-2)}
 
 /* ---------- stage ---------- */
-#stage{flex:1;display:flex;flex-direction:column;padding:14px 20px 0;min-height:0}
-#prizeBanner{text-align:center;margin-bottom:10px}
-#prizeName{font-size:clamp(28px,4.4vw,56px);font-weight:800;color:var(--gold);
-  line-height:1.15;text-shadow:0 0 34px rgba(255,210,74,.35)}
-#prizeSub{font-size:15px;color:var(--dim);margin-top:4px}
-#reels{flex:1;display:grid;gap:12px;align-content:center;justify-content:center;
-  padding:8px 0 14px;min-height:0}
-.reel{background:linear-gradient(180deg,#101735,#182148);border:2px solid var(--line);
-  border-radius:14px;overflow:hidden;position:relative;box-shadow:inset 0 0 40px rgba(0,0,0,.55)}
-.reel.landed{border-color:var(--gold);box-shadow:0 0 26px rgba(255,210,74,.3),inset 0 0 30px rgba(255,210,74,.07)}
+#stage{flex:1;display:flex;flex-direction:column;padding:0 20px;min-height:0}
+#prizeBanner{text-align:center;margin:0 0 14px;display:flex;flex-direction:column;align-items:center}
+.plank{
+  display:inline-block;padding:3px 18px 5px;margin-bottom:6px;
+  background:linear-gradient(180deg,var(--wood-2),var(--wood));color:#fff6ea;
+  border-radius:8px 14px 9px 12px;transform:rotate(-2deg);box-shadow:0 3px 0 rgba(0,0,0,.15);
+  font-family:"Mali",cursive;font-weight:600;font-size:16px
+}
+.plank b{font-size:21px;margin:0 3px}
+#prizeName{font-size:clamp(30px,5vw,64px);font-weight:700;color:var(--red);line-height:1.15}
+#prizeSub{font-size:16px;color:var(--olive);margin-top:4px;font-weight:600}
+.stage-row{flex:1;display:flex;align-items:safe center;justify-content:center;gap:10px;min-height:0;padding-bottom:16px}
+#reels{flex:1 1 auto;display:grid;gap:14px;align-content:safe center;min-width:0}
+.buddy{flex:none;width:clamp(90px,11vw,190px);align-self:flex-end;pointer-events:none}
+.buddy img{display:block;width:100%;height:auto;transform-origin:50% 100%;animation:sway 3.6s ease-in-out infinite}
+.buddy.r img{animation-delay:-1.8s;animation-duration:4.2s}
+@keyframes sway{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-3px) rotate(1.5deg)}}
+.stage-row.cheer .buddy img{animation:cheer .5s ease-in-out 4}
+@keyframes cheer{0%,100%{transform:translateY(0)}50%{transform:translateY(-22px) rotate(-3deg)}}
+@media (max-width:820px){.buddy{display:none}}
+
+.reel{background:var(--lemon);border:6px solid var(--wood);border-radius:8px;
+  overflow:hidden;position:relative;box-shadow:var(--shadow);transition:border-color .3s,box-shadow .3s}
+.reel.landed{border-color:var(--red);background:var(--lemon-2);
+  box-shadow:0 0 0 5px rgba(226,85,63,.18),var(--shadow);animation:land .7s ease}
+@keyframes land{0%{transform:scale(1)}30%{transform:scale(1.04) rotate(-.6deg)}60%{transform:scale(.99) rotate(.3deg)}100%{transform:none}}
 .reel::before,.reel::after{content:'';position:absolute;left:0;right:0;height:26%;z-index:3;pointer-events:none}
-.reel::before{top:0;background:linear-gradient(180deg,#0d1330 0%,transparent 100%)}
-.reel::after{bottom:0;background:linear-gradient(0deg,#0d1330 0%,transparent 100%)}
+.reel::before{top:0;background:linear-gradient(180deg,var(--lemon) 0%,rgba(233,234,140,0) 100%)}
+.reel::after{bottom:0;background:linear-gradient(0deg,var(--lemon) 0%,rgba(233,234,140,0) 100%)}
+.reel.landed::before,.reel.landed::after{display:none}
 .strip{will-change:transform}
 .item{display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:0 10px;overflow:hidden}
-.item .nm{font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.item .mt{color:var(--dim);margin-top:4px;white-space:nowrap}
-.reel.landed .item .nm{color:var(--gold)}
-.slotmark{position:absolute;left:8px;top:6px;z-index:4;font-size:12px;color:var(--dim);
-  background:rgba(0,0,0,.4);border-radius:6px;padding:2px 7px}
+  text-align:center;padding:0 14px;overflow:hidden}
+.item .nm{font-family:"Mali","Sarabun",cursive;font-weight:700;line-height:1.25;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.item .mt{color:var(--dim-2);margin-top:2px;white-space:nowrap}
+.item .nm.q{color:var(--wood-2);letter-spacing:.15em}
+.reel.landed .item .nm{color:var(--red-deep)}
+.slotmark{position:absolute;left:8px;top:6px;z-index:4;font-family:"Mali",cursive;font-weight:700;
+  font-size:13px;color:#fff6ea;background:var(--wood);border-radius:6px 9px 6px 8px;padding:1px 9px;transform:rotate(-4deg)}
+.reel .bow{position:absolute;right:6px;top:4px;z-index:4;width:34px;height:28px;transform:rotate(14deg)}
+.empty{text-align:center;color:var(--dim-2);font-size:18px;background:var(--paper-2);
+  border:2px dashed var(--edge);border-radius:18px;padding:28px}
 
 /* ---------- controls ---------- */
-#controls{border-top:1px solid var(--line);background:rgba(11,16,32,.9);
-  backdrop-filter:blur(8px);padding:12px 18px;display:flex;gap:10px;
+#controls{border-top:2px solid var(--edge);background:rgba(255,250,240,.94);
+  backdrop-filter:blur(6px);padding:12px 18px;display:flex;gap:10px;
   align-items:center;flex-wrap:wrap;position:sticky;bottom:0;z-index:40}
-#controls select{min-width:280px;font-size:16px}
-#spinBtn{padding:14px 34px;font-size:19px}
-#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:86px;z-index:100;
-  background:#000d;border:1px solid var(--line);padding:11px 20px;border-radius:10px;
-  font-size:15px;opacity:0;transition:.25s;pointer-events:none}
+#controls select{min-width:280px;font-size:16px;font-weight:600}
+#spinBtn{padding:12px 36px;font-size:21px;font-family:"Mali",cursive}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;z-index:100;
+  background:var(--ink);color:#fff;padding:11px 18px;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.2);
+  font-size:15px;opacity:0;transition:.25s;pointer-events:none;max-width:calc(100vw - 32px)}
 #toast.show{opacity:1}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:90}
 
 /* ---------- results ---------- */
 #resultsPanel{position:fixed;top:0;right:0;bottom:0;width:min(460px,92vw);
-  background:var(--bg2);border-left:1px solid var(--line);z-index:60;
+  background:var(--paper-2);border-left:2px solid var(--edge);box-shadow:-8px 0 30px rgba(59,47,39,.12);z-index:60;
   transform:translateX(100%);transition:.25s;overflow-y:auto;padding:20px}
 #resultsPanel.open{transform:none}
-#resultsPanel h3{margin-top:0}
+#resultsPanel h3{margin:0;color:var(--red);font-size:24px}
 .rgroup{margin-bottom:18px}
-.rgroup h4{margin:0 0 6px;font-size:15px;color:var(--gold)}
-.rline{display:flex;justify-content:space-between;gap:10px;font-size:14px;
-  padding:5px 0;border-bottom:1px dashed var(--line)}
+.rgroup h4{margin:0 0 6px;font-size:17px;color:var(--wood);font-family:"Mali",cursive}
+.rline{display:flex;justify-content:space-between;gap:10px;font-size:15px;
+  padding:5px 0;border-bottom:2px dashed var(--edge)}
 .st-present{color:var(--ok)} .st-absent{color:var(--no)} .st-none{color:var(--dim)}
-@media print{body{background:#fff;color:#000}}
+footer.credit{text-align:center;color:var(--dim);font-size:13px;padding:0 16px 24px}
+@media (max-width:560px){
+  header h1{font-size:20px}
+  #controls select{min-width:0;flex:1 1 100%}
+  #spinBtn{flex:1}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{body{background:#fff}.bunting,#controls{display:none}}
 </style>
 </head>
 <body>
 
+<svg class="bunting" viewBox="0 0 1200 48" preserveAspectRatio="none" aria-hidden="true">
+  <path d="M0 3 Q600 30 1200 3" fill="none" stroke="#e2553f" stroke-width="2.5"/>
+  <g id="flags"></g>
+</svg>
+
 <header>
-  <h1>🎁 จับรางวัล <span id="hdrEvent"></span></h1>
+  <div class="brand">
+    <img src="../auction/jittamett-logo.png?v=20261010" alt="Jittamett Family">
+    <div>
+      <div class="ev hand" id="hdrEvent"></div>
+      <h1 class="hand">จับรางวัล</h1>
+    </div>
+  </div>
   <span class="pill" id="pillPool">ผู้เข้าร่วม <b>—</b></span>
   <span class="pill" id="pillPrize">รางวัล <b>—</b></span>
   <span class="pill hidden" id="pillFrozen"></span>
@@ -133,9 +208,12 @@ td.num,th.num{text-align:center;width:90px}
 </header>
 
 <!-- ============ SETUP ============ -->
-<section id="setup">
-  <h2>ตั้งค่า</h2>
-  <p class="note">อ่านรายชื่อจาก Google Sheet โดยตรง — ไม่มีการเขียนกลับไปที่ Google</p>
+<section id="setup" class="sheet">
+  <div class="hero">
+    <img src="../auction/jittamett-logo.png?v=20261010" alt="Jittamett Family">
+    <h2 class="hand">ตั้งค่าการจับรางวัล</h2>
+    <p class="note">อ่านรายชื่อจาก Google Sheet โดยตรง ไม่มีการเขียนกลับไปที่ Google</p>
+  </div>
 
   <div class="field">
     <label>Sheet ID (ส่วนยาวใน URL ระหว่าง /d/ กับ /edit)</label>
@@ -154,12 +232,12 @@ td.num,th.num{text-align:center;width:90px}
   <div id="loadMsg"></div>
 
   <details>
-    <summary>สำรอง — วางรายชื่อเอง (ใช้เมื่อเน็ตมีปัญหา)</summary>
+    <summary>สำรอง: วางรายชื่อเอง (ใช้เมื่อเน็ตมีปัญหา)</summary>
     <p class="note">วางข้อมูลแบบ CSV บรรทัดละคน: <code>ชื่อ,รุ่น,ห้อง</code> (บรรทัดหัวตารางใส่ได้ ระบบจะข้ามให้)</p>
     <textarea id="pasteBox" placeholder="สมชาย ใจดี,รุ่น 12,ป.1/2&#10;สมหญิง รักเรียน,รุ่น 12,ป.1/1"></textarea>
     <div class="row" style="margin-top:10px">
       <button class="btn" id="pasteBtn">ใช้รายชื่อที่วาง</button>
-      <label class="btn" style="display:inline-block">
+      <label class="btn" style="display:inline-block;cursor:pointer;border-radius:12px">
         เลือกไฟล์ CSV<input type="file" id="fileIn" accept=".csv,text/csv" class="hidden">
       </label>
     </div>
@@ -169,42 +247,47 @@ td.num,th.num{text-align:center;width:90px}
 <!-- ============ PREVIEW / FREEZE ============ -->
 <section id="preview" class="hidden">
   <div id="warnBox"></div>
-  <div class="card">
-    <h3>ตรวจสอบรายชื่อ</h3>
-    <div class="row" style="gap:26px;font-size:16px">
-      <div>ผู้สมัครทั้งหมด <b id="pvRaw">0</b> รายการ</div>
-      <div>ซ้ำ/ตัดออก <b id="pvDup">0</b></div>
-      <div>เข้าร่วมจับรางวัล <b id="pvNet" style="color:var(--gold)">0</b> คน</div>
+  <div class="card sheet">
+    <h3 class="hand">ตรวจสอบรายชื่อ</h3>
+    <div class="stats">
+      <div class="stat"><div class="k">ผู้สมัครทั้งหมด (รายการ)</div><div class="v" id="pvRaw">0</div></div>
+      <div class="stat"><div class="k">ซ้ำ/ตัดออก</div><div class="v" id="pvDup">0</div></div>
+      <div class="stat hi"><div class="k">เข้าร่วมจับรางวัล (คน)</div><div class="v" id="pvNet">0</div></div>
     </div>
     <div id="dupList" class="note" style="margin-top:10px"></div>
   </div>
-  <div class="card">
-    <h3>รายการรางวัล</h3>
+  <div class="card sheet">
+    <h3 class="hand">รายการรางวัล</h3>
     <table><thead><tr><th>ลำดับ</th><th>รางวัล</th><th class="num">จำนวน</th><th>ผู้สนับสนุน</th></tr></thead>
     <tbody id="pvPrizes"></tbody></table>
-    <div style="margin-top:10px;font-size:15px">รวม <b id="pvQty" style="color:var(--gold)">0</b> รางวัล</div>
+    <div style="margin-top:10px;font-size:15px">รวม <b id="pvQty" style="color:var(--red-deep)">0</b> รางวัล</div>
   </div>
-  <div class="card" style="text-align:center">
-    <p class="note" style="font-size:15px">กดปุ่มนี้เมื่อปิดรับสมัครแล้ว ระบบจะสุ่มผู้ได้รับรางวัล<b>ทั้งหมดในครั้งเดียว</b><br>
+  <div class="card freeze">
+    <p class="note">กดปุ่มนี้เมื่อปิดรับสมัครแล้ว ระบบจะสุ่มผู้ได้รับรางวัล<b>ทั้งหมดในครั้งเดียว</b><br>
       และบันทึกผลไว้ทันที การหมุนบนเวทีเป็นเพียงการเปิดเผยผลที่สุ่มไว้แล้ว</p>
-    <button class="btn-primary btn" id="freezeBtn" style="padding:15px 40px;font-size:19px;margin-top:6px">
+    <button class="btn-primary btn hand" id="freezeBtn" style="padding:14px 40px;font-size:20px;margin-top:6px">
       🔒 ปิดรับรายชื่อ &amp; สุ่มรางวัล</button>
-    <div style="margin-top:12px"><button class="btn" id="backToSetup">← กลับไปแก้ไขการตั้งค่า</button></div>
+    <div style="margin-top:14px"><button class="btn" id="backToSetup">← กลับไปแก้ไขการตั้งค่า</button></div>
   </div>
 </section>
 
 <!-- ============ STAGE ============ -->
 <section id="stage" class="hidden">
   <div id="prizeBanner">
-    <div id="prizeName">เลือกรางวัลด้านล่าง</div>
+    <div class="plank" id="prizePlank">รางวัล</div>
+    <div id="prizeName" class="hand">เลือกรางวัลด้านล่าง</div>
     <div id="prizeSub"></div>
   </div>
-  <div id="reels"></div>
+  <div class="stage-row" id="stageRow">
+    <div class="buddy l"><img src="../auction/hood/flower.webp?v=20261010c" alt="" aria-hidden="true" draggable="false"></div>
+    <div id="reels"></div>
+    <div class="buddy r"><img src="../auction/hood/dance.webp?v=20261010c" alt="" aria-hidden="true" draggable="false"></div>
+  </div>
 </section>
 
 <div id="controls" class="hidden">
   <select id="prizeSel"></select>
-  <button class="btn-primary" id="spinBtn">🎰 หมุน</button>
+  <button class="btn btn-primary" id="spinBtn">🎰 หมุน</button>
   <button class="btn" id="instantBtn">แสดงผลทันที</button>
   <button class="btn" id="undoBtn">↩ ยกเลิกครั้งล่าสุด</button>
   <span class="spacer"></span>
@@ -212,8 +295,8 @@ td.num,th.num{text-align:center;width:90px}
 </div>
 
 <aside id="resultsPanel">
-  <div style="display:flex;align-items:center">
-    <h3 style="flex:1">📋 ผลรางวัล</h3>
+  <div style="display:flex;align-items:center;margin-bottom:14px">
+    <h3 class="hand" style="flex:1">📋 ผลรางวัล</h3>
     <button class="btn" id="closeResults">ปิด</button>
   </div>
   <div id="resultsBody"></div>
@@ -270,6 +353,18 @@ function dl(name,text){
   document.body.appendChild(a);a.click();a.remove();
 }
 const keyOf=p=>p.n+'|'+p.r+'|'+p.h;
+// red ribbon bow (same drawing as auction/girl.js) tied on each winner's board
+const BOW=`<svg class="bow" viewBox="0 0 60 50" aria-hidden="true" focusable="false">
+  <g fill="#ee6a5c" stroke="#b93a2c" stroke-width="2.2" stroke-linejoin="round">
+    <path d="M30 18 C22 4 6 4 6 14 C6 24 20 24 30 18 Z"/><path d="M30 18 C38 4 54 4 54 14 C54 24 40 24 30 18 Z"/>
+    <path d="M28 20 L16 44 L22 41 L25 47 L31 22 Z"/><path d="M32 20 L44 42 L38 40 L36 46 L29 22 Z"/></g>
+  <path d="M14 11 q6 2 10 6 M46 11 q-6 2 -10 6" stroke="#fff3e8" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <circle cx="30" cy="19" r="4.5" fill="#b93a2c"/></svg>`;
+// bunting across the top, in the poster's flag colours
+(function(){const c=['#e2553f','#e9ea8c','#7f8f52','#e8774d','#f3a7a3'];let h='';
+  for(let i=0;i<24;i++){const x=i*50+6,t=(x+19)/1200,y=3+27*2*t*(1-t);
+    h+=`<g><path d="M${x} ${y.toFixed(1)} L${x+38} ${y.toFixed(1)} L${x+19} ${(y+30).toFixed(1)} Z" fill="${c[i%c.length]}" opacity=".92"/></g>`;}
+  $('flags').innerHTML=h;})();
 
 /* ================= parsing ================= */
 // Prizes: locate the header row containing prize_id, then read rows below it.
@@ -439,45 +534,49 @@ function curPrize(){return S.prizes.find(p=>p.id===$('prizeSel').value);}
 
 function showPrize(id){
   const p=S.prizes.find(x=>x.id===id);if(!p)return;
+  $('prizePlank').innerHTML='รางวัลที่<b>'+(S.prizes.indexOf(p)+1)+'</b>/ '+S.prizes.length;
   $('prizeName').textContent=p.name;
-  $('prizeSub').textContent=(p.sponsor?'โดย '+p.sponsor+' · ':'')+p.qty+' รางวัล';
+  $('prizeSub').textContent=(p.sponsor?'💝 สนับสนุนโดย '+p.sponsor+' · ':'')+p.qty+' รางวัล';
   if(S.revealed[id])renderLanded(p); else renderIdle(p);
   $('spinBtn').disabled=!!S.revealed[id];
   $('instantBtn').disabled=!!S.revealed[id];
 }
 function gridFor(n){
   const g=$('reels');
-  const cols=n<=1?1:n<=2?2:n<=4?2:n<=6?3:n<=9?3:n<=12?4:5;
+  const cols=innerWidth<560?Math.min(n,n<=4?1:2):n<=1?1:n<=3?n:n<=4?2:n<=9?3:n<=12?4:5;
   g.style.gridTemplateColumns=`repeat(${cols},minmax(0,1fr))`;
+  // few winners: keep the boards a readable width instead of stretching across the whole projector
+  g.style.maxWidth=({1:760,2:1200,3:1500}[cols]||'')+(cols<=3?'px':'');
   const rows=Math.ceil(n/cols);
-  const h=Math.max(74,Math.min(210,Math.floor((window.innerHeight-320)/rows)));
+  const h=Math.max(74,Math.min(210,Math.floor((window.innerHeight-380)/rows)));
+  gridFor.colW=Math.min(g.parentNode.clientWidth||innerWidth,parseInt(g.style.maxWidth,10)||1e9)/cols;
   return {cols,h};
 }
 function reelHTML(n,item,h){
-  const nf=Math.max(15,Math.min(40,Math.floor(h*0.30)));
+  const nf=Math.max(15,Math.min(40,Math.floor(h*0.30),Math.floor((gridFor.colW||1e9)/9)));
   const mf=Math.max(11,Math.floor(nf*0.52));
   return `<div class="item" style="height:${h}px">
-      <div class="nm" style="font-size:${nf}px">${esc(item.n)}</div>
+      <div class="nm${item.q?' q':''}" style="font-size:${nf}px">${esc(item.n)}</div>
       <div class="mt" style="font-size:${mf}px">${esc(item.r)}${item.r&&item.h?' · ':''}${esc(item.h)}</div>
     </div>`;
 }
 function renderIdle(p){
   const n=(S.alloc[p.id]||[]).length;
   const {h}=gridFor(n||1);
-  if(!n){$('reels').innerHTML='<div class="warn">รางวัลนี้ไม่มีผู้รับ (ผู้เข้าร่วมไม่พอ)</div>';return;}
+  if(!n){$('reels').innerHTML='<div class="empty">รางวัลนี้ไม่มีผู้รับ (ผู้เข้าร่วมไม่พอ)</div>';return;}
   $('reels').innerHTML=Array.from({length:n},(_,i)=>
     `<div class="reel" id="reel${i}" style="height:${h}px">
        <div class="slotmark">#${i+1}</div>
-       <div class="strip" id="strip${i}">${reelHTML(i,{n:'? ? ?',r:'',h:''},h)}</div>
+       <div class="strip" id="strip${i}">${reelHTML(i,{n:'???',r:'',h:'',q:1},h)}</div>
      </div>`).join('');
 }
 function renderLanded(p){
   const ws=S.alloc[p.id]||[];const n=ws.length;
-  if(!n){$('reels').innerHTML='<div class="warn">รางวัลนี้ไม่มีผู้รับ (ผู้เข้าร่วมไม่พอ)</div>';return;}
+  if(!n){$('reels').innerHTML='<div class="empty">รางวัลนี้ไม่มีผู้รับ (ผู้เข้าร่วมไม่พอ)</div>';return;}
   const {h}=gridFor(n);
   $('reels').innerHTML=ws.map((w,i)=>
     `<div class="reel landed" style="height:${h}px">
-       <div class="slotmark">#${i+1}</div>
+       <div class="slotmark">#${i+1}</div>${BOW}
        <div class="strip">${reelHTML(i,w,h)}</div>
      </div>`).join('');
 }
@@ -510,7 +609,7 @@ function spin(instant){
       strip.style.transform=`translateY(-${dist}px)`;
     }));
     setTimeout(()=>{
-      $('reel'+i).classList.add('landed');
+      $('reel'+i).classList.add('landed');$('reel'+i).insertAdjacentHTML('beforeend',BOW);
       if(++done===ws.length){spinning=false;finish(p);}
     },dur+40);
   });
@@ -518,8 +617,11 @@ function spin(instant){
 function finish(p){
   S.revealed[p.id]=true;S.history.push(p.id);save();
   buildPrizeSel();$('prizeSel').value=p.id;showPrize(p.id);renderResults();
-  boom();spinning=false;
+  boom();spinning=false;cheer();
 }
+// the two red-hood girls beside the boards hop for joy
+function cheer(){const r=$('stageRow');r.classList.remove('cheer');void r.offsetWidth;r.classList.add('cheer');
+  clearTimeout(cheer._t);cheer._t=setTimeout(()=>r.classList.remove('cheer'),2100);}
 function undo(){
   if(spinning)return toast('รอให้หมุนเสร็จก่อน');
   const last=S.history.pop();
@@ -552,7 +654,7 @@ function csvAll(){
 function boom(){
   const c=$('confetti'),x=c.getContext('2d');
   c.width=innerWidth;c.height=innerHeight;
-  const cols=['#ffd24a','#ff8f3a','#5b8cff','#31c48d','#f0616d','#ffffff'];
+  const cols=['#e2553f','#e9ea8c','#7f8f52','#e8774d','#f3a7a3','#a3a9c6'];
   const ps=Array.from({length:130},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*0.5,
     r:4+Math.random()*6,vy:2.2+Math.random()*3.4,vx:-1.4+Math.random()*2.8,
     a:Math.random()*6.28,va:-.15+Math.random()*.3,c:cols[Math.floor(Math.random()*cols.length)]}));
@@ -594,6 +696,8 @@ addEventListener('keydown',e=>{
 addEventListener('resize',()=>{if(S&&!$('stage').classList.contains('hidden'))showPrize($('prizeSel').value);});
 addEventListener('beforeunload',e=>{if(S&&Object.keys(S.revealed).length<S.prizes.length){e.preventDefault();e.returnValue='';}});
 
+$('hdrEvent').textContent=$('inEvent').value;
+$('inEvent').oninput=()=>{if(!S)$('hdrEvent').textContent=$('inEvent').value;};
 // auto-offer resume
 (function(){const j=localStorage.getItem(LS);
   if(j){try{const s=JSON.parse(j);
