@@ -263,8 +263,14 @@ footer.credit{text-align:center;color:var(--dim);font-size:13px;padding:0 16px 2
     <div style="margin-top:10px;font-size:15px">รวม <b id="pvQty" style="color:var(--red-deep)">0</b> รางวัล</div>
   </div>
   <div class="card freeze">
-    <p class="note">กดปุ่มนี้เมื่อปิดรับสมัครแล้ว ระบบจะสุ่มผู้ได้รับรางวัล<b>ทั้งหมดในครั้งเดียว</b><br>
-      และบันทึกผลไว้ทันที การหมุนบนเวทีเป็นเพียงการเปิดเผยผลที่สุ่มไว้แล้ว</p>
+    <p class="note">กดปุ่มนี้เมื่อปิดรับสมัครแล้ว ระบบจะสุ่มผู้ได้รับรางวัล<b>ทั้งหมดในครั้งเดียว</b>
+      การหมุนบนเวทีเป็นเพียงการเปิดเผยผลที่สุ่มไว้แล้ว</p>
+    <div class="field" style="max-width:340px;margin:10px auto 4px">
+      <label>เลขสุ่ม (seed)</label>
+      <input id="inSeed" value="1" inputmode="numeric" autocomplete="off" style="text-align:center;font-size:20px">
+    </div>
+    <p class="note">รายชื่อชุดเดิม + เลขสุ่มเดิม = ผู้ได้รับรางวัลชุดเดิมทุกครั้ง ไม่ต้องดาวน์โหลดไฟล์เก็บไว้<br>
+      รหัสรายชื่อ <b id="pvFp">—</b> · ถ้ารหัสนี้ตรงกัน แปลว่ารายชื่อเหมือนเดิมทุกคน</p>
     <button class="btn-primary btn hand" id="freezeBtn" style="padding:14px 40px;font-size:20px;margin-top:6px">
       🔒 ปิดรับรายชื่อ &amp; สุ่มรางวัล</button>
     <div style="margin-top:14px"><button class="btn" id="backToSetup">← กลับไปแก้ไขการตั้งค่า</button></div>
@@ -338,10 +344,36 @@ function rnd(n){
   let v;do{crypto.getRandomValues(a);v=a[0];}while(v>=lim);
   return v%n;
 }
-function shuffle(arr){
-  const a=arr.slice();
-  for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];}
+// Seeded generator for the draw: the same seed always gives the same sequence.
+// cyrb128 hashes the seed text into 128 bits, sfc32 turns that into a stream.
+function cyrb128(str){
+  let h1=1779033703,h2=3144134277,h3=1013904242,h4=2773480762;
+  for(let i=0,k;i<str.length;i++){k=str.charCodeAt(i);
+    h1=h2^Math.imul(h1^k,597399067);h2=h3^Math.imul(h2^k,2869860233);
+    h3=h4^Math.imul(h3^k,951274213);h4=h1^Math.imul(h4^k,2716044179);}
+  h1=Math.imul(h3^(h1>>>18),597399067);h2=Math.imul(h4^(h2>>>22),2869860233);
+  h3=Math.imul(h1^(h3>>>17),951274213);h4=Math.imul(h2^(h4>>>19),2716044179);
+  h1^=(h2^h3^h4);h2^=h1;h3^=h1;h4^=h1;
+  return [h1>>>0,h2>>>0,h3>>>0,h4>>>0];
+}
+function seededRnd(seed){
+  let [a,b,c,d]=cyrb128('luckydraw:'+seed);
+  const next=()=>{a|=0;b|=0;c|=0;d|=0;
+    const t=(a+b|0)+d|0;d=d+1|0;a=b^b>>>9;b=c+(c<<3)|0;c=(c<<21|c>>>11);c=c+t|0;return t>>>0;};
+  for(let i=0;i<15;i++)next();
+  return n=>{if(n<=0)return 0;const lim=Math.floor(0x100000000/n)*n;let v;do{v=next();}while(v>=lim);return v%n;};
+}
+// Sheet row order must not matter, so the pool is sorted by a fixed key before shuffling.
+const byKey=(a,b)=>{const x=keyOf(a),y=keyOf(b);return x<y?-1:x>y?1:0;};
+function seededShuffle(arr,seed){
+  const r=seededRnd(seed),a=arr.slice().sort(byKey);
+  for(let i=a.length-1;i>0;i--){const j=r(i+1);[a[i],a[j]]=[a[j],a[i]];}
   return a;
+}
+// short fingerprint of the participant list, to confirm two draws used the same names
+function fingerprint(list){
+  return cyrb128(list.slice().sort(byKey).map(keyOf).join('\n')).slice(0,2)
+    .map(x=>x.toString(16).padStart(8,'0')).join('').toUpperCase().replace(/(.{4})(?=.)/g,'$1-');
 }
 function gvizURL(id,tab){
   return 'https://docs.google.com/spreadsheets/d/'+encodeURIComponent(id)+
@@ -480,6 +512,7 @@ function showPreview(){
   $('pvPrizes').innerHTML=raw.prizes.map(p=>
     `<tr><td>${p.order}</td><td>${esc(p.name)}</td><td class="num">${p.qty}</td><td>${esc(p.sponsor)}</td></tr>`).join('');
   $('pvQty').textContent=tot;
+  $('pvFp').textContent=raw.regs.length?fingerprint(raw.regs):'—';
   const w=[];
   if(!raw.regs.length)w.push('ยังไม่มีรายชื่อผู้สมัครเลย');
   if(!raw.prizes.length)w.push('อ่านรายการรางวัลไม่ได้เลย — ตรวจสอบว่าแท็บ Prizes มีคอลัมน์ '+
@@ -495,9 +528,9 @@ function showPreview(){
 const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 /* ================= freeze + allocate ================= */
-function freeze(){
+function freeze(seed){
   const pool=raw.regs.slice();
-  const bag=shuffle(pool);               // one uniform shuffle, drawn off the top
+  const bag=seededShuffle(pool,seed);    // one uniform shuffle, drawn off the top
   const alloc={};let i=0;
   raw.prizes.forEach(p=>{
     alloc[p.id]=[];
@@ -505,11 +538,10 @@ function freeze(){
   });
   S={event:$('inEvent').value.trim()||'งานโรงเรียน',
      sheetId:$('inSheet').value.trim(),prizeTab:$('inPrizeTab').value.trim(),respTab:$('inRespTab').value.trim(),
-     frozenAt:new Date().toISOString(),pool,prizes:raw.prizes,alloc,
+     frozenAt:new Date().toISOString(),pool,prizes:raw.prizes,alloc,seed,fp:fingerprint(pool),
      revealed:{},history:[],dupCount:raw.dups.length};
   save();
-  dl('allocation_'+stamp()+'.csv',csvAll());   // immediate audit trail
-  toast('สุ่มเรียบร้อย — บันทึกไฟล์ผลไว้แล้ว',3500);
+  toast('สุ่มเรียบร้อย — เลขสุ่ม '+seed,3500);
   enterStage();
 }
 function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');
@@ -531,7 +563,8 @@ function updHeader(){
   $('pillPrize').innerHTML='รางวัล <b>'+ps.reduce((s,p)=>s+p.qty,0)+'</b> ชิ้น';
   if(S){const d=new Date(S.frozenAt);
     $('pillFrozen').classList.remove('hidden');
-    $('pillFrozen').innerHTML='🔒 ปิดรับ '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+    $('pillFrozen').innerHTML='🔒 ปิดรับ '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+
+      (S.seed!==undefined?' · เลขสุ่ม <b>'+esc(S.seed)+'</b>':'');}
 }
 function buildPrizeSel(){
   $('prizeSel').innerHTML=S.prizes.map(p=>{
@@ -642,7 +675,8 @@ function undo(){
 
 /* ---------- results + export ---------- */
 function renderResults(){
-  $('resultsBody').innerHTML=S.prizes.map(p=>{
+  $('resultsBody').innerHTML=(S.seed!==undefined?`<p class="note">เลขสุ่ม <b>${esc(S.seed)}</b> · รหัสรายชื่อ <b>${S.fp}</b> · ${S.pool.length} คน</p>`:'')+
+  S.prizes.map(p=>{
     const ws=S.alloc[p.id]||[];
     if(!S.revealed[p.id])return `<div class="rgroup"><h4>${esc(p.name)}</h4>
       <div class="rline st-none"><span>ยังไม่เปิด</span><span>${p.qty} รางวัล</span></div></div>`;
@@ -683,8 +717,10 @@ $('fileIn').onchange=e=>{const f=e.target.files[0];if(!f)return;
   const rd=new FileReader();rd.onload=()=>usePasted(rd.result);rd.readAsText(f,'utf-8');};
 $('backToSetup').onclick=()=>{$('preview').classList.add('hidden');$('setup').classList.remove('hidden');};
 $('freezeBtn').onclick=()=>{
-  if(!confirm('ยืนยันปิดรับรายชื่อ '+raw.regs.length+' คน และสุ่มรางวัลทั้งหมด?\nหลังจากนี้รายชื่อจะไม่เปลี่ยนอีก'))return;
-  freeze();};
+  const seed=$('inSeed').value.trim();
+  if(!seed){toast('กรุณาใส่เลขสุ่ม');$('inSeed').focus();return;}
+  if(!confirm('ยืนยันปิดรับรายชื่อ '+raw.regs.length+' คน และสุ่มรางวัลด้วยเลขสุ่ม '+seed+'?\nหลังจากนี้รายชื่อจะไม่เปลี่ยนอีก'))return;
+  freeze(seed);};
 $('prizeSel').onchange=()=>showPrize($('prizeSel').value);
 $('spinBtn').onclick=()=>spin(false);
 $('instantBtn').onclick=()=>spin(true);
