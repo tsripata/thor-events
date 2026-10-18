@@ -155,6 +155,36 @@
       "image": null,
       "video": null,
       "pick": false
+    },
+    {
+      "title": "Haunted Challenge at EM District",
+      "section": "evergreen",
+      "category": "play",
+      "date": "Any day through November 1 (listed Oct 9 – Nov 1)",
+      "time": null,
+      "location": "EM District, 2nd floor, Bangkok",
+      "price": "Check venue",
+      "why": "A kid-friendly haunted-themed challenge: a mini quest for a 5-year-old who likes missions.",
+      "tip": "Listing found via BKK Kids; hours and price not confirmed, so check before going.",
+      "link": "https://www.bkkkids.com/blog/kids-halloween-events-in-bangkok/",
+      "image": null,
+      "video": null,
+      "pick": false
+    },
+    {
+      "title": "The Nine Center Rama 9: Halloween & Creative Workshops",
+      "section": "weekend",
+      "category": "workshop",
+      "date": "Thursday October 22 – Sunday November 1",
+      "time": null,
+      "location": "The Nine Center, Rama 9, Bangkok",
+      "price": "Check venue",
+      "why": "Programme mixes countryside-style adventures, Halloween activities and creative workshops, a chance for some hands-on making.",
+      "tip": "Specific workshop schedule and prices not confirmed; check BKK Kids or the venue.",
+      "link": "https://www.bkkkids.com/blog/october-break-camps/",
+      "image": null,
+      "video": null,
+      "pick": false
     }
   ]
 }
