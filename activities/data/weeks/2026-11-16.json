@@ -1,0 +1,55 @@
+{
+  "week_of": "2026-11-16",
+  "start": "2026-11-16",
+  "end": "2026-11-22",
+  "label": "November 16–22, 2026",
+  "intro": "Bangkok Theatre Festival kicks off with children's and family shows, and Vijit Chao Phraya continues.",
+  "weekday_note": "Try a weekday skate or museum visit before the Loy Krathong week.",
+  "activities": [
+    {
+      "title": "Bangkok Theatre Festival 2026 — family & children's shows",
+      "section": "weekend",
+      "category": "art",
+      "date": "November 14–29 (103 performances)",
+      "time": null,
+      "location": "BACC and other venues",
+      "price": "Check BACC page",
+      "why": "Some shows are for children and families; a chance to try something different.",
+      "tip": "Pick a kids' show and check age suitability and language.",
+      "link": "https://www.bacc.or.th/en/events/93046",
+      "image": null,
+      "video": null,
+      "pick": true
+    },
+    {
+      "title": "Vijit Chao Phraya 2026",
+      "section": "weekend",
+      "category": "outdoor",
+      "date": "Through December 13",
+      "time": "Evenings",
+      "location": "Chao Phraya River",
+      "price": "Check official site",
+      "why": "Riverside lights, easy evening outing.",
+      "tip": "Check the programme.",
+      "link": "https://www.tripsapien.com/things-to-do/bangkok-th/november-2026",
+      "image": null,
+      "video": null,
+      "pick": false
+    },
+    {
+      "title": "Thai Teaw Thai 80th travel fair",
+      "section": "weekday",
+      "category": "market",
+      "date": "November 19–22",
+      "time": "Check",
+      "location": "QSNCC",
+      "price": "Check official site",
+      "why": "Mostly for adults planning trips; weekend crowds.",
+      "tip": "Probably skip with a 5-year-old.",
+      "link": "https://www.tripsapien.com/things-to-do/bangkok-th/november-2026",
+      "image": null,
+      "video": null,
+      "pick": false
+    }
+  ]
+}

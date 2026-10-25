@@ -1,0 +1,40 @@
+{
+  "week_of": "2026-11-09",
+  "start": "2026-11-09",
+  "end": "2026-11-15",
+  "label": "November 9–15, 2026",
+  "intro": "Vijit Chao Phraya riverside lights start on November 13 and Bangkok Theatre Festival is just around the corner.",
+  "weekday_note": "Quiet weekdays: skating or the Marvel Experience.",
+  "activities": [
+    {
+      "title": "Vijit Chao Phraya 2026 — riverside light & sound festival",
+      "section": "weekend",
+      "category": "outdoor",
+      "date": "Starts Friday November 13 (runs to December 13)",
+      "time": "Evenings",
+      "location": "Chao Phraya River",
+      "price": "Check official site",
+      "why": "Glowing lights and a river backdrop, an easy evening out for a 5-year-old.",
+      "tip": "Details from a single listing; check the programme and boat times.",
+      "link": "https://www.tripsapien.com/things-to-do/bangkok-th/november-2026",
+      "image": null,
+      "video": null,
+      "pick": true
+    },
+    {
+      "title": "Bangkok Marathon (one source lists November 15)",
+      "section": "weekend",
+      "category": "sport",
+      "date": "Sunday November 15 (unconfirmed)",
+      "time": null,
+      "location": "Bangkok",
+      "price": null,
+      "why": "Cheering on runners could be fun, but plan around road closures.",
+      "tip": "Reported by only one source.",
+      "link": "https://www.tripsapien.com/things-to-do/bangkok-th/november-2026",
+      "image": null,
+      "video": null,
+      "pick": false
+    }
+  ]
+}
