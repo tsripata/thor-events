@@ -38,75 +38,69 @@ a{color:var(--red-deep)}
 button{font:inherit;cursor:pointer}
 .hand{font-family:"Mali","Sarabun",cursive}
 
-.bunting{display:block;width:100%;height:46px}
-.shell{max-width:880px;margin:0 auto;padding:0 16px}
+.bunting{display:block;width:100%;height:64px}
+.shell{max-width:1120px;margin:0 auto;padding:0 16px}
 
-header{text-align:center;padding:2px 0 6px}
-.event{margin:0;color:var(--olive);font-size:clamp(16px,4vw,21px);font-weight:600}
-h1{margin:2px 0 4px;font-size:clamp(28px,7.5vw,42px);line-height:1.2;color:var(--red);font-weight:700}
+header{text-align:center;padding:4px 0 8px}
+.event{margin:0;color:var(--olive);font-size:clamp(18px,4.4vw,24px);font-weight:600}
+h1{margin:2px 0 4px;font-size:clamp(30px,8vw,48px);line-height:1.15;color:var(--red);font-weight:700}
 .lead{margin:0 auto;color:var(--dim);max-width:520px}
 
 /* ---------- tools ---------- */
-.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:16px 0 10px}
-.tools .right{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;flex:1 1 260px;justify-content:flex-end}
-.tools input,.tools select{
+.tools{display:flex;justify-content:flex-end;margin:16px 0 10px}
+.tools input{
   font:inherit;font-size:14px;padding:7px 10px;border-radius:10px;border:2px solid var(--line);
-  background:var(--paper-2);color:var(--ink);min-width:0
+  background:var(--paper-2);color:var(--ink);min-width:0;width:min(320px,100%)
 }
-.tools input{flex:1 1 150px;max-width:260px}
 
 .banner{margin:12px 0;padding:10px 14px;border-radius:14px;font-size:14px}
 .banner.err{background:#fbe6e2;color:#8c2618;border:2px solid #f3c2b8}
 .banner.info{background:var(--olive-soft);color:#4f5a2f;border:2px solid #d9ddb5}
 .banner:empty{display:none}
 
-/* ---------- item rows ---------- */
-.list{display:grid;gap:12px;margin:0;padding:0;list-style:none}
-.row{
-  display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;align-items:center;
-  background:var(--paper-2);border:2px solid var(--line);border-radius:18px;padding:12px 14px;box-shadow:var(--shadow)
+/* ---------- item cards: same poster card as the live board (index.html), without the price box ---------- */
+.lots{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:22px;margin:10px 0 0;padding:0;list-style:none}
+.lot{
+  position:relative;background:var(--paper-2);border-radius:22px;padding:18px 14px 14px;
+  box-shadow:0 6px 0 rgba(59,47,39,.10);border:2px solid var(--line);display:flex;flex-direction:column
 }
-button.thumb{padding:0;cursor:zoom-in}
-.thumb{
-  width:84px;height:84px;border-radius:50%;border:5px solid var(--ring);background:#fff;overflow:hidden;
-  display:grid;place-items:center;font-size:36px
+.photo{
+  position:relative;display:block;width:150px;height:150px;margin:0 auto;border-radius:50%;padding:0;
+  border:7px solid var(--ring);background:#fff;overflow:visible
 }
-.thumb .nophoto{font-size:11px;text-align:center;line-height:1.2;padding:0 6px}
-.nophoto{color:var(--dim);font-weight:600}
-.thumb img{width:100%;height:100%;object-fit:cover;display:block}
-.info{min-width:0}
-.no{display:inline-block;background:var(--wood);color:#fff6ea;font-family:"Mali",cursive;font-weight:600;font-size:13px;
-  padding:1px 9px;border-radius:7px;transform:rotate(-2deg);margin-right:4px}
-.info h2{display:inline;margin:0;font-family:"Mali",cursive;font-size:19px;line-height:1.35}
-.info h2 a{color:inherit;text-decoration:none}
-.info h2 a:hover{text-decoration:underline}
-a.thumb{text-decoration:none}
-.desc{margin:3px 0 0;font-size:14px;color:#5b4f3d;white-space:pre-line}
-.donor{margin:2px 0 0;font-size:13px;color:var(--dim)}
-.empty{color:var(--dim);text-align:center;padding:32px 0}
-
-/* the red-hood girl stands in the side margin next to the rows, left and right in turn, swaying a little.
-   Only where the margin is wide enough to hold her; on phones she is on the live board's cards instead. */
-.row{position:relative}
-.pal{display:none}
-@media (min-width:1120px){
-  .pal{display:block;position:absolute;bottom:-6px;width:104px;pointer-events:none}
-  .pal.l{right:calc(100% + 14px)}
-  .pal.r{left:calc(100% + 14px)}
-  .pal .hood{display:block;width:100%;height:auto;transform-origin:50% 100%;animation:palSway 3.8s ease-in-out infinite}
-  .pal.r .hood{animation-delay:-1.9s;animation-duration:4.4s}
+button.photo{cursor:zoom-in}
+.photo .inner{width:100%;height:100%;border-radius:50%;overflow:hidden;display:grid;place-items:center}
+.nophoto{color:var(--dim);font-size:15px;font-weight:600}
+.photo img{width:100%;height:100%;object-fit:cover;display:block}
+.photo .count{position:absolute;right:-8px;top:4px;z-index:3;background:var(--ink);color:#fff;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px}
+.bow{position:absolute;right:-18px;top:84px;width:38px;height:32px;transform:rotate(20deg);z-index:3}
+/* the red-hood girl stands beside each photo circle; the photo stays centred and she shrinks to fit on its left */
+.stage{display:grid;grid-template-columns:1fr auto 1fr;align-items:end}
+.stage .photo{grid-column:2}
+.buddy{grid-column:1;grid-row:1;justify-self:end;width:112px;max-width:100%;margin:0 2px -10px 0;pointer-events:none}
+.buddy .hood{display:block;width:100%;height:auto;animation:sway 3.6s ease-in-out infinite;transform-origin:50% 100%}
+.lot:nth-child(2n) .buddy .hood{animation-delay:-1.8s;animation-duration:4.2s}
+.lot:nth-child(3n) .buddy .hood{animation-delay:-.9s}
+@keyframes sway{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-3px) rotate(1.5deg)}}
+.plank{
+  position:relative;z-index:1;align-self:center;margin:14px 0 -12px;padding:4px 18px 6px;
+  background:linear-gradient(180deg,#b9592e,var(--wood));color:#fff6ea;
+  border-radius:8px 14px 9px 12px;transform:rotate(-2deg);box-shadow:0 3px 0 rgba(0,0,0,.15);
+  font-family:"Mali",cursive;font-weight:600;font-size:15px
 }
-@keyframes palSway{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-3px) rotate(1.5deg)}}
-@media (prefers-reduced-motion:reduce){.pal .hood{animation:none}}
-
-@media (max-width:620px){
-  .row{grid-template-columns:64px minmax(0,1fr);gap:10px 12px;padding:12px}
-  .thumb{width:64px;height:64px;font-size:28px;border-width:4px}
+.plank b{font-size:20px;margin-left:4px}
+.board{
+  background:var(--lemon);border:7px solid var(--wood);border-radius:6px;
+  padding:20px 14px 14px;flex:1;display:flex;flex-direction:column;gap:6px
 }
+.board h2{margin:0;font-family:"Mali",cursive;font-size:20px;line-height:1.3}
+.desc{margin:0;font-size:14px;color:#5b4f3d;white-space:pre-line}
+.donor{margin:0;font-size:13px;color:#6d6047}
+.empty{grid-column:1 / -1;color:var(--dim);text-align:center;padding:32px 0}
 
 /* ---------- more photos + photo viewer ---------- */
-.more{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.more button{width:46px;height:46px;padding:0;border-radius:10px;border:2px solid var(--line);background:#fff;overflow:hidden;cursor:zoom-in}
+.more{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:6px}
+.more button{width:50px;height:50px;padding:0;border-radius:10px;border:2px solid var(--wood);background:#fff;overflow:hidden;cursor:zoom-in}
 .more img{width:100%;height:100%;object-fit:cover;display:block}
 .viewer{position:fixed;inset:0;z-index:20;background:rgba(30,24,20,.92);display:flex;flex-direction:column;align-items:center;
   justify-content:center;gap:10px;padding:16px}
@@ -116,12 +110,28 @@ a.thumb{text-decoration:none}
 .viewer .bar button{border:2px solid #fff6ea;background:none;color:#fff6ea;border-radius:10px;padding:6px 14px;font-size:18px}
 .viewer .bar button[hidden]{display:none}
 
+/* phones: a more compact card, like the board */
+@media (max-width:560px){
+  .lots{gap:16px}
+  .lot{padding:12px;border-radius:18px}
+  .photo{width:118px;height:118px;border-width:6px}
+  .bow{right:-14px;top:66px;width:30px;height:25px}
+  .buddy{width:100px}
+  .plank{margin:10px 0 -10px;font-size:13px;padding:3px 14px 5px}
+  .plank b{font-size:17px}
+  .board{border-width:6px;padding:16px 12px 12px;gap:4px}
+  .board h2{font-size:18px}
+  .desc{font-size:13px}
+  .donor{font-size:12px}
+}
+@media (prefers-reduced-motion:reduce){.buddy .hood{animation:none}}
+
 footer{color:var(--dim);font-size:13px;text-align:center;padding:18px 16px 28px}
 
 @media print{
   .bunting,.tools,.banner,.viewer,footer{display:none!important}
   body{background:#fff}
-  .row{box-shadow:none;break-inside:avoid}
+  .lot{box-shadow:none;break-inside:avoid}
 }
 </style>
 </head>
@@ -160,7 +170,7 @@ footer{color:var(--dim);font-size:13px;text-align:center;padding:18px 16px 28px}
     </div>
   </div>
 
-  <ul class="list" id="list"><li class="empty">กำลังโหลดรายการ…</li></ul>
+  <ul class="lots" id="list"><li class="empty">กำลังโหลดรายการ…</li></ul>
 </div>
 
 <div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="ดูรูป">
@@ -184,28 +194,30 @@ footer{color:var(--dim);font-size:13px;text-align:center;padding:18px 16px 28px}
 
 let items = null, loading = false;
 
+const BOW = bowSvg("bow");
+
 function rowHtml(it, i){
-  const no = (it.no || "").padStart(2, "0");
   const img = it.image
-    ? `<img src="${esc(it.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="${imgFallback}">`
+    ? `<img src="${esc(it.image)}" alt="${esc(it.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="${imgFallback}">`
     : NO_PHOTO;
-  const thumb = it.images.length
-    ? `<button type="button" class="thumb" data-key="${esc(it.key)}" data-i="0" aria-label="ดูรูป ${esc(it.name)}">${img}</button>`
-    : `<span class="thumb">${img}</span>`;
+  const inner = `<div class="inner">${img}</div>${BOW}${it.images.length > 1 ? `<span class="count">📷 ${it.images.length}</span>` : ""}`;
+  const photo = it.images.length
+    ? `<button type="button" class="photo" data-key="${esc(it.key)}" data-i="0" aria-label="ดูรูป ${esc(it.name)}">${inner}</button>`
+    : `<div class="photo">${inner}</div>`;
   const more = it.images.length > 1
-    ? `<div class="more">${it.images.slice(1).map((p, n) =>
-        `<button type="button" data-key="${esc(it.key)}" data-i="${n + 1}" aria-label="รูปที่ ${n + 2}">
+    ? `<div class="more">${it.images.map((p, n) =>
+        `<button type="button" data-key="${esc(it.key)}" data-i="${n}" aria-label="รูปที่ ${n + 1}">
            <img src="${esc(p.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></button>`).join("")}</div>`
     : "";
-  return `<li class="row" id="item-${esc(it.key)}">
-    ${thumb}
-    <div class="info">
-      <span class="no">#${esc(no || "–")}</span><h2>${esc(it.name)}</h2>
+  return `<li class="lot" id="item-${esc(it.key)}">
+    <div class="stage"><div class="buddy">${hoodImg((parseInt(it.no, 10) || i + 1) - 1)}</div>${photo}</div>
+    <div class="plank">Item no.<b>${esc(it.no ? it.no.padStart(2, "0") : "–")}</b></div>
+    <div class="board">
+      <h2>${esc(it.name)}</h2>
       ${it.desc ? `<p class="desc">${esc(it.desc)}</p>` : ""}
       ${it.donor ? `<p class="donor">💝 บริจาคโดย ${esc(it.donor)}</p>` : ""}
       ${more}
     </div>
-    <span class="pal ${i % 2 ? "r" : "l"}">${hoodImg((parseInt(it.no, 10) || i + 1) - 1)}</span>
   </li>`;
 }
 
