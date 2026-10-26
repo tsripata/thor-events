@@ -159,7 +159,7 @@ footer{padding:28px 0 60px;color:var(--dim);font-size:13px;border-top:1px solid 
 /* ---------- batch filter + matrix modal ---------- */
 .filterbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:0 0 18px}
 .filterbar label{font-size:14px;color:var(--dim);display:flex;gap:8px;align-items:center}
-.filterbar select{font:inherit;padding:7px 10px;border:1px solid var(--rule);border-radius:2px;
+.filterbar select,.toolbar select{font:inherit;padding:7px 10px;border:1px solid var(--rule);border-radius:2px;
   background:#fff;color:var(--ink)}
 .filternote{font-size:13px;color:var(--amber);font-weight:600}
 
@@ -317,6 +317,7 @@ footer{padding:28px 0 60px;color:var(--dim);font-size:13px;border-top:1px solid 
       <div class="toolbar">
         <input type="search" id="search" placeholder="ค้นหาชื่อ เบอร์ ชื่อเล่น หรือบ้าน">
         <label><input type="checkbox" id="showSlips" checked> แสดงสลิปอัตโนมัติ</label>
+        <label>รุ่น <select id="cardBatch"><option value="">ทุกรุ่น</option></select></label>
         <button class="act" id="cardPrint" title="หนึ่งคนครึ่งหน้า A4 (A5) พิมพ์ 2 คนต่อแผ่น ตามตัวกรองรุ่นและคำค้นที่ใช้อยู่">พิมพ์ใบออเดอร์ A5 (2 คน / A4)</button>
         <span class="slipstat" id="slipStat"></span>
       </div>
@@ -814,13 +815,17 @@ function render(){
 }
 
 function renderBatchOptions(orders){
-  const sel = document.getElementById("batchFilter");
   const counts = {};
   for (const o of orders) counts[batchOf(o)] = (counts[batchOf(o)] || 0) + 1;
   const keys = Object.keys(counts).sort(sortBatches);
   const want = `<option value="">ทุกรุ่น (${num(orders.length)} ออร์เดอร์)</option>`
     + keys.map(k => `<option value="${esc(k)}">${esc(k)} (${num(counts[k])} ออร์เดอร์)</option>`).join("");
-  if (sel.innerHTML !== want) { sel.innerHTML = want; sel.value = FILTER_BATCH; }
+  // ตัวเลือกรุ่นมีสองที่ (บนตารางกับข้างปุ่มพิมพ์ใบออเดอร์) ใช้ค่าเดียวกัน
+  for (const id of ["batchFilter", "cardBatch"]) {
+    const sel = document.getElementById(id);
+    if (sel.innerHTML !== want) sel.innerHTML = want;
+    sel.value = FILTER_BATCH;
+  }
 }
 
 function tallyRows(t, setIncludesCup){
@@ -1467,9 +1472,10 @@ document.getElementById("cardPrint").addEventListener("click", printCards);
 document.getElementById("printBtn").addEventListener("click", () => window.print());
 document.getElementById("search").addEventListener("input", applySearch);
 document.getElementById("setCup").addEventListener("change", () => STATE && render());
-document.getElementById("batchFilter").addEventListener("change", e => {
-  FILTER_BATCH = e.target.value; if (STATE) render();
-});
+for (const id of ["batchFilter", "cardBatch"])
+  document.getElementById(id).addEventListener("change", e => {
+    FILTER_BATCH = e.target.value; if (STATE) render();
+  });
 document.getElementById("openBatch").addEventListener("click", () => STATE && openBatchMatrix());
 document.getElementById("batchClose").addEventListener("click", closeBatchMatrix);
 document.getElementById("batchPrint").addEventListener("click", () => window.print());
