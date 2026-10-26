@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="theme-color" content="#f6f0dc">
+<title>รายการของ — ตลาดน้ำจิตต์น้ำใจ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --paper:#f6f0dc;
+  --paper-2:#fffaf0;
+  --line:#eadfc2;
+  --ink:#3b2f27;
+  --dim:#857766;
+  --red:#e2553f;
+  --red-deep:#c23b28;
+  --olive:#7f8f52;
+  --olive-soft:#eef0dc;
+  --lemon:#e9ea8c;
+  --lemon-2:#f2f2b4;
+  --ring:#a3a9c6;
+  --wood:#9a4423;
+  --shadow:0 5px 0 rgba(59,47,39,.09);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Sarabun",-apple-system,"Segoe UI",Tahoma,sans-serif;
+  font-size:16px;line-height:1.5;font-variant-numeric:tabular-nums;overflow-x:hidden;
+}
+a{color:var(--red-deep)}
+button{font:inherit;cursor:pointer}
+.hand{font-family:"Mali","Sarabun",cursive}
+
+.bunting{display:block;width:100%;height:46px}
+.shell{max-width:880px;margin:0 auto;padding:0 16px}
+
+header{text-align:center;padding:2px 0 6px}
+.event{margin:0;color:var(--olive);font-size:clamp(16px,4vw,21px);font-weight:600}
+h1{margin:2px 0 4px;font-size:clamp(28px,7.5vw,42px);line-height:1.2;color:var(--red);font-weight:700}
+.lead{margin:0 auto;color:var(--dim);max-width:520px}
+
+/* ---------- tools ---------- */
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:16px 0 10px}
+.tools .right{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;flex:1 1 260px;justify-content:flex-end}
+.tools input,.tools select{
+  font:inherit;font-size:14px;padding:7px 10px;border-radius:10px;border:2px solid var(--line);
+  background:var(--paper-2);color:var(--ink);min-width:0
+}
+.tools input{flex:1 1 150px;max-width:260px}
+
+.banner{margin:12px 0;padding:10px 14px;border-radius:14px;font-size:14px}
+.banner.err{background:#fbe6e2;color:#8c2618;border:2px solid #f3c2b8}
+.banner.info{background:var(--olive-soft);color:#4f5a2f;border:2px solid #d9ddb5}
+.banner:empty{display:none}
+
+/* ---------- item rows ---------- */
+.list{display:grid;gap:12px;margin:0;padding:0;list-style:none}
+.row{
+  display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;align-items:center;
+  background:var(--paper-2);border:2px solid var(--line);border-radius:18px;padding:12px 14px;box-shadow:var(--shadow)
+}
+button.thumb{padding:0;cursor:zoom-in}
+.thumb{
+  width:84px;height:84px;border-radius:50%;border:5px solid var(--ring);background:#fff;overflow:hidden;
+  display:grid;place-items:center;font-size:36px
+}
+.thumb .nophoto{font-size:11px;text-align:center;line-height:1.2;padding:0 6px}
+.nophoto{color:var(--dim);font-weight:600}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.info{min-width:0}
+.no{display:inline-block;background:var(--wood);color:#fff6ea;font-family:"Mali",cursive;font-weight:600;font-size:13px;
+  padding:1px 9px;border-radius:7px;transform:rotate(-2deg);margin-right:4px}
+.info h2{display:inline;margin:0;font-family:"Mali",cursive;font-size:19px;line-height:1.35}
+.info h2 a{color:inherit;text-decoration:none}
+.info h2 a:hover{text-decoration:underline}
+a.thumb{text-decoration:none}
+.desc{margin:3px 0 0;font-size:14px;color:#5b4f3d;white-space:pre-line}
+.donor{margin:2px 0 0;font-size:13px;color:var(--dim)}
+.empty{color:var(--dim);text-align:center;padding:32px 0}
+
+/* the red-hood girl stands in the side margin next to the rows, left and right in turn, swaying a little.
+   Only where the margin is wide enough to hold her; on phones she is on the live board's cards instead. */
+.row{position:relative}
+.pal{display:none}
+@media (min-width:1120px){
+  .pal{display:block;position:absolute;bottom:-6px;width:104px;pointer-events:none}
+  .pal.l{right:calc(100% + 14px)}
+  .pal.r{left:calc(100% + 14px)}
+  .pal .hood{display:block;width:100%;height:auto;transform-origin:50% 100%;animation:palSway 3.8s ease-in-out infinite}
+  .pal.r .hood{animation-delay:-1.9s;animation-duration:4.4s}
+}
+@keyframes palSway{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-3px) rotate(1.5deg)}}
+@media (prefers-reduced-motion:reduce){.pal .hood{animation:none}}
+
+@media (max-width:620px){
+  .row{grid-template-columns:64px minmax(0,1fr);gap:10px 12px;padding:12px}
+  .thumb{width:64px;height:64px;font-size:28px;border-width:4px}
+}
+
+/* ---------- more photos + photo viewer ---------- */
+.more{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.more button{width:46px;height:46px;padding:0;border-radius:10px;border:2px solid var(--line);background:#fff;overflow:hidden;cursor:zoom-in}
+.more img{width:100%;height:100%;object-fit:cover;display:block}
+.viewer{position:fixed;inset:0;z-index:20;background:rgba(30,24,20,.92);display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:10px;padding:16px}
+.viewer[hidden]{display:none}
+.viewer img{max-width:100%;max-height:calc(100vh - 120px);object-fit:contain;border-radius:8px;background:#fff}
+.viewer .bar{display:flex;gap:10px;align-items:center;color:#fff6ea;font-weight:600}
+.viewer .bar button{border:2px solid #fff6ea;background:none;color:#fff6ea;border-radius:10px;padding:6px 14px;font-size:18px}
+.viewer .bar button[hidden]{display:none}
+
+footer{color:var(--dim);font-size:13px;text-align:center;padding:18px 16px 28px}
+
+@media print{
+  .bunting,.tools,.banner,.viewer,footer{display:none!important}
+  body{background:#fff}
+  .row{box-shadow:none;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<script src="auction-core.js?v=20261012"></script>
+<script src="girl.js?v=20261011b"></script>
+<script>
+// The loading screen is worded for the auction; this page has no bids or prices
+(function(){
+  const t = document.querySelectorAll("#girlLoader .gl-scene > text");
+  if (t.length < 4) return;
+  t[1].textContent = "รายการของทั้งหมด";
+  t[2].firstChild.textContent = "กำลังเดินเลือกของ";
+  t[3].textContent = "รอแป๊บนึงนะ กำลังโหลดรายการ";
+})();
+</script>
+
+<svg class="bunting" viewBox="0 0 1200 46" preserveAspectRatio="none" aria-hidden="true">
+  <path d="M0 4 Q600 34 1200 4" fill="none" stroke="#e2553f" stroke-width="3"/>
+  <g id="flags"></g>
+</svg>
+
+<div class="shell">
+  <header>
+    <p class="event hand" id="eventName">ตลาดน้ำจิตต์น้ำใจ #25</p>
+    <h1 class="hand">รายการของทั้งหมด</h1>
+    <p class="lead" id="lead">ของทุกชิ้นในงาน กดที่รูปเพื่อดูภาพใหญ่</p>
+  </header>
+
+  <div class="banner err" id="errBanner"></div>
+  <div class="banner info" id="infoBanner"></div>
+
+  <div class="tools">
+    <div class="right">
+      <input type="search" id="q" placeholder="ค้นหาชื่อของ…" aria-label="ค้นหา">
+    </div>
+  </div>
+
+  <ul class="list" id="list"><li class="empty">กำลังโหลดรายการ…</li></ul>
+</div>
+
+<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="ดูรูป">
+  <img id="viewerImg" alt="" referrerpolicy="no-referrer">
+  <div class="bar">
+    <button type="button" id="vPrev" aria-label="รูปก่อนหน้า">‹</button>
+    <span id="vCount"></span>
+    <button type="button" id="vNext" aria-label="รูปถัดไป">›</button>
+    <button type="button" id="vClose" aria-label="ปิด">✕</button>
+  </div>
+</div>
+
+<footer class="shell">
+  อัปเดตเองทุก <span id="every">2 นาที</span> · อัปเดตล่าสุด <span id="updated">–</span>
+</footer>
+
+<script>
+"use strict";
+/* Plain item list: the same "Items" tab as the auction, without prices, bids or the form.
+   See auction/README.md §5e */
+
+let items = null, loading = false;
+
+function rowHtml(it, i){
+  const no = (it.no || "").padStart(2, "0");
+  const img = it.image
+    ? `<img src="${esc(it.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="${imgFallback}">`
+    : NO_PHOTO;
+  const thumb = it.images.length
+    ? `<button type="button" class="thumb" data-key="${esc(it.key)}" data-i="0" aria-label="ดูรูป ${esc(it.name)}">${img}</button>`
+    : `<span class="thumb">${img}</span>`;
+  const more = it.images.length > 1
+    ? `<div class="more">${it.images.slice(1).map((p, n) =>
+        `<button type="button" data-key="${esc(it.key)}" data-i="${n + 1}" aria-label="รูปที่ ${n + 2}">
+           <img src="${esc(p.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></button>`).join("")}</div>`
+    : "";
+  return `<li class="row" id="item-${esc(it.key)}">
+    ${thumb}
+    <div class="info">
+      <span class="no">#${esc(no || "–")}</span><h2>${esc(it.name)}</h2>
+      ${it.desc ? `<p class="desc">${esc(it.desc)}</p>` : ""}
+      ${it.donor ? `<p class="donor">💝 บริจาคโดย ${esc(it.donor)}</p>` : ""}
+      ${more}
+    </div>
+    <span class="pal ${i % 2 ? "r" : "l"}">${hoodImg((parseInt(it.no, 10) || i + 1) - 1)}</span>
+  </li>`;
+}
+
+function render(){
+  const q = norm($("q").value).toLowerCase();
+  const num = it => parseInt(it.no, 10) || 9999;
+  const rows = items
+    .filter(it => !q || [it.name, it.desc, it.donor, it.no].join(" ").toLowerCase().includes(q))
+    .sort((a, b) => num(a) - num(b));
+  $("list").innerHTML = rows.length ? rows.map(rowHtml).join("")
+    : `<li class="empty">${items.length ? "ไม่พบของที่ค้นหา" : `ยังไม่มีรายการ เพิ่มของในแท็บ ${esc(CONFIG.ITEMS_SHEET)} ของชีท`}</li>`;
+  $("lead").textContent = `ของทั้งหมด ${items.length} ชิ้นในงาน กดที่รูปเพื่อดูภาพใหญ่`;
+  $("infoBanner").textContent = DEMO
+    ? "โหมดตัวอย่าง: ข้อมูลในหน้านี้เป็นข้อมูลสมมติ ใส่ SHEET_ID ใน auction-core.js เพื่อเชื่อมกับชีทจริง" : "";
+}
+
+async function load(){
+  if (loading) return;
+  loading = true;
+  try {
+    const grid = DEMO ? demoGrids().items : await fetchGrid({ sheet:CONFIG.ITEMS_SHEET || "Items" });
+    items = buildItems(grid);
+    $("errBanner").textContent = "";
+    $("updated").textContent = clock(new Date());
+    // Don't wipe the list (and the search) under someone who is looking at a photo
+    if ($("viewer").hidden) render();
+  } catch (e) {
+    $("errBanner").textContent = `โหลดข้อมูลไม่สำเร็จ: ${e.message}` + (items ? " (แสดงข้อมูลล่าสุดที่โหลดได้)" : "");
+  } finally {
+    loading = false;
+    GirlLoader.done();
+  }
+}
+
+/* ---------- photo viewer ---------- */
+let vItem = null, vAt = 0;
+function showPhoto(){
+  const n = vItem.images.length;
+  $("viewerImg").src = vItem.images[vAt].full;
+  $("vCount").textContent = n > 1 ? `${vAt + 1} / ${n}` : "";
+  $("vPrev").hidden = $("vNext").hidden = n < 2;
+}
+function openViewer(key, i){
+  vItem = items.find(it => it.key === key);
+  if (!vItem || !vItem.images.length) return;
+  vAt = i; showPhoto();
+  $("viewer").hidden = false;
+}
+function step(d){ if (vItem) { vAt = (vAt + d + vItem.images.length) % vItem.images.length; showPhoto(); } }
+function closeViewer(){ $("viewer").hidden = true; $("viewerImg").removeAttribute("src"); vItem = null; }
+
+$("list").addEventListener("click", e => {
+  const b = e.target.closest("button[data-key]");
+  if (b) openViewer(b.dataset.key, +b.dataset.i);
+});
+$("vPrev").addEventListener("click", () => step(-1));
+$("vNext").addEventListener("click", () => step(1));
+$("vClose").addEventListener("click", closeViewer);
+$("viewer").addEventListener("click", e => { if (e.target.id === "viewer") closeViewer(); });
+document.addEventListener("keydown", e => {
+  if ($("viewer").hidden) return;
+  if (e.key === "Escape") closeViewer();
+  if (e.key === "ArrowLeft") step(-1);
+  if (e.key === "ArrowRight") step(1);
+});
+
+(function drawBunting(){
+  const colors = ["#e2553f", "#e9ea8c", "#7f8f52", "#e8774d", "#f3a7a3"];
+  let html = "";
+  for (let i = 0; i < 30; i++) {
+    const x = i * 40 + 4, t = (x + 15) / 1200, y = 4 + 60 * t * (1 - t);
+    html += `<path d="M${x} ${y.toFixed(1)} L${x + 30} ${y.toFixed(1)} L${x + 15} ${(y + 32).toFixed(1)} Z" fill="${colors[i % colors.length]}" opacity=".92"/>`;
+  }
+  $("flags").innerHTML = html;
+})();
+
+$("eventName").textContent = CONFIG.EVENT_NAME;
+$("every").textContent = refreshLabel();
+$("q").addEventListener("input", () => items && render());
+
+load();
+setInterval(() => { if (!document.hidden) load(); }, CONFIG.REFRESH_SECONDS * 1000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+</script>
+</body>
+</html>

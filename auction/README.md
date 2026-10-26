@@ -8,6 +8,7 @@ It refreshes itself every 2 minutes and makes a little "bump" + toast whenever a
 - Preview with fake data: <https://tsripata.github.io/thor-events/auction/?demo>
 - Item list: <https://tsripata.github.io/thor-events/auction/items.html>
 - One item (detail page with all its photos): <https://tsripata.github.io/thor-events/auction/item.html?no=3>
+- Plain item list, no auction (§5e): <https://tsripata.github.io/thor-events/auction/catalog.html>
 - Files (no build step, no server):
   - `auction/auction-core.js` holds **`CONFIG`**, sheet reading, the bidding rules, demo data and the form link. Both pages load it, so **you edit settings in one place**.
   - `auction/index.html` is the **live board**: big poster-style cards, toasts and an item dropdown.
@@ -146,6 +147,18 @@ In **demo mode** with no `FORM_URL`, bid buttons show a short "this would open t
 - **ประวัติการประมูล:** the full history table (rejected bids struck through with the reason). This replaces the board's old history dialog.
 - **← ชิ้นก่อนหน้า / ชิ้นถัดไป →** to walk through items in number order.
 - Refreshes every `REFRESH_SECONDS` without resetting the gallery position. `?demo` is carried over on its links.
+
+## 5e. Plain item list (`catalog.html`)
+
+The same items as the auction, for when you just want to show what's there. It has no prices, bids, leaders, countdown or form buttons.
+
+- Reads only the `Items` tab (§3), using the same columns: number, name, description, donor and photos. The bids tab isn't read at all.
+- One row per item: photo circle, `#NN` tag, name, the full description (line breaks kept), donor, and small thumbnails of any extra photos.
+- Tap a photo to open it full size. ‹ › (or ← →) steps through that item's photos, and Esc or tapping outside closes it.
+- A search box (name, description, donor, number). Items are always in number order.
+- Same loading screen and red-hood girl as the other pages, with the wording changed to "รายการของทั้งหมด" (done in the page itself, so `girl.js` is unchanged).
+- Refreshes every `REFRESH_SECONDS`, but not while a photo is open. `?demo` works here too.
+- The auction pages are unchanged and still live alongside it.
 
 ## 5c. The red-hood girl and the loading screen (`girl.js`, `hood/`)
 
