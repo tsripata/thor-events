@@ -153,7 +153,7 @@ In **demo mode** with no `FORM_URL`, bid buttons show a short "this would open t
 The same items as the auction, for when you just want to show what's there. It has no prices, bids, leaders, countdown or form buttons.
 
 - Reads only the `Items` tab (§3), using the same columns: number, name, description, donor and photos. The bids tab isn't read at all.
-- One row per item: photo circle, `#NN` tag, name, the full description (line breaks kept), donor, and small thumbnails of any extra photos.
+- One card per item, in the same poster style and size as the live board (§5): the red-hood girl beside the big photo circle with its 🎀 bow, the wooden "Item no. NN" plank, and the yellow board with the name, the full description (line breaks kept), the donor and a row of photo thumbnails. There is no price box or buttons.
 - Tap a photo to open it full size. ‹ › (or ← →) steps through that item's photos, and Esc or tapping outside closes it.
 - A search box (name, description, donor, number). Items are always in number order.
 - Same loading screen and red-hood girl as the other pages, with the wording changed to "รายการของทั้งหมด" (done in the page itself, so `girl.js` is unchanged).
