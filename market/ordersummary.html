@@ -295,6 +295,9 @@ footer{padding:28px 0 60px;color:var(--dim);font-size:13px;border-top:1px solid 
         <label>แยกตามรุ่น
           <select id="batchFilter"><option value="">ทุกรุ่น</option></select>
         </label>
+        <label>บ้าน
+          <select id="houseFilter"><option value="">ทุกบ้าน</option></select>
+        </label>
         <button class="act ghost" id="openBatch">ดูตารางแยกตามรุ่น</button>
         <span class="filternote" id="filterNote"></span>
       </div>
@@ -318,7 +321,8 @@ footer{padding:28px 0 60px;color:var(--dim);font-size:13px;border-top:1px solid 
         <input type="search" id="search" placeholder="ค้นหาชื่อ เบอร์ ชื่อเล่น หรือบ้าน">
         <label><input type="checkbox" id="showSlips" checked> แสดงสลิปอัตโนมัติ</label>
         <label>รุ่น <select id="cardBatch"><option value="">ทุกรุ่น</option></select></label>
-        <button class="act" id="cardPrint" title="หนึ่งคนครึ่งหน้า A4 (A5) พิมพ์ 2 คนต่อแผ่น ตามตัวกรองรุ่นและคำค้นที่ใช้อยู่">พิมพ์ใบออเดอร์ A5 (2 คน / A4)</button>
+        <label>บ้าน <select id="cardHouse"><option value="">ทุกบ้าน</option></select></label>
+        <button class="act" id="cardPrint" title="หนึ่งคนครึ่งหน้า A4 (A5) พิมพ์ 2 คนต่อแผ่น ตามตัวกรองรุ่น บ้าน และคำค้นที่ใช้อยู่">พิมพ์ใบออเดอร์ A5 (2 คน / A4)</button>
         <span class="slipstat" id="slipStat"></span>
       </div>
       <div id="buyers"></div>
@@ -779,16 +783,20 @@ function allocateSetTotes(orders, g, error){
 let STATE = null;
 
 let FILTER_BATCH = "";
+let FILTER_HOUSE = "";
 
 function render(){
   const { grid, map, orders, testRows, blankRows } = STATE;
   const setIncludesCup = document.getElementById("setCup").checked;
 
   renderBatchOptions(orders);
-  const view = FILTER_BATCH ? orders.filter(o => batchOf(o) === FILTER_BATCH) : orders;
+  renderHouseOptions(orders);
+  const filtered = FILTER_BATCH || FILTER_HOUSE;
+  const view = filtered ? orders.filter(o =>
+    (!FILTER_BATCH || batchOf(o) === FILTER_BATCH) && (!FILTER_HOUSE || houseOf(o) === FILTER_HOUSE)) : orders;
 
   const tAll  = tally(orders, setIncludesCup);
-  const tView = FILTER_BATCH ? tally(view, setIncludesCup) : tAll;
+  const tView = filtered ? tally(view, setIncludesCup) : tAll;
 
   const usedRows = new Set(orders.map(o => o.sheetRow));
   const skipRows = grid.rows.map((_, r) => r + 2).filter(n => !usedRows.has(n));
@@ -807,8 +815,9 @@ function render(){
 
   document.getElementById("tallyCount").textContent =
     `${num(view.length)} ออร์เดอร์ · ${num(Object.keys(groupByPhone(view)).length)} คน`;
-  document.getElementById("filterNote").textContent = FILTER_BATCH
-    ? `กำลังดูเฉพาะรุ่น ${FILTER_BATCH} — ตาราง ยอดเงิน และรายชื่อด้านล่างกรองตามนี้ทั้งหมด`
+  const parts = [FILTER_BATCH && `รุ่น ${FILTER_BATCH}`, FILTER_HOUSE && `บ้าน ${FILTER_HOUSE}`].filter(Boolean);
+  document.getElementById("filterNote").textContent = parts.length
+    ? `กำลังดูเฉพาะ${parts.join(" · ")} — ตาราง ยอดเงิน และรายชื่อด้านล่างกรองตามนี้ทั้งหมด`
     : "";
 
   if (!document.getElementById("batchModal").hidden) renderBatchMatrix();
@@ -825,6 +834,23 @@ function renderBatchOptions(orders){
     const sel = document.getElementById(id);
     if (sel.innerHTML !== want) sel.innerHTML = want;
     sel.value = FILTER_BATCH;
+  }
+}
+
+// บ้านเหมือนกันแต่พิมพ์ต่างกันเล็กน้อย ("บ้านแดง" / "แดง" / ช่องว่าง) ให้นับเป็นบ้านเดียว
+const houseOf = o => norm(o.house).replace(/^บ้าน\s*/, "") || "ไม่ระบุ";
+
+function renderHouseOptions(orders){
+  const counts = {};
+  for (const o of orders) counts[houseOf(o)] = (counts[houseOf(o)] || 0) + 1;
+  const keys = Object.keys(counts).sort((a, b) =>
+    (a === "ไม่ระบุ") - (b === "ไม่ระบุ") || a.localeCompare(b, "th", { numeric:true }));
+  const want = `<option value="">ทุกบ้าน (${num(orders.length)} ออร์เดอร์)</option>`
+    + keys.map(k => `<option value="${esc(k)}">${k === "ไม่ระบุ" ? k : "บ้าน" + esc(k)} (${num(counts[k])} ออร์เดอร์)</option>`).join("");
+  for (const id of ["houseFilter", "cardHouse"]) {
+    const sel = document.getElementById(id);
+    if (sel.innerHTML !== want) sel.innerHTML = want;
+    sel.value = FILTER_HOUSE;
   }
 }
 
@@ -1402,7 +1428,7 @@ async function printCards(){
       const h = groups[k][0];
       return [h.name, h.phone, h.nickname, h.house].join(" ").toLowerCase().includes(q);
     });
-  if (!keys.length) { alert("ไม่มีรายชื่อให้พิมพ์ ลองล้างคำค้นหรือตัวกรองรุ่น"); return; }
+  if (!keys.length) { alert("ไม่มีรายชื่อให้พิมพ์ ลองล้างคำค้นหรือตัวกรองรุ่น/บ้าน"); return; }
 
   const cards = keys.map(k => cardHtml(groups[k].slice().sort((a, b) => a.sheetRow - b.sheetRow), setIncludesCup, withSlips));
   if (cards.length % 2) cards.push(`<div class="pcard blank"></div>`);
@@ -1475,6 +1501,10 @@ document.getElementById("setCup").addEventListener("change", () => STATE && rend
 for (const id of ["batchFilter", "cardBatch"])
   document.getElementById(id).addEventListener("change", e => {
     FILTER_BATCH = e.target.value; if (STATE) render();
+  });
+for (const id of ["houseFilter", "cardHouse"])
+  document.getElementById(id).addEventListener("change", e => {
+    FILTER_HOUSE = e.target.value; if (STATE) render();
   });
 document.getElementById("openBatch").addEventListener("click", () => STATE && openBatchMatrix());
 document.getElementById("batchClose").addEventListener("click", closeBatchMatrix);
