@@ -821,8 +821,15 @@ function redraw(){
 }
 function undo(){
   if(spinning)return toast('รอให้หมุนเสร็จก่อน');
-  const last=S.history.pop();
+  const last=S.history[S.history.length-1];
   if(!last)return toast('ไม่มีรายการให้ยกเลิก');
+  // undo has no redo, and spinning again picks different winners, so ask first
+  const lastId=last.redraw?last.redraw[0].id:[].concat(last)[0];
+  const ls=STEPS.find(x=>x.prizes.some(p=>p.id===lastId)),lbl=ls?' "'+stepLabel(ls)+'"':'';
+  if(!confirm(last.redraw
+    ?'ยกเลิกการสุ่มใหม่'+lbl+'?\n'+last.redraw.map(c=>c.old.n).join(', ')+' จะกลับมาเป็นผู้ได้รับรางวัล'
+    :'ยกเลิกผลรางวัล'+lbl+'?\nรายชื่อผู้ได้รับรางวัลรอบนี้จะถูกลบ และถ้าหมุนใหม่จะได้คนอื่น'))return;
+  S.history.pop();
   marked.clear();
   let s,msg;
   if(last.redraw){
