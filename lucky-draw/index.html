@@ -271,11 +271,12 @@ footer.credit{text-align:center;color:var(--dim);font-size:13px;padding:0 16px 2
     <div style="margin-top:10px;font-size:15px">รวม <b id="pvQty" style="color:var(--red-deep)">0</b> รางวัล</div>
   </div>
   <div class="card freeze">
-    <p class="note">กดปุ่มนี้เมื่อปิดรับสมัครแล้ว รายชื่อจะถูกล็อกไว้ และ<b>สุ่มผู้ได้รับรางวัลตอนกดหมุนบนเวที</b><br>
+    <p class="note">ไม่มีเวลาปิดรับสมัคร — ระหว่างจับรางวัลกด <b>↻ รายชื่อใหม่</b> เพื่อเพิ่มผู้สมัครที่เพิ่งลงทะเบียน
+      (หรือกดรีเฟรชหน้าเว็บ) <b>สุ่มผู้ได้รับรางวัลตอนกดหมุนบนเวที</b><br>
       ผู้ที่ได้รางวัลแล้วจะไม่ถูกสุ่มซ้ำ · ถ้าผู้ได้รับรางวัลไม่มา กด “ไม่มา” ที่ป้ายชื่อ แล้วกดสุ่มใหม่</p>
     <p class="note">ผลการสุ่มเก็บไว้ในเครื่องนี้เท่านั้น — ใช้เครื่องเดิมตลอดงาน และกด ⬇ CSV เก็บผลไว้</p>
     <button class="btn-primary btn hand" id="freezeBtn" style="padding:14px 40px;font-size:20px;margin-top:6px">
-      🔒 ปิดรับรายชื่อ &amp; เริ่มจับรางวัล</button>
+      🎰 เริ่มจับรางวัล</button>
     <div style="margin-top:14px"><button class="btn" id="reloadBtn">↻ โหลดรายชื่อใหม่</button></div>
   </div>
 </section>
@@ -301,6 +302,7 @@ footer.credit{text-align:center;color:var(--dim);font-size:13px;padding:0 16px 2
   <button class="btn" id="instantBtn">แสดงผลทันที</button>
   <button class="btn hidden" id="redrawBtn">🔁 สุ่มใหม่</button>
   <button class="btn" id="undoBtn">↩ ยกเลิกครั้งล่าสุด</button>
+  <button class="btn" id="syncBtn">↻ รายชื่อใหม่</button>
   <span class="spacer"></span>
   <button class="btn" id="exportBtn">⬇ CSV ผลรางวัล</button>
 </div>
@@ -538,7 +540,7 @@ function freeze(){
      frozenAt:new Date().toISOString(),pool:raw.regs.slice(),prizes:raw.prizes,alloc:{},absent:[],
      revealed:{},history:[],dupCount:raw.dups.length};
   save();
-  toast('ปิดรับรายชื่อแล้ว — '+S.pool.length+' คน',3500);
+  toast('เริ่มจับรางวัล — '+S.pool.length+' คน',3500);
   enterStage();
 }
 // everyone who can still be drawn: not a winner (shown or drawn) and not marked absent
@@ -557,6 +559,25 @@ function drawStep(s){
 function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');
   return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'_'+p(d.getHours())+p(d.getMinutes());}
 function save(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
+
+// No cut-off: pull the registrations again and add anyone new to the pool. Nobody is ever
+// removed, so winners, absentees and boards already drawn stay as they are.
+async function syncRegs(quiet){
+  if(!S||syncing)return;syncing=true;$('syncBtn').disabled=true;
+  try{
+    const r=await fetch(gvizURL(S.sheetId||SHEET_ID,S.respTab||RESP_TAB));
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const regs=dedupe(parseRegs(parseCSV(await r.text()))).keep;
+    const have={};S.pool.forEach(p=>have[nameKey(p.n)]=1);
+    const add=regs.filter(p=>!have[nameKey(p.n)]);
+    S.pool.push(...add);S.syncedAt=new Date().toISOString();save();
+    updHeader();
+    if(add.length&&!spinning&&!$('stage').classList.contains('hidden'))showStep($('prizeSel').value);
+    if(add.length||!quiet)toast(add.length?'เพิ่มผู้สมัครใหม่ '+add.length+' คน — รวม '+S.pool.length+' คน':'ยังไม่มีผู้สมัครใหม่');
+  }catch(e){toast('โหลดรายชื่อใหม่ไม่สำเร็จ: '+e.message,3500);}
+  finally{syncing=false;$('syncBtn').disabled=false;}
+}
+let syncing=false;
 
 /* ================= stage ================= */
 // The show runs in steps. Prizes that share a round (D, C, B) are one step: the round's
@@ -613,9 +634,9 @@ function updHeader(){
     (S?' · ยังไม่ได้รางวัล <b>'+available().length+'</b>':'');
   const ps=S?S.prizes:raw.prizes;
   $('pillPrize').innerHTML='รางวัล <b>'+ps.reduce((s,p)=>s+p.qty,0)+'</b> ชิ้น';
-  if(S){const d=new Date(S.frozenAt);
+  if(S){const d=new Date(S.syncedAt||S.frozenAt);
     $('pillFrozen').classList.remove('hidden');
-    $('pillFrozen').innerHTML='🔒 ปิดรับ '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+    $('pillFrozen').innerHTML='↻ อัปเดตรายชื่อ '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
 }
 function buildPrizeSel(){
   $('prizeSel').innerHTML=STEPS.map(s=>
@@ -868,7 +889,7 @@ function boom(){
 $('loadBtn').onclick=loadAll;
 $('reloadBtn').onclick=loadAll;
 $('freezeBtn').onclick=()=>{
-  if(!confirm('ยืนยันปิดรับรายชื่อ '+raw.regs.length+' คน?\nหลังจากนี้รายชื่อจะไม่เปลี่ยนอีก'))return;
+  if(!confirm('เริ่มจับรางวัล ('+raw.regs.length+' คน)?\nผู้สมัครใหม่เพิ่มได้ภายหลังด้วยปุ่ม ↻ รายชื่อใหม่'))return;
   freeze();};
 $('prizeSel').onchange=()=>{marked.clear();showStep($('prizeSel').value);};
 $('redrawBtn').onclick=redraw;
@@ -876,6 +897,7 @@ $('reels').onclick=e=>{const b=e.target.closest('.noshow');if(b)toggleMark(+b.da
 $('spinBtn').onclick=()=>spin(false);
 $('instantBtn').onclick=()=>spin(true);
 $('undoBtn').onclick=undo;
+$('syncBtn').onclick=()=>syncRegs(false);
 $('exportBtn').onclick=()=>dl('winners_'+stamp()+'.csv',csvAll());
 $('resultsBtn').onclick=()=>$('resultsPanel').classList.toggle('open');
 $('closeResults').onclick=()=>$('resultsPanel').classList.remove('open');
@@ -883,7 +905,7 @@ $('fsBtn').onclick=()=>document.fullscreenElement?document.exitFullscreen():docu
 $('resumeBtn').onclick=()=>{
   const j=localStorage.getItem(LS);
   if(!j)return toast('ไม่พบงานที่ค้างไว้ในเครื่องนี้');
-  S=JSON.parse(j);enterStage();toast('กู้คืนแล้ว');};
+  S=JSON.parse(j);enterStage();toast('กู้คืนแล้ว');syncRegs(true);};
 addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT')return;
   if(e.code==='Space'&&!$('controls').classList.contains('hidden')){e.preventDefault();spin(false);}
@@ -896,7 +918,7 @@ $('hdrEvent').textContent=EVENT;
 (function(){const j=localStorage.getItem(LS);let s=null;
   if(j)try{s=JSON.parse(j);}catch(e){}
   if(s&&s.pool&&Object.keys(s.revealed||{}).length<(s.prizes||[]).length){
-    setMsg('พบงานที่ค้างไว้ (ปิดรับเมื่อ '+new Date(s.frozenAt).toLocaleString('th-TH')+
+    setMsg('พบงานที่ค้างไว้ (เริ่มเมื่อ '+new Date(s.frozenAt).toLocaleString('th-TH')+
       ', ผู้เข้าร่วม '+s.pool.length+' คน)','good');
     $('resumeBtn').classList.remove('hidden');$('loadBtn').classList.remove('hidden');
     $('loadBtn').textContent='เริ่มใหม่ (โหลดรายชื่อ)';
