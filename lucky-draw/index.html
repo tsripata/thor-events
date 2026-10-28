@@ -124,8 +124,17 @@ td.num{font-family:"Mali",cursive;font-weight:700;color:var(--red-deep)}
 @media (max-width:820px){.buddy{display:none}}
 /* the item's photo beside the board for the one-at-a-time prizes (round A) */
 .photo{flex:0 1 auto;display:flex;align-items:center;justify-content:center;min-width:0}
-.photo img{display:block;max-width:min(46vw,820px);max-height:calc(100vh - 330px);width:auto;height:auto;
-  border:6px solid var(--wood);border-radius:8px;box-shadow:var(--shadow);background:#fff}
+/* several photos crossfade in one frame; the first sets the frame's size, the rest cover it */
+.photo .frame{position:relative;overflow:hidden;border:6px solid var(--wood);border-radius:8px;box-shadow:var(--shadow);background:#fff}
+.photo img{display:block;max-width:min(46vw,820px);max-height:calc(100vh - 400px);width:auto;height:auto;
+  opacity:0;transition:opacity 1.2s ease;animation:drift 9s ease-in-out infinite alternate}
+.photo img+img{position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;object-fit:cover}
+.photo img:nth-child(2n){animation-delay:-4.5s}
+.photo img.on{opacity:1}
+@keyframes drift{from{transform:scale(1)}to{transform:scale(1.07)}}
+.photo .dots{position:absolute;left:0;right:0;bottom:10px;display:flex;justify-content:center;gap:8px;z-index:2}
+.photo .dots i{width:10px;height:10px;border-radius:50%;background:rgba(255,250,240,.55);box-shadow:0 0 0 2px rgba(59,47,39,.25);transition:background .4s}
+.photo .dots i.on{background:var(--red)}
 @media (max-width:820px){.stage-row{flex-direction:column;align-items:stretch}.photo img{max-width:100%;max-height:45vh}}
 
 /* the printed prize page (one per round) shown on screen before the round spins */
@@ -556,8 +565,20 @@ function save(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
 // A prize with no round is a step of its own, as before.
 const SOLO_ROUNDS=['A'];
 let STEPS=[];
-const noPhoto={};
-const photoOf=p=>p.code&&!noPhoto[p.code]?'img/'+encodeURIComponent(p.code)+'.jpg':'';
+// An item's photos: img/W004.jpg, then img/W004-2.jpg, -3 … up to the first one that's missing.
+// More than one and they take turns in the frame every PHOTO_EVERY ms.
+const MAX_PHOTOS=6,PHOTO_EVERY=4000;
+const photoCache={};
+let photoTimer=0,photoToken=0;
+function photosOf(p){
+  if(!p||!p.code)return Promise.resolve([]);
+  if(photoCache[p.code])return photoCache[p.code];
+  const base='img/'+encodeURIComponent(p.code);
+  const probe=u=>new Promise(r=>{const i=new Image();i.onload=()=>r(u);i.onerror=()=>r(null);i.src=u;});
+  return photoCache[p.code]=(async()=>{const out=[];
+    for(let k=1;k<=MAX_PHOTOS;k++){const u=await probe(base+(k>1?'-'+k:'')+'.jpg');if(!u)break;out.push(u);}
+    return out;})();
+}
 function stepsOf(prizes){
   const out=[],by={};
   prizes.forEach(p=>{
@@ -581,7 +602,7 @@ function enterStage(){
   $('stage').classList.remove('hidden');$('controls').classList.remove('hidden');
   STEPS=stepsOf(S.prizes);
   // warm the photo cache so round A doesn't wait on the projector
-  STEPS.filter(s=>s.solo).forEach(s=>{const u=photoOf(s.prizes[0]);if(u)new Image().src=u;});
+  STEPS.filter(s=>s.solo).forEach(s=>photosOf(s.prizes[0]));
   buildPrizeSel();updHeader();renderResults();
   const next=STEPS.find(s=>!isDone(s));
   if(next){$('prizeSel').value=next.id;showStep(next.id);}
@@ -626,11 +647,21 @@ function showStep(id){
   updRedraw();
 }
 function setPhoto(p){
-  const b=$('photoBox'),u=p&&photoOf(p);
-  if(!u){b.classList.add('hidden');b.innerHTML='';return;}
-  b.innerHTML=`<img src="${u}" alt="${esc(p.name)}">`;
-  b.firstChild.onerror=()=>{noPhoto[p.code]=1;b.classList.add('hidden');b.innerHTML='';};
-  b.classList.remove('hidden');
+  const b=$('photoBox'),t=++photoToken;
+  clearInterval(photoTimer);
+  const none=()=>{b.classList.add('hidden');b.innerHTML='';};
+  if(!p)return none();
+  photosOf(p).then(us=>{
+    if(t!==photoToken)return;          // moved on to another step meanwhile
+    if(!us.length)return none();
+    b.innerHTML='<div class="frame">'+us.map((u,i)=>`<img src="${u}" alt="${esc(p.name)}"${i?'':' class="on"'}>`).join('')+
+      (us.length>1?'<div class="dots">'+us.map((_,i)=>`<i${i?'':' class="on"'}></i>`).join('')+'</div>':'')+'</div>';
+    b.classList.remove('hidden');
+    if(us.length<2)return;
+    const im=b.querySelectorAll('img'),dt=b.querySelectorAll('.dots i');let k=0;
+    photoTimer=setInterval(()=>{im[k].classList.remove('on');dt[k].classList.remove('on');
+      k=(k+1)%im.length;im[k].classList.add('on');dt[k].classList.add('on');},PHOTO_EVERY);
+  });
 }
 function gridFor(n,cap){
   const g=$('reels');
