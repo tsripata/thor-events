@@ -424,7 +424,7 @@ function parsePrizes(rows){
   return out;
 }
 
-// Registrations: find the header row with ชื่อ, map ชื่อ/รุ่น/ห้อง by name.
+// Registrations: find the header row with ชื่อ, map ชื่อ/รุ่น/บ้าน (or ห้อง) by name.
 // Headers are matched by "contains" so form questions like
 // "ชื่อเด็กจริง ---- (1 ชื่อ 1 สิทธ์)" still work; a header containing
 // "ชื่อเด็กจริง" wins over any other ชื่อ column (e.g. a parent's name). A column headed
@@ -446,7 +446,7 @@ function parseRegs(rows){
     rows[h].forEach((c,i)=>{const l=c.toLowerCase();
       if(isName(c))set('n',i);
       else if(c.includes('รุ่น')||l==='year')set('r',i);
-      else if(c.includes('ห้อง')||l==='room'||l==='class')set('h',i);
+      else if(c.includes('บ้าน')||c.includes('ห้อง')||l==='room'||l==='class')set('h',i);
       else if(c.includes('ไม่ใช้แล้ว'))set('old',i);});
     if(ci.r<0){
       // an untitled column whose filled cells are all 1–3 digit numbers is the รุ่น column
