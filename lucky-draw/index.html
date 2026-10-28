@@ -164,6 +164,13 @@ td.num{font-family:"Mali",cursive;font-weight:700;color:var(--red-deep)}
 .slotmark{position:absolute;left:8px;top:6px;z-index:4;font-family:"Mali",cursive;font-weight:700;
   font-size:13px;color:#fff6ea;background:var(--wood);border-radius:6px 9px 6px 8px;padding:1px 9px;transform:rotate(-4deg)}
 .reel .bow{position:absolute;right:6px;top:4px;z-index:4;width:34px;height:28px;transform:rotate(14deg)}
+/* "ไม่มา" on a landed board: marks a winner who is not here, to be redrawn */
+.noshow{position:absolute;right:8px;bottom:6px;z-index:5;font-size:13px;padding:2px 10px;line-height:1.5;
+  background:var(--paper-2);color:var(--dim-2);border:2px solid var(--edge);border-radius:999px}
+.reel.marked{border-color:var(--dim);background:#efe8d4;box-shadow:var(--shadow)}
+.reel.marked .item .nm{color:var(--dim);text-decoration:line-through}
+.reel.marked .noshow{background:var(--red);color:#fff;border-color:var(--red-deep)}
+#redrawBtn{background:var(--red);color:#fff;border:2px solid var(--red-deep);font-weight:700;padding:10px 18px}
 .empty{text-align:center;color:var(--dim-2);font-size:18px;background:var(--paper-2);
   border:2px dashed var(--edge);border-radius:18px;padding:28px}
 
@@ -255,16 +262,11 @@ footer.credit{text-align:center;color:var(--dim);font-size:13px;padding:0 16px 2
     <div style="margin-top:10px;font-size:15px">รวม <b id="pvQty" style="color:var(--red-deep)">0</b> รางวัล</div>
   </div>
   <div class="card freeze">
-    <p class="note">กดปุ่มนี้เมื่อปิดรับสมัครแล้ว ระบบจะสุ่มผู้ได้รับรางวัล<b>ทั้งหมดในครั้งเดียว</b>
-      การหมุนบนเวทีเป็นเพียงการเปิดเผยผลที่สุ่มไว้แล้ว</p>
-    <div class="field" style="max-width:340px;margin:10px auto 4px">
-      <label>เลขสุ่ม (seed)</label>
-      <input id="inSeed" value="1" inputmode="numeric" autocomplete="off" style="text-align:center;font-size:20px">
-    </div>
-    <p class="note">รายชื่อชุดเดิม + เลขสุ่มเดิม = ผู้ได้รับรางวัลชุดเดิมทุกครั้ง ไม่ต้องดาวน์โหลดไฟล์เก็บไว้<br>
-      รหัสรายชื่อ <b id="pvFp">—</b> · ถ้ารหัสนี้ตรงกัน แปลว่ารายชื่อเหมือนเดิมทุกคน</p>
+    <p class="note">กดปุ่มนี้เมื่อปิดรับสมัครแล้ว รายชื่อจะถูกล็อกไว้ และ<b>สุ่มผู้ได้รับรางวัลตอนกดหมุนบนเวที</b><br>
+      ผู้ที่ได้รางวัลแล้วจะไม่ถูกสุ่มซ้ำ · ถ้าผู้ได้รับรางวัลไม่มา กด “ไม่มา” ที่ป้ายชื่อ แล้วกดสุ่มใหม่</p>
+    <p class="note">ผลการสุ่มเก็บไว้ในเครื่องนี้เท่านั้น — ใช้เครื่องเดิมตลอดงาน และกด ⬇ CSV เก็บผลไว้</p>
     <button class="btn-primary btn hand" id="freezeBtn" style="padding:14px 40px;font-size:20px;margin-top:6px">
-      🔒 ปิดรับรายชื่อ &amp; สุ่มรางวัล</button>
+      🔒 ปิดรับรายชื่อ &amp; เริ่มจับรางวัล</button>
     <div style="margin-top:14px"><button class="btn" id="reloadBtn">↻ โหลดรายชื่อใหม่</button></div>
   </div>
 </section>
@@ -288,6 +290,7 @@ footer.credit{text-align:center;color:var(--dim);font-size:13px;padding:0 16px 2
   <select id="prizeSel"></select>
   <button class="btn btn-primary" id="spinBtn">🎰 หมุน</button>
   <button class="btn" id="instantBtn">แสดงผลทันที</button>
+  <button class="btn hidden" id="redrawBtn">🔁 สุ่มใหม่</button>
   <button class="btn" id="undoBtn">↩ ยกเลิกครั้งล่าสุด</button>
   <span class="spacer"></span>
   <button class="btn" id="exportBtn">⬇ CSV ผลรางวัล</button>
@@ -307,7 +310,7 @@ footer.credit{text-align:center;color:var(--dim);font-size:13px;padding:0 16px 2
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
-const LS='luckydraw_v1';
+const LS='luckydraw_v2';   // v1 saves held a seeded draw made in advance; v2 draws live
 // the sheet the draw reads from (read-only, via the public gviz CSV export)
 const SHEET_ID='1Z0fg03PqXRkHUvxk9VOnHNTXxpv33ku5nD82znZYcHg';
 const PRIZE_TAB='Prizes';
@@ -342,37 +345,6 @@ function rnd(n){
   let v;do{crypto.getRandomValues(a);v=a[0];}while(v>=lim);
   return v%n;
 }
-// Seeded generator for the draw: the same seed always gives the same sequence.
-// cyrb128 hashes the seed text into 128 bits, sfc32 turns that into a stream.
-function cyrb128(str){
-  let h1=1779033703,h2=3144134277,h3=1013904242,h4=2773480762;
-  for(let i=0,k;i<str.length;i++){k=str.charCodeAt(i);
-    h1=h2^Math.imul(h1^k,597399067);h2=h3^Math.imul(h2^k,2869860233);
-    h3=h4^Math.imul(h3^k,951274213);h4=h1^Math.imul(h4^k,2716044179);}
-  h1=Math.imul(h3^(h1>>>18),597399067);h2=Math.imul(h4^(h2>>>22),2869860233);
-  h3=Math.imul(h1^(h3>>>17),951274213);h4=Math.imul(h2^(h4>>>19),2716044179);
-  h1^=(h2^h3^h4);h2^=h1;h3^=h1;h4^=h1;
-  return [h1>>>0,h2>>>0,h3>>>0,h4>>>0];
-}
-function seededRnd(seed){
-  let [a,b,c,d]=cyrb128('luckydraw:'+seed);
-  const next=()=>{a|=0;b|=0;c|=0;d|=0;
-    const t=(a+b|0)+d|0;d=d+1|0;a=b^b>>>9;b=c+(c<<3)|0;c=(c<<21|c>>>11);c=c+t|0;return t>>>0;};
-  for(let i=0;i<15;i++)next();
-  return n=>{if(n<=0)return 0;const lim=Math.floor(0x100000000/n)*n;let v;do{v=next();}while(v>=lim);return v%n;};
-}
-// Sheet row order must not matter, so the pool is sorted by a fixed key before shuffling.
-const byKey=(a,b)=>{const x=keyOf(a),y=keyOf(b);return x<y?-1:x>y?1:0;};
-function seededShuffle(arr,seed){
-  const r=seededRnd(seed),a=arr.slice().sort(byKey);
-  for(let i=a.length-1;i>0;i--){const j=r(i+1);[a[i],a[j]]=[a[j],a[i]];}
-  return a;
-}
-// short fingerprint of the participant list, to confirm two draws used the same names
-function fingerprint(list){
-  return cyrb128(list.slice().sort(byKey).map(keyOf).join('\n')).slice(0,2)
-    .map(x=>x.toString(16).padStart(8,'0')).join('').toUpperCase().replace(/(.{4})(?=.)/g,'$1-');
-}
 function gvizURL(id,tab){
   return 'https://docs.google.com/spreadsheets/d/'+encodeURIComponent(id)+
          '/gviz/tq?tqx=out:csv&headers=0&sheet='+encodeURIComponent(tab)+'&_='+Date.now();
@@ -382,7 +354,6 @@ function dl(name,text){
   const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;
   document.body.appendChild(a);a.click();a.remove();
 }
-const keyOf=p=>p.n+'|'+p.r+'|'+p.h;
 // "รุ่น 25 · บ้านยินดี" under a winner's name; a bare number gets the รุ่น prefix
 const metaOf=p=>[p.r&&p.r!==p.n?(/^\d+$/.test(p.r)?'รุ่น '+p.r:p.r):'',p.h].filter(Boolean).join(' · ');
 // 1 ชื่อ 1 สิทธิ์: duplicates are judged on the child's real name alone. Spaces,
@@ -534,7 +505,6 @@ function showPreview(){
       <td class="num">${p.price?baht(p.price):''}</td></tr>`).join('');
   const per={};raw.prizes.forEach(p=>{if(p.round)per[p.round]=(per[p.round]||0)+p.qty;});
   $('pvQty').textContent=tot+(Object.keys(per).length?' ('+Object.keys(per).map(r=>'รอบ '+r+' '+per[r]).join(' · ')+')':'');
-  $('pvFp').textContent=raw.regs.length?fingerprint(raw.regs):'—';
   const w=[];
   if(!raw.regs.length)w.push('ยังไม่มีรายชื่อผู้สมัครเลย');
   if(!raw.prizes.length)w.push('อ่านรายการรางวัลไม่ได้เลย — ตรวจสอบว่าแท็บ Prizes มีคอลัมน์ '+
@@ -551,21 +521,29 @@ const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const baht=n=>Number(n).toLocaleString('en-US');
 const pieceTag=p=>p.piece?` <span class="badge">ชิ้นที่ ${p.piece}</span>`:'';
 
-/* ================= freeze + allocate ================= */
-function freeze(seed){
-  const pool=raw.regs.slice();
-  const bag=seededShuffle(pool,seed);    // one uniform shuffle, drawn off the top
-  const alloc={};let i=0;
-  raw.prizes.forEach(p=>{
-    alloc[p.id]=[];
-    for(let k=0;k<p.qty&&i<bag.length;k++){const w=bag[i++];alloc[p.id].push({...w,status:null});}
-  });
+/* ================= freeze + draw ================= */
+// Freezing only locks the participant list. Winners are drawn when a step spins, from
+// the people who have not won yet and were not marked absent, so nobody wins twice.
+function freeze(){
   S={event:EVENT,sheetId:SHEET_ID,prizeTab:PRIZE_TAB,respTab:RESP_TAB,
-     frozenAt:new Date().toISOString(),pool,prizes:raw.prizes,alloc,seed,fp:fingerprint(pool),
+     frozenAt:new Date().toISOString(),pool:raw.regs.slice(),prizes:raw.prizes,alloc:{},absent:[],
      revealed:{},history:[],dupCount:raw.dups.length};
   save();
-  toast('สุ่มเรียบร้อย — เลขสุ่ม '+seed,3500);
+  toast('ปิดรับรายชื่อแล้ว — '+S.pool.length+' คน',3500);
   enterStage();
+}
+// everyone who can still be drawn: not a winner (shown or drawn) and not marked absent
+function available(){
+  const out={};Object.values(S.alloc).flat().concat(S.absent).forEach(w=>out[nameKey(w.n)]=1);
+  return S.pool.filter(p=>!out[nameKey(p.n)]);
+}
+const pick=avail=>({...avail.splice(rnd(avail.length),1)[0]});
+// A prize already drawn but never shown (the page closed mid-spin) keeps its winners.
+function drawStep(s){
+  const avail=available();
+  s.prizes.forEach(p=>{if(S.alloc[p.id])return;S.alloc[p.id]=[];
+    for(let k=0;k<p.qty&&avail.length;k++)S.alloc[p.id].push(pick(avail));});
+  save();
 }
 function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');
   return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'_'+p(d.getHours())+p(d.getMinutes());}
@@ -591,7 +569,9 @@ function stepsOf(prizes){
   return out;
 }
 const isDone=s=>s.prizes.every(p=>S.revealed[p.id]);
-const pairs=s=>s.prizes.flatMap(p=>(S.alloc[p.id]||[]).map(w=>({p,w})));
+const pairs=s=>s.prizes.flatMap(p=>(S.alloc[p.id]||[]).map((w,k)=>({p,w,k})));
+// the boards a step will show before its spin: one per prize slot, as many as people are left
+const slots=s=>s.prizes.flatMap(p=>Array.from({length:p.qty},(_,k)=>({p,k}))).slice(0,available().length);
 const stepLabel=s=>s.group?'รอบ '+s.round+' — '+s.prizes.length+' รางวัล'
   :s.solo?s.prizes[0].id+' · '+s.prizes[0].name:s.prizes[0].name+' ('+s.prizes[0].qty+' รางวัล)';
 function curStep(){return STEPS.find(s=>s.id===$('prizeSel').value);}
@@ -608,13 +588,13 @@ function enterStage(){
 }
 function updHeader(){
   $('hdrEvent').textContent=S?S.event:EVENT;
-  $('pillPool').innerHTML='ผู้เข้าร่วม <b>'+(S?S.pool.length:raw.regs.length)+'</b> คน';
+  $('pillPool').innerHTML='ผู้เข้าร่วม <b>'+(S?S.pool.length:raw.regs.length)+'</b> คน'+
+    (S?' · ยังไม่ได้รางวัล <b>'+available().length+'</b>':'');
   const ps=S?S.prizes:raw.prizes;
   $('pillPrize').innerHTML='รางวัล <b>'+ps.reduce((s,p)=>s+p.qty,0)+'</b> ชิ้น';
   if(S){const d=new Date(S.frozenAt);
     $('pillFrozen').classList.remove('hidden');
-    $('pillFrozen').innerHTML='🔒 ปิดรับ '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+
-      (S.seed!==undefined?' · เลขสุ่ม <b>'+esc(S.seed)+'</b>':'');}
+    $('pillFrozen').innerHTML='🔒 ปิดรับ '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
 }
 function buildPrizeSel(){
   $('prizeSel').innerHTML=STEPS.map(s=>
@@ -643,6 +623,7 @@ function showStep(id){
   if(done)renderLanded(s); else if(s.group)renderList(s); else renderIdle(s);
   $('spinBtn').disabled=done;
   $('instantBtn').disabled=done;
+  updRedraw();
 }
 function setPhoto(p){
   const b=$('photoBox'),u=p&&photoOf(p);
@@ -672,25 +653,32 @@ function reelHTML(n,item,h){
 }
 // one board: tag (D1 / #1) top-left, the spinning window, and for a whole round the prize's name below
 function reelBox(s,x,i,h,inner,landed){
+  const ns=landed&&x.w?`<button class="noshow" data-i="${i}">ไม่มา</button>`:'';
   const cap=s.group?x.p.name+(x.p.piece?' (ชิ้นที่ '+x.p.piece+')':''):'';
   return `<div class="reel${landed?' landed':''}" id="reel${i}"${cap?` title="${esc(cap)}"`:''}>
        <div class="slotmark">${esc(s.round?x.p.id:'#'+(i+1))}</div>${landed?BOW:''}
-       <div class="win" style="height:${h}px"><div class="strip" id="strip${i}">${inner}</div></div>
+       <div class="win" style="height:${h}px"><div class="strip" id="strip${i}">${inner}</div>${ns}</div>
        ${cap?`<div class="cap">${esc(cap)}</div>`:''}
      </div>`;
 }
 const EMPTY='<div class="empty">รางวัลนี้ไม่มีผู้รับ (ผู้เข้าร่วมไม่พอ)</div>';
+const Q={n:'???',r:'',h:'',q:1};
 function renderIdle(s){
-  const xs=pairs(s);
+  const xs=slots(s);
   const {h}=gridFor(xs.length||1,s.group);
-  if(!xs.length){$('reels').innerHTML=EMPTY;return;}
-  $('reels').innerHTML=xs.map((x,i)=>reelBox(s,x,i,h,reelHTML(i,{n:'???',r:'',h:'',q:1},h))).join('');
+  if(!xs.length){$('reels').innerHTML=EMPTY;return h;}
+  $('reels').innerHTML=xs.map((x,i)=>reelBox(s,x,i,h,reelHTML(i,Q,h))).join('');
+  return h;
 }
-function renderLanded(s){
+// boards in `respin` are drawn blank, ready to spin again for a no-show
+function renderLanded(s,respin){
   const xs=pairs(s);
   const {h}=gridFor(xs.length||1,s.group);
-  if(!xs.length){$('reels').innerHTML=EMPTY;return;}
-  $('reels').innerHTML=xs.map((x,i)=>reelBox(s,x,i,h,reelHTML(i,x.w,h),true)).join('');
+  if(!xs.length){$('reels').innerHTML=EMPTY;return h;}
+  $('reels').innerHTML=xs.map((x,i)=>respin&&respin.has(i)?reelBox(s,x,i,h,reelHTML(i,Q,h))
+    :reelBox(s,x,i,h,reelHTML(i,x.w,h),true)).join('');
+  marked.forEach(i=>$('reel'+i)&&$('reel'+i).classList.add('marked'));
+  return h;
 }
 // the round's printed page (same columns as the PDF), before its spin
 function renderList(s){
@@ -707,59 +695,104 @@ function renderList(s){
 /* ---------- the slot machine ---------- */
 function spin(instant){
   if(spinning)return;
-  const s=curStep();if(!s||isDone(s))return;
+  const s=curStep();if(!s)return;
+  if(isDone(s)){if(!instant)redraw();return;}
+  drawStep(s);
   const xs=pairs(s);
   if(!xs.length){finish(s,true);return;}
   if(instant){finish(s);return;}
-
-  spinning=true;$('spinBtn').disabled=true;$('instantBtn').disabled=true;
-  const {h}=gridFor(xs.length,s.group);
-  renderIdle(s);
+  const h=renderIdle(s);
+  animate(xs,xs.map((x,i)=>i),h,()=>finish(s));
+}
+// roll the boards numbered `idxs` and stop each on its winner in xs
+function animate(xs,idxs,h,done){
+  spinning=true;$('spinBtn').disabled=true;$('instantBtn').disabled=true;$('redrawBtn').disabled=true;
   const pool=S.pool;
-  const lag=xs.length>6?140:260;   // a full round of 15 still lands within ~4 seconds
-  let done=0;
-  xs.forEach(({w},i)=>{
+  const lag=idxs.length>6?140:260;   // a full round of 15 still lands within ~4 seconds
+  let n=0;
+  idxs.forEach((i,j)=>{
     const strip=$('strip'+i);
     const N=26+rnd(10);
     let html='';
     for(let k=0;k<N;k++)html+=reelHTML(i,pool[rnd(pool.length)],h);
-    html+=reelHTML(i,w,h);
+    html+=reelHTML(i,xs[i].w,h);
     strip.innerHTML=html;
     const dist=N*h;
     strip.style.transform='translateY(0)';
-    const dur=2100+i*lag+rnd(400);
+    const dur=2100+j*lag+rnd(400);
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
       strip.style.transition=`transform ${dur}ms cubic-bezier(.12,.72,.16,1)`;
       strip.style.transform=`translateY(-${dist}px)`;
     }));
     setTimeout(()=>{
       $('reel'+i).classList.add('landed');$('reel'+i).insertAdjacentHTML('beforeend',BOW);
-      if(++done===xs.length){spinning=false;finish(s);}
+      if(++n===idxs.length){spinning=false;$('redrawBtn').disabled=false;done();}
     },dur+40);
   });
 }
 function finish(s,quiet){
   s.prizes.forEach(p=>S.revealed[p.id]=true);S.history.push(s.prizes.map(p=>p.id));save();
-  buildPrizeSel();$('prizeSel').value=s.id;showStep(s.id);renderResults();
+  buildPrizeSel();$('prizeSel').value=s.id;showStep(s.id);renderResults();updHeader();
   spinning=false;if(!quiet){boom();cheer();}
 }
 // the two red-hood girls beside the boards hop for joy
 function cheer(){const r=$('stageRow');r.classList.remove('cheer');void r.offsetWidth;r.classList.add('cheer');
   clearTimeout(cheer._t);cheer._t=setTimeout(()=>r.classList.remove('cheer'),2100);}
+
+/* ---------- no-shows ---------- */
+// boards (by index on the step on screen) marked "ไม่มา"; cleared when the step changes
+const marked=new Set();
+function toggleMark(i){
+  if(spinning)return;
+  marked.has(i)?marked.delete(i):marked.add(i);
+  $('reel'+i).classList.toggle('marked',marked.has(i));updRedraw();
+}
+function updRedraw(){
+  const b=$('redrawBtn');b.classList.toggle('hidden',!marked.size);
+  b.textContent='🔁 สุ่มใหม่แทนคนที่ไม่มา ('+marked.size+')';
+}
+// The marked winners lose the prize and are left out of every later draw; each of their
+// boards spins again for someone who has not won yet.
+function redraw(){
+  if(spinning||!marked.size)return;
+  const s=curStep(),xs=pairs(s),avail=available();
+  if(!avail.length)return toast('ไม่เหลือผู้เข้าร่วมให้สุ่มแล้ว');
+  const idxs=[...marked].filter(i=>xs[i]).sort((a,b)=>a-b).slice(0,avail.length);
+  const changes=idxs.map(i=>{const {p,k,w}=xs[i],nw=pick(avail);
+    S.absent.push({...w,pid:p.id});S.alloc[p.id][k]=nw;xs[i]={p,k,w:nw};
+    return {id:p.id,k,old:w};});
+  if(idxs.length<marked.size)toast('ผู้เข้าร่วมเหลือไม่พอ — สุ่มใหม่ได้ '+idxs.length+' คน');
+  S.history.push({redraw:changes});save();
+  idxs.forEach(i=>marked.delete(i));updRedraw();
+  const h=renderLanded(s,new Set(idxs));
+  animate(xs,idxs,h,()=>{showStep(s.id);renderResults();updHeader();boom();cheer();});
+}
 function undo(){
   if(spinning)return toast('รอให้หมุนเสร็จก่อน');
   const last=S.history.pop();
   if(!last)return toast('ไม่มีรายการให้ยกเลิก');
-  const ids=[].concat(last);   // a step's prize ids (older saves hold a single id)
-  ids.forEach(id=>{delete S.revealed[id];(S.alloc[id]||[]).forEach(w=>w.status=null);});
-  const s=STEPS.find(x=>x.prizes.some(p=>p.id===ids[0]));
-  save();buildPrizeSel();renderResults();
-  if(s){$('prizeSel').value=s.id;showStep(s.id);toast('ยกเลิกการเปิด "'+stepLabel(s)+'" แล้ว');}
+  marked.clear();
+  let s,msg;
+  if(last.redraw){
+    // put the absent winners back on their boards and in the draw
+    last.redraw.slice().reverse().forEach(c=>{S.alloc[c.id][c.k]=c.old;
+      const j=S.absent.map(w=>nameKey(w.n)).lastIndexOf(nameKey(c.old.n));if(j>=0)S.absent.splice(j,1);});
+    s=STEPS.find(x=>x.prizes.some(p=>p.id===last.redraw[0].id));
+    msg='ยกเลิกการสุ่มใหม่ — '+last.redraw.map(c=>c.old.n).join(', ')+' กลับมาเป็นผู้ได้รับรางวัล';
+  }else{
+    const ids=[].concat(last);
+    ids.forEach(id=>{delete S.revealed[id];delete S.alloc[id];});
+    s=STEPS.find(x=>x.prizes.some(p=>p.id===ids[0]));
+    if(s)msg='ยกเลิกการเปิด "'+stepLabel(s)+'" แล้ว';
+  }
+  save();buildPrizeSel();renderResults();updHeader();
+  if(s){$('prizeSel').value=s.id;showStep(s.id);toast(msg,3500);}
 }
 
 /* ---------- results + export ---------- */
 function renderResults(){
-  $('resultsBody').innerHTML=(S.seed!==undefined?`<p class="note">เลขสุ่ม <b>${esc(S.seed)}</b> · รหัสรายชื่อ <b>${S.fp}</b> · ${S.pool.length} คน</p>`:'')+
+  const prizeOf=id=>S.prizes.find(p=>p.id===id)||{};
+  $('resultsBody').innerHTML=`<p class="note">ผู้เข้าร่วม ${S.pool.length} คน · ยังไม่ได้รางวัล ${available().length} คน</p>`+
   STEPS.map(s=>{
     const head=`<div class="rgroup"><h4>${esc(stepLabel(s))}</h4>`;
     if(!isDone(s))return head+`<div class="rline st-none"><span>ยังไม่เปิด</span>
@@ -769,13 +802,18 @@ function renderResults(){
         ${s.group?`<br><small class="muted">${esc(x.p.name)}</small>`:''}</span>
         <span class="muted">${esc(metaOf(x.w))}</span></div>`).join('')
       :'<div class="rline st-none"><span>ไม่มีผู้รับ</span><span></span></div>')+'</div>';
-  }).join('');
+  }).join('')+(S.absent.length?`<div class="rgroup"><h4>ไม่มารับรางวัล (สุ่มใหม่แล้ว)</h4>${S.absent.map(w=>
+    `<div class="rline st-absent"><span>${esc(w.n)}<br><small class="muted">${esc((prizeOf(w.pid).round?w.pid+' · ':'')+(prizeOf(w.pid).name||''))}</small></span>
+      <span class="muted">${esc(metaOf(w))}</span></div>`).join('')}</div>`:'');
 }
 function csvAll(){
-  const L=['รางวัล,ชื่อ,รุ่น,ห้อง'];
+  const L=['รางวัล,ชื่อ,รุ่น,ห้อง,สถานะ'];
   const q=s=>'"'+String(s||'').replace(/"/g,'""')+'"';
-  S.prizes.forEach(p=>(S.alloc[p.id]||[]).forEach(w=>
-    L.push([(p.round?p.id+' · ':'')+p.name,w.n,w.r,w.h].map(q).join(','))));
+  const label=p=>(p.round?p.id+' · ':'')+p.name;
+  S.prizes.forEach(p=>{if(S.revealed[p.id])(S.alloc[p.id]||[]).forEach(w=>
+    L.push([label(p),w.n,w.r,w.h,'ได้รับรางวัล'].map(q).join(',')));});
+  S.absent.forEach(w=>{const p=S.prizes.find(x=>x.id===w.pid)||{name:''};
+    L.push([label(p),w.n,w.r,w.h,'ไม่มา (สุ่มใหม่)'].map(q).join(','));});
   return L.join('\n');
 }
 function boom(){
@@ -799,11 +837,11 @@ function boom(){
 $('loadBtn').onclick=loadAll;
 $('reloadBtn').onclick=loadAll;
 $('freezeBtn').onclick=()=>{
-  const seed=$('inSeed').value.trim();
-  if(!seed){toast('กรุณาใส่เลขสุ่ม');$('inSeed').focus();return;}
-  if(!confirm('ยืนยันปิดรับรายชื่อ '+raw.regs.length+' คน และสุ่มรางวัลด้วยเลขสุ่ม '+seed+'?\nหลังจากนี้รายชื่อจะไม่เปลี่ยนอีก'))return;
-  freeze(seed);};
-$('prizeSel').onchange=()=>showStep($('prizeSel').value);
+  if(!confirm('ยืนยันปิดรับรายชื่อ '+raw.regs.length+' คน?\nหลังจากนี้รายชื่อจะไม่เปลี่ยนอีก'))return;
+  freeze();};
+$('prizeSel').onchange=()=>{marked.clear();showStep($('prizeSel').value);};
+$('redrawBtn').onclick=redraw;
+$('reels').onclick=e=>{const b=e.target.closest('.noshow');if(b)toggleMark(+b.dataset.i);};
 $('spinBtn').onclick=()=>spin(false);
 $('instantBtn').onclick=()=>spin(true);
 $('undoBtn').onclick=undo;
@@ -828,7 +866,7 @@ $('hdrEvent').textContent=EVENT;
   if(j)try{s=JSON.parse(j);}catch(e){}
   if(s&&s.pool&&Object.keys(s.revealed||{}).length<(s.prizes||[]).length){
     setMsg('พบงานที่ค้างไว้ (ปิดรับเมื่อ '+new Date(s.frozenAt).toLocaleString('th-TH')+
-      ', ผู้เข้าร่วม '+s.pool.length+' คน'+(s.seed!==undefined?', เลขสุ่ม '+esc(s.seed):'')+')','good');
+      ', ผู้เข้าร่วม '+s.pool.length+' คน)','good');
     $('resumeBtn').classList.remove('hidden');$('loadBtn').classList.remove('hidden');
     $('loadBtn').textContent='เริ่มใหม่ (โหลดรายชื่อ)';
   }else loadAll();})();
