@@ -151,8 +151,8 @@ td.num{font-family:"Mali",cursive;font-weight:700;color:var(--red-deep)}
 .win::after{bottom:0;background:linear-gradient(0deg,var(--lemon) 0%,rgba(233,234,140,0) 100%)}
 .reel.landed .win::before,.reel.landed .win::after{display:none}
 /* which prize this board is for, when a whole round spins at once */
-.reel .cap{position:relative;z-index:4;background:var(--wood);color:#fff6ea;font-size:14px;line-height:28px;height:28px;
-  padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+.reel .cap{position:relative;z-index:4;background:var(--wood);color:#fff6ea;font-size:20px;font-weight:600;line-height:1.3;
+  padding:5px 12px;overflow:hidden;text-align:center;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
 .strip{will-change:transform}
 .item{display:flex;flex-direction:column;align-items:center;justify-content:center;
   text-align:center;padding:0 14px;overflow:hidden}
@@ -658,7 +658,7 @@ function gridFor(n,cap){
   // few winners: keep the boards a readable width instead of stretching across the whole projector
   g.style.maxWidth=({1:760,2:1200,3:1500}[cols]||'')+(cols<=3?'px':'');
   const rows=Math.ceil(n/cols);
-  const h=Math.max(74,Math.min(210,Math.floor((window.innerHeight-380-(cap?rows*48:0))/rows)));
+  const h=Math.max(74,Math.min(210,Math.floor((window.innerHeight-380-(cap?rows*76:0))/rows)));
   gridFor.colW=Math.min(g.clientWidth||g.parentNode.clientWidth||innerWidth,parseInt(g.style.maxWidth,10)||1e9)/cols;
   return {cols,h};
 }
