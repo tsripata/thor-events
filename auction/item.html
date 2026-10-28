@@ -84,6 +84,11 @@ button{font:inherit;cursor:pointer}
 h1{margin:10px 0 4px;font-family:"Mali",cursive;font-size:clamp(26px,6.5vw,36px);line-height:1.25}
 .donor{margin:0;color:#6d6047}
 .desc{margin:10px 0 0;white-space:pre-line}
+.highlight{
+  display:inline-block;margin:12px 0 0;padding:6px 14px;background:var(--lemon);border:2px dashed var(--red);
+  border-radius:12px;color:var(--red-deep);font-weight:700;font-size:16px;line-height:1.4
+}
+.highlight:empty{display:none}
 
 .board{
   margin-top:16px;background:var(--lemon);border:7px solid var(--wood);border-radius:6px;padding:14px;
@@ -288,6 +293,7 @@ function render(){
         ${galleryHtml(it)}
         <div>
           <div class="plank">Item no.<b>${esc(it.no ? it.no.padStart(2, "0") : "–")}</b></div>
+          <div class="highlight" id="highlight"></div>
           <h1 id="name"></h1>
           <p class="donor" id="donor"></p>
           <p class="desc" id="desc"></p>
@@ -299,7 +305,10 @@ function render(){
   }
   $("name").textContent = it.name;
   $("donor").textContent = it.donor ? `💝 บริจาคโดย ${it.donor}` : "";
-  $("desc").textContent = it.desc;
+  // "จุดเด่น: ..." in the description (e.g. who signed it) is shown as a badge above the title.
+  const hl = (it.desc || "").match(/\s*จุดเด่น\s*[:：]\s*([^\n]+)/);
+  $("highlight").textContent = hl ? `✨ ${hl[1].trim()}` : "";
+  $("desc").textContent = hl ? it.desc.replace(hl[0], "").trim() : it.desc;
   $("deal").innerHTML = dealHtml(s);
   $("history").innerHTML = historyHtml(s);
   $("pager").innerHTML = pagerHtml(s);
