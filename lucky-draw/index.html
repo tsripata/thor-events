@@ -164,7 +164,7 @@ td.num{font-family:"Mali",cursive;font-weight:700;color:var(--red-deep)}
   padding:5px 12px;overflow:hidden;text-align:center;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
 .strip{will-change:transform}
 .item{display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:0 14px;overflow:hidden}
+  text-align:center;padding:0 8px;overflow:hidden}
 .item .nm{font-family:"Mali","Sarabun",cursive;font-weight:700;line-height:1.25;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .item .mt{color:var(--dim-2);margin-top:2px;white-space:nowrap}
@@ -703,6 +703,15 @@ function reelHTML(n,item,h){
       <div class="mt" style="font-size:${mf}px">${esc(metaOf(item))}</div>
     </div>`;
 }
+// long names: shrink the font until the whole name fits on the board, rather than cutting it off with "…"
+function fitNames(root){
+  (root||$('reels')).querySelectorAll('.item .nm:not(.q)').forEach(el=>{
+    const f0=parseFloat(el.dataset.f||el.style.fontSize);el.dataset.f=f0;
+    let f=f0;el.style.fontSize=f+'px';
+    while(el.scrollWidth>el.clientWidth+1&&f>Math.max(12,f0*0.45)){f--;el.style.fontSize=f+'px';}
+  });
+}
+document.fonts&&document.fonts.ready.then(()=>fitNames());
 // one board: tag (D1 / #1) top-left, the spinning window, and for a whole round the prize's name below
 function reelBox(s,x,i,h,inner,landed){
   const ns=landed&&x.w?`<button class="noshow" data-i="${i}">ไม่มา</button>`:'';
@@ -730,6 +739,7 @@ function renderLanded(s,respin){
   $('reels').innerHTML=xs.map((x,i)=>respin&&respin.has(i)?reelBox(s,x,i,h,reelHTML(i,Q,h))
     :reelBox(s,x,i,h,reelHTML(i,x.w,h),true)).join('');
   marked.forEach(i=>$('reel'+i)&&$('reel'+i).classList.add('marked'));
+  fitNames();
   return h;
 }
 // the round's printed page (same columns as the PDF), before its spin
@@ -778,6 +788,7 @@ function animate(xs,idxs,h,done){
     }));
     setTimeout(()=>{
       $('reel'+i).classList.add('landed');$('reel'+i).insertAdjacentHTML('beforeend',BOW);
+      fitNames(strip.lastElementChild);
       if(++n===idxs.length){spinning=false;$('redrawBtn').disabled=false;done();}
     },dur+40);
   });
