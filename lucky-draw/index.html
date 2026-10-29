@@ -252,6 +252,7 @@ footer.credit{text-align:center;color:var(--dim);font-size:13px;padding:0 16px 2
   <button class="btn" id="resultsBtn">📋 ผลรางวัล</button>
   <a class="btn" href="list.html" target="_blank" rel="noopener" style="text-decoration:none">👥 รายชื่อ</a>
   <a class="btn" href="prizes.html" target="_blank" rel="noopener" style="text-decoration:none">🎁 รายการรางวัล</a>
+  <a class="btn" href="log.html" target="_blank" rel="noopener" style="text-decoration:none">🕘 ประวัติ</a>
   <button class="btn" id="fsBtn">⛶ เต็มจอ</button>
 </header>
 
@@ -556,9 +557,14 @@ const pieceTag=p=>p.piece?` <span class="badge">ชิ้นที่ ${p.piece}
 // Freezing only locks the participant list. Winners are drawn when a step spins, from
 // the people who have not won yet and were not marked absent, so nobody wins twice.
 function freeze(){
+  // starting fresh replaces the saved draw, but its change log carries over
+  let old=null;try{old=JSON.parse(localStorage.getItem(LS));}catch(e){}
   S={event:EVENT,sheetId:SHEET_ID,prizeTab:PRIZE_TAB,respTab:RESP_TAB,
      frozenAt:new Date().toISOString(),pool:raw.regs.slice(),prizes:raw.prizes,alloc:{},absent:[],
-     revealed:{},history:[],dupCount:raw.dups.length};
+     revealed:{},history:[],dupCount:raw.dups.length,log:old&&Array.isArray(old.log)?old.log:[]};
+  if(old&&old.pool)logEv('reset',{winners:Object.keys(old.revealed||{}).reduce((a,id)=>a+((old.alloc||{})[id]||[]).length,0),
+    absent:(old.absent||[]).length,startedAt:old.frozenAt});
+  logEv('start',{pool:S.pool.length,dups:S.dupCount,prizes:S.prizes.reduce((a,p)=>a+p.qty,0)});
   save();
   toast('เริ่มจับรางวัล — '+S.pool.length+' คน',3500);
   enterStage();
@@ -580,6 +586,10 @@ function drawStep(s){
 function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');
   return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'_'+p(d.getHours())+p(d.getMinutes());}
 function save(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
+// Change log: every start, sync, draw, re-draw and undo with its time, oldest first. Unlike
+// history (the undo stack) nothing is ever taken out of it; log.html shows it.
+function logEv(type,d){(S.log||(S.log=[])).push({t:new Date().toISOString(),type,...d});}
+const who=(w,pid)=>({pid,n:w.n,r:w.r,h:w.h});
 
 // No cut-off: pull the registrations again and add anyone new to the pool. Nobody is ever
 // removed, so winners, absentees and boards already drawn stay as they are.
@@ -591,7 +601,9 @@ async function syncRegs(quiet){
     const regs=dedupe(parseRegs(parseCSV(await r.text()))).keep;
     const have={};S.pool.forEach(p=>have[nameKey(p.n)]=1);
     const add=regs.filter(p=>!have[nameKey(p.n)]);
-    S.pool.push(...add);S.syncedAt=new Date().toISOString();save();
+    S.pool.push(...add);S.syncedAt=new Date().toISOString();
+    if(add.length)logEv('sync',{added:add.map(w=>who(w)),total:S.pool.length});
+    save();
     updHeader();
     if(add.length&&!spinning&&!$('stage').classList.contains('hidden'))showStep($('prizeSel').value);
     if(add.length||!quiet)toast(add.length?'เพิ่มผู้สมัครใหม่ '+add.length+' คน — รวม '+S.pool.length+' คน':'ยังไม่มีผู้สมัครใหม่');
@@ -798,7 +810,7 @@ function spin(instant){
   drawStep(s);
   const xs=pairs(s);
   if(!xs.length){finish(s,true);return;}
-  if(instant){finish(s);return;}
+  if(instant){finish(s,false,true);return;}
   // blank boards for the drawn winners: slots() would count people still free *after* the draw
   const h=renderLanded(s,new Set(xs.keys()));
   animate(xs,xs.map((x,i)=>i),h,()=>finish(s));
@@ -830,8 +842,10 @@ function animate(xs,idxs,h,done){
     },dur+40);
   });
 }
-function finish(s,quiet){
-  s.prizes.forEach(p=>S.revealed[p.id]=true);S.history.push(s.prizes.map(p=>p.id));save();
+function finish(s,quiet,instant){
+  s.prizes.forEach(p=>S.revealed[p.id]=true);S.history.push(s.prizes.map(p=>p.id));
+  logEv('draw',{step:stepLabel(s),instant:!!instant,winners:pairs(s).map(x=>who(x.w,x.p.id))});
+  save();
   buildPrizeSel();$('prizeSel').value=s.id;showStep(s.id);renderResults();updHeader();
   spinning=false;if(!quiet){boom();cheer();}
 }
@@ -847,6 +861,7 @@ function topUp(s,instant){
   const xs=pairs(s),idxs=xs.map((x,i)=>x.k>=before[x.p.id]?i:-1).filter(i=>i>=0);
   if(!idxs.length)return toast('ไม่เหลือผู้เข้าร่วมให้สุ่มแล้ว');
   S.history.push({topup:s.prizes.filter(p=>S.alloc[p.id].length>before[p.id]).map(p=>({id:p.id,from:before[p.id]}))});
+  logEv('topup',{step:stepLabel(s),instant:!!instant,winners:idxs.map(i=>who(xs[i].w,xs[i].p.id))});
   save();
   const done=()=>{buildPrizeSel();$('prizeSel').value=s.id;showStep(s.id);renderResults();updHeader();boom();cheer();};
   if(instant)return done();
@@ -877,7 +892,9 @@ function redraw(){
     S.absent.push({...w,pid:p.id});S.alloc[p.id][k]=nw;xs[i]={p,k,w:nw};
     return {id:p.id,k,old:w};});
   if(idxs.length<marked.size)toast('ผู้เข้าร่วมเหลือไม่พอ — สุ่มใหม่ได้ '+idxs.length+' คน');
-  S.history.push({redraw:changes});save();
+  S.history.push({redraw:changes});
+  logEv('redraw',{step:stepLabel(s),changes:changes.map(c=>({old:who(c.old,c.id),new:who(S.alloc[c.id][c.k],c.id)}))});
+  save();
   idxs.forEach(i=>marked.delete(i));updRedraw();
   const h=renderLanded(s,new Set(idxs));
   animate(xs,idxs,h,()=>{showStep(s.id);renderResults();updHeader();boom();cheer();});
@@ -898,10 +915,14 @@ function undo(){
   marked.clear();
   let s,msg;
   if(last.topup){
+    logEv('undo',{of:'topup',step:ls?stepLabel(ls):'',
+      removed:last.topup.flatMap(c=>S.alloc[c.id].slice(c.from).map(w=>who(w,c.id)))});
     last.topup.forEach(c=>S.alloc[c.id].length=c.from);
     s=STEPS.find(x=>x.prizes.some(p=>p.id===last.topup[0].id));
     msg='ยกเลิกการสุ่มเพิ่ม'+lbl+' แล้ว';
   }else if(last.redraw){
+    logEv('undo',{of:'redraw',step:ls?stepLabel(ls):'',
+      changes:last.redraw.map(c=>({old:who(S.alloc[c.id][c.k],c.id),new:who(c.old,c.id)}))});
     // put the absent winners back on their boards and in the draw
     last.redraw.slice().reverse().forEach(c=>{S.alloc[c.id][c.k]=c.old;
       const j=S.absent.map(w=>nameKey(w.n)).lastIndexOf(nameKey(c.old.n));if(j>=0)S.absent.splice(j,1);});
@@ -909,6 +930,8 @@ function undo(){
     msg='ยกเลิกการสุ่มใหม่ — '+last.redraw.map(c=>c.old.n).join(', ')+' กลับมาเป็นผู้ได้รับรางวัล';
   }else{
     const ids=[].concat(last);
+    logEv('undo',{of:'draw',step:ls?stepLabel(ls):'',
+      removed:ids.flatMap(id=>(S.alloc[id]||[]).map(w=>who(w,id)))});
     ids.forEach(id=>{delete S.revealed[id];delete S.alloc[id];});
     s=STEPS.find(x=>x.prizes.some(p=>p.id===ids[0]));
     if(s)msg='ยกเลิกการเปิด "'+stepLabel(s)+'" แล้ว';
@@ -989,7 +1012,7 @@ $('fsBtn').onclick=()=>document.fullscreenElement?document.exitFullscreen():docu
 $('resumeBtn').onclick=()=>{
   const j=localStorage.getItem(LS);
   if(!j)return toast('ไม่พบงานที่ค้างไว้ในเครื่องนี้');
-  S=JSON.parse(j);enterStage();toast('กู้คืนแล้ว');syncRegs(true);};
+  S=JSON.parse(j);logEv('resume',{});save();enterStage();toast('กู้คืนแล้ว');syncRegs(true);};
 addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT')return;
   if(e.key==='Escape')closePicker();

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="theme-color" content="#f6f0dc">
+<title>ประวัติการเปลี่ยนแปลง — Lucky Draw</title>
+<link rel="icon" href="../auction/jittamett-logo.png?v=20261010">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Same palette as the draw page (index.html) */
+:root{
+  color-scheme:light;
+  --paper:#f6f0dc; --paper-2:#fffaf0; --edge:#eadfc2;
+  --ink:#3b2f27; --dim:#857766; --dim-2:#6d6047;
+  --red:#e2553f; --red-deep:#c23b28; --orange:#e8774d;
+  --olive:#7f8f52; --lemon:#e9ea8c; --lemon-2:#f2f2b4;
+  --wood:#9a4423; --wood-2:#b9592e;
+  --ok:#5aa469; --no:#e2553f;
+  --shadow:0 6px 0 rgba(59,47,39,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--paper);color:var(--ink);min-height:100vh;
+  font-family:"Sarabun",-apple-system,"Segoe UI",Tahoma,"Leelawadee UI",sans-serif;font-variant-numeric:tabular-nums}
+.hand{font-family:"Mali","Sarabun",cursive}
+button,a.btn{font-family:inherit;cursor:pointer;border-radius:12px;text-decoration:none;display:inline-block}
+input{font-family:inherit;border-radius:12px;border:2px solid var(--edge);background:#fff;color:var(--ink);padding:10px 12px;font-size:16px}
+input:focus{outline:none;border-color:var(--orange)}
+.btn{background:var(--paper-2);color:var(--wood);border:2px solid var(--wood);padding:9px 16px;font-size:15px;font-weight:700}
+.muted{color:var(--dim)}
+header{display:flex;align-items:center;gap:10px 14px;padding:14px 18px 10px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;margin-right:6px}
+.brand img{width:46px;height:auto;display:block}
+.brand .ev{font-size:14px;font-weight:600;color:var(--olive);line-height:1.2;min-height:1em}
+header h1{margin:0;font-size:24px;line-height:1.15;color:var(--red);font-weight:700}
+.spacer{flex:1}
+main{width:min(1000px,calc(100% - 32px));margin:4px auto 40px}
+.sheet{background:var(--paper-2);border:2px solid var(--edge);border-radius:22px;box-shadow:var(--shadow)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chip{background:var(--lemon-2);border:2px solid transparent;border-radius:999px;padding:6px 14px;font-size:15px;font-weight:600;color:var(--ink)}
+.chip b{color:var(--red-deep);margin-left:4px}
+.chip.on{background:var(--lemon);border-color:var(--wood)}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.tools input{flex:1 1 260px}
+.card{padding:6px 16px}
+.ev-row{display:flex;gap:12px;padding:12px 0;border-bottom:2px dashed var(--edge)}
+.ev-row:last-child{border-bottom:0}
+.ev-row .tm{flex:none;width:86px;color:var(--dim);font-size:14px;line-height:1.4}
+.ev-row .tm b{display:block;font-family:"Mali",cursive;font-size:17px;color:var(--ink)}
+.ev-row .ic{flex:none;font-size:22px;line-height:1.2}
+.ev-row .bd{flex:1;min-width:0}
+.ev-row .tt{font-weight:700;font-size:16px}
+.ev-row ul{margin:6px 0 0;padding:0;list-style:none;font-size:15px}
+.ev-row li{padding:2px 0}
+.tag{font-family:"Mali",cursive;font-weight:700;color:#fff6ea;background:var(--wood);border-radius:6px;padding:0 7px;margin-right:6px;font-size:13px}
+.out{color:var(--dim);text-decoration:line-through}
+.in{color:#3f7a4c;font-weight:600}
+.t-undo .tt{color:var(--red-deep)}
+.t-reset .tt{color:var(--red-deep)}
+.empty{text-align:center;color:var(--dim-2);font-size:17px;padding:28px}
+.note{font-size:13px;color:var(--dim);line-height:1.65}
+@media (max-width:560px){header h1{font-size:20px}.ev-row .tm{width:62px}}
+@media print{.tools,.chips,header .btn{display:none}.sheet{box-shadow:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <img src="../auction/jittamett-logo.png?v=20261010" alt="Jittamett Family">
+    <div>
+      <div class="ev hand" id="hdrEvent"></div>
+      <h1 class="hand">ประวัติการเปลี่ยนแปลง</h1>
+    </div>
+  </div>
+  <span class="spacer"></span>
+  <a class="btn" href="list.html">👥 รายชื่อ</a>
+  <a class="btn" href="./">🎰 กลับหน้าจับรางวัล</a>
+</header>
+
+<main>
+  <div class="chips" id="chips"></div>
+  <div class="tools">
+    <input id="q" type="search" placeholder="ค้นหาชื่อ หรือรางวัล…" autocomplete="off">
+    <button class="btn" id="csvBtn">⬇ CSV ประวัติ</button>
+  </div>
+  <div class="sheet card"><div id="list"></div></div>
+  <p class="note" id="foot"></p>
+</main>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+// the draw page (index.html) keeps its state, change log included, here on this machine only
+const LS='luckydraw_v2';
+const EVENT='งานโรงเรียน 2569';
+let S=null,kind='all';
+
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// same helpers as index.html, so names and "รุ่น · บ้าน" read the same on every page
+const nameKey=n=>String(n||'').normalize('NFC').replace(/[\s​-‍﻿]+/g,'').toLowerCase();
+const metaOf=p=>[p.r&&p.r!==p.n?(/^\d+$/.test(p.r)?'รุ่น '+p.r:p.r):'',p.h].filter(Boolean).join(' · ');
+const prizeOf=id=>(S.prizes||[]).find(p=>p.id===id)||{id,name:''};
+const label=id=>{const p=prizeOf(id);return (p.round?p.id+' · ':'')+p.name;};
+
+// what each kind of entry looks like, and which filter chip it falls under
+const KINDS={
+  start:{ic:'🎰',f:'setup'}, reset:{ic:'🧹',f:'setup'}, resume:{ic:'⏯',f:'setup'},
+  sync:{ic:'➕',f:'sync'}, draw:{ic:'🏆',f:'draw'}, topup:{ic:'🏆',f:'draw'}, redraw:{ic:'🔁',f:'redraw'}, undo:{ic:'↩',f:'undo'}};
+const FILTERS=[['all','ทั้งหมด'],['draw','🏆 เปิดรางวัล'],['redraw','🔁 สุ่มใหม่'],['undo','↩ ยกเลิก'],
+  ['sync','➕ ผู้สมัครใหม่'],['setup','🎰 เริ่ม/กู้คืน']];
+
+function title(e){
+  switch(e.type){
+    case 'start':return 'เริ่มจับรางวัล — ผู้เข้าร่วม '+e.pool+' คน · รางวัล '+e.prizes+' ชิ้น'+(e.dups?' · ตัดชื่อซ้ำ '+e.dups:'');
+    case 'reset':return 'เริ่มใหม่ทั้งหมด — ล้างผลเดิม (ผู้ได้รับรางวัล '+e.winners+' คน, ไม่มา '+e.absent+' คน)';
+    case 'resume':return 'กู้คืนงานที่ค้างไว้ (เปิดหน้าจับรางวัลใหม่)';
+    case 'sync':return 'เพิ่มผู้สมัครใหม่ '+e.added.length+' คน — รวม '+e.total+' คน';
+    case 'draw':return 'เปิดรางวัล '+e.step+(e.instant?' (แสดงผลทันที)':'')+' — '+(e.winners.length?e.winners.length+' คน':'ไม่มีผู้รับ');
+    case 'topup':return 'สุ่มเพิ่มช่องที่ยังว่าง '+e.step+(e.instant?' (แสดงผลทันที)':'')+' — '+e.winners.length+' คน';
+    case 'redraw':return 'สุ่มใหม่แทนคนที่ไม่มา '+e.changes.length+' คน — '+e.step;
+    case 'undo':return e.of==='redraw'?'ยกเลิกการสุ่มใหม่ — '+e.step:e.of==='topup'?'ยกเลิกการสุ่มเพิ่ม — '+e.step:'ยกเลิกผลรางวัล '+e.step;
+  }
+  return e.type;
+}
+const person=(w,cls)=>`<span class="${cls||''}">${esc(w.n)}</span>${metaOf(w)?` <small class="muted">${esc(metaOf(w))}</small>`:''}`;
+const tag=id=>{const p=prizeOf(id);return p.round?`<span class="tag">${esc(p.id)}</span>`:'';};
+function details(e){
+  let li=[];
+  if(e.type==='sync')li=e.added.map(w=>person(w));
+  if(e.type==='draw'||e.type==='topup')li=e.winners.map(w=>tag(w.pid)+person(w)+(prizeOf(w.pid).round?'':` <small class="muted">${esc(label(w.pid))}</small>`));
+  if(e.type==='undo'&&e.removed)li=e.removed.map(w=>tag(w.pid)+person(w,'out'));
+  // re-draw: the no-show loses the prize to the new name; undoing one swaps them back
+  if(e.changes)li=e.changes.map(c=>tag(c.old.pid)+person(c.old,'out')+' → '+person(c.new,'in'));
+  return li.length?'<ul>'+li.map(x=>'<li>'+x+'</li>').join('')+'</ul>':'';
+}
+// every name an entry touches, for search and the CSV
+function people(e){
+  return e.added||e.winners||e.removed||(e.changes?e.changes.flatMap(c=>[c.old,c.new]):[]);
+}
+
+function load(){
+  S=null;
+  try{const j=localStorage.getItem(LS);if(j)S=JSON.parse(j);}catch(e){}
+  if(S&&!S.pool)S=null;
+}
+const log=()=>S&&Array.isArray(S.log)?S.log:[];
+function filtered(){
+  const k=nameKey($('q').value||'');
+  return log().filter(e=>(kind==='all'||(KINDS[e.type]||{}).f===kind)&&
+    (!k||nameKey([title(e)].concat(people(e).map(w=>[w.n,w.r,w.h,w.pid&&label(w.pid)].join(' '))).join(' ')).includes(k)));
+}
+const two=n=>String(n).padStart(2,'0');
+const hms=d=>two(d.getHours())+':'+two(d.getMinutes())+':'+two(d.getSeconds());
+
+function render(){
+  $('hdrEvent').textContent=S?S.event:EVENT;
+  const L=log();
+  $('chips').innerHTML=FILTERS.map(([k,t])=>{
+    const n=k==='all'?L.length:L.filter(e=>(KINDS[e.type]||{}).f===k).length;
+    return `<button class="chip${k===kind?' on':''}" data-k="${k}">${t}<b>${n}</b></button>`;}).join('');
+  if(!S){
+    $('list').innerHTML='<div class="empty">ยังไม่มีการจับรางวัลในเครื่องนี้<br><small>เปิดหน้านี้บนเครื่องเดียวกับที่ใช้จับรางวัล</small></div>';
+    $('foot').textContent='';return;
+  }
+  // newest first; the date shows when it changes from the entry above
+  const xs=filtered().slice().reverse();let day='';
+  $('list').innerHTML=xs.length?xs.map(e=>{
+    const d=new Date(e.t),dd=d.toLocaleDateString('th-TH',{day:'numeric',month:'short'});
+    const showDay=dd!==day;day=dd;
+    return `<div class="ev-row t-${esc(e.type)}"><div class="tm"><b>${hms(d)}</b>${showDay?esc(dd):''}</div>
+      <div class="ic">${(KINDS[e.type]||{}).ic||'•'}</div>
+      <div class="bd"><div class="tt">${esc(title(e))}</div>${details(e)}</div></div>`;}).join('')
+    :`<div class="empty">${L.length?'ไม่พบรายการที่ค้นหา':'ยังไม่มีประวัติ'}</div>`;
+  $('foot').textContent=(L.length&&!L.some(e=>e.type==='start')?
+    'งานนี้เริ่มก่อนมีการบันทึกประวัติ — รายการก่อน '+new Date(L[0].t).toLocaleString('th-TH')+' ไม่ได้ถูกบันทึก · ':'')+
+    'บันทึกทุกการเปลี่ยนแปลงในเครื่องนี้ ไม่มีการลบ (แม้แต่การยกเลิกก็ถูกบันทึกเป็นรายการใหม่) · หน้านี้อัปเดตเองเมื่อมีการจับรางวัล';
+}
+
+// one row per person an entry touches, so the file can be sorted and filtered in a spreadsheet
+function csv(){
+  const q=s=>'"'+String(s==null?'':s).replace(/"/g,'""')+'"';
+  const ACT={draw:'ได้รับรางวัล',topup:'ได้รับรางวัล',sync:'เพิ่มผู้สมัคร',removed:'ยกเลิกรางวัล',out:'ออก',in:'เข้าแทน'};
+  const L=[['เวลา','ประเภท','รายการ','รางวัล','ชื่อ','รุ่น','บ้าน','การเปลี่ยนแปลง'].join(',')];
+  filtered().forEach(e=>{
+    const base=[new Date(e.t).toLocaleString('th-TH'),e.type,title(e)];
+    const row=(w,a)=>L.push(base.concat([w.pid?label(w.pid):'',w.n,w.r,w.h,a]).map(q).join(','));
+    if(e.changes)e.changes.forEach(c=>{row(c.old,ACT.out);row(c.new,ACT.in);});
+    else if(people(e).length)people(e).forEach(w=>row(w,e.removed?ACT.removed:ACT[e.type]));
+    else L.push(base.concat(['','','','','']).map(q).join(','));
+  });
+  const b=new Blob(['﻿'+L.join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='luckydraw_log.csv';
+  document.body.appendChild(a);a.click();a.remove();
+}
+
+$('chips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;kind=b.dataset.k;render();};
+$('q').oninput=render;
+$('csvBtn').onclick=()=>{if(S)csv();};
+// the draw page saves after every change; follow it live from another tab
+addEventListener('storage',e=>{if(e.key===LS){load();render();}});
+load();render();
+</script>
+</body>
+</html>
