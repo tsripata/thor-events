@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f6f0dc">
+<title>รายการรางวัล — Lucky Draw</title>
+<link rel="icon" href="../auction/jittamett-logo.png?v=20261010">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Same palette as the draw page (index.html) */
+:root{
+  color-scheme:light;
+  --paper:#f6f0dc; --paper-2:#fffaf0; --edge:#eadfc2;
+  --ink:#3b2f27; --dim:#857766; --dim-2:#6d6047;
+  --red:#e2553f; --red-deep:#c23b28; --orange:#e8774d;
+  --olive:#7f8f52; --lemon:#e9ea8c; --lemon-2:#f2f2b4;
+  --wood:#9a4423; --wood-2:#b9592e;
+  --shadow:0 6px 0 rgba(59,47,39,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--paper);color:var(--ink);min-height:100vh;
+  font-family:"Sarabun",-apple-system,"Segoe UI",Tahoma,"Leelawadee UI",sans-serif;font-variant-numeric:tabular-nums}
+.hand{font-family:"Mali","Sarabun",cursive}
+button,a.btn{font-family:inherit;cursor:pointer;border-radius:12px;text-decoration:none;display:inline-block}
+input{font-family:inherit;border-radius:12px;border:2px solid var(--edge);background:#fff;color:var(--ink);padding:10px 12px;font-size:16px}
+input:focus{outline:none;border-color:var(--orange)}
+.btn{background:var(--paper-2);color:var(--wood);border:2px solid var(--wood);padding:9px 16px;font-size:15px;font-weight:700}
+.hidden{display:none !important}
+header{display:flex;align-items:center;gap:10px 14px;padding:14px 18px 10px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;margin-right:6px}
+.brand img{width:46px;height:auto;display:block}
+.brand .ev{font-size:14px;font-weight:600;color:var(--olive);line-height:1.2;min-height:1em}
+header h1{margin:0;font-size:24px;line-height:1.15;color:var(--red);font-weight:700}
+.spacer{flex:1}
+main{width:min(1100px,calc(100% - 32px));margin:4px auto 40px}
+.sheet{background:var(--paper-2);border:2px solid var(--edge);border-radius:22px;box-shadow:var(--shadow)}
+.stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.stat{flex:1;min-width:140px;background:var(--lemon-2);border:3px solid transparent;border-radius:14px;
+  padding:10px 14px;text-align:left;color:var(--ink)}
+.stat .k{font-size:14px;color:var(--dim-2);font-weight:600}
+.stat .v{font-family:"Mali",cursive;font-size:32px;font-weight:700;line-height:1.2}
+.stat.on{background:var(--lemon);border-color:var(--wood)}
+.stat.tot .v{color:var(--red-deep)}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.tools input{flex:1 1 260px}
+.round{margin-bottom:16px;overflow:hidden}
+.round h2{margin:0;padding:10px 16px;background:linear-gradient(180deg,var(--wood-2),var(--wood));color:#fff6ea;
+  font-size:20px;font-weight:600;display:flex;gap:10px;flex-wrap:wrap;align-items:baseline}
+.round h2 small{font-family:"Sarabun",sans-serif;font-size:14px;font-weight:500;opacity:.9}
+.round .wrap{padding:4px 16px 8px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:16px}
+th,td{text-align:left;padding:9px 10px;border-bottom:2px dashed var(--edge);vertical-align:top}
+th{color:var(--dim);font-weight:600;font-size:13px}
+td.id{font-family:"Mali",cursive;font-weight:700;color:var(--red-deep);white-space:nowrap;width:3.6em}
+td.cd{color:var(--dim);font-size:14px;width:4.5em}
+td.nm{min-width:9em}
+td.nm small{display:block;color:var(--dim);font-size:13px}
+.num{text-align:right;white-space:nowrap}
+td.val{font-weight:700}
+tfoot td{background:var(--lemon-2);font-weight:700;border-bottom:none}
+.badge{display:inline-block;background:var(--dim);color:#fff;border-radius:999px;font-size:12px;padding:0 8px;margin-left:4px;vertical-align:1px;white-space:nowrap}
+.empty{text-align:center;color:var(--dim-2);font-size:17px;padding:28px}
+.err{color:var(--red-deep)}
+.note{font-size:13px;color:var(--dim);line-height:1.65}
+@media (max-width:560px){header h1{font-size:20px}.stat .v{font-size:26px}th.opt,td.opt{display:none}}
+@media print{.tools,header .btn{display:none}.sheet,.stat{box-shadow:none}.round{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <img src="../auction/jittamett-logo.png?v=20261010" alt="Jittamett Family">
+    <div>
+      <div class="ev hand" id="hdrEvent"></div>
+      <h1 class="hand">รายการรางวัล</h1>
+    </div>
+  </div>
+  <span class="spacer"></span>
+  <a class="btn" href="./">🎰 กลับหน้าจับรางวัล</a>
+</header>
+
+<main>
+  <div class="stats" id="tabs"></div>
+  <div class="tools">
+    <input id="q" type="search" placeholder="ค้นหาชื่อรางวัล รหัส หรือผู้สนับสนุน…" autocomplete="off">
+    <button class="btn" id="reloadBtn">↻ โหลดใหม่</button>
+    <button class="btn" id="csvBtn">⬇ CSV</button>
+  </div>
+  <div id="list"><div class="sheet empty">กำลังโหลดรายการรางวัล…</div></div>
+  <p class="note" id="foot"></p>
+</main>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+// the same sheet and tab the draw page (index.html) reads its prizes from
+const SHEET_ID='1Z0fg03PqXRkHUvxk9VOnHNTXxpv33ku5nD82znZYcHg';
+const PRIZE_TAB='Prizes';
+const EVENT='งานโรงเรียน 2569';
+const NO_ROUND='-';
+let prizes=[],tab='all',loadedAt=null;
+try{tab=localStorage.getItem('luckydraw_prizes_tab')||'all';}catch(e){}
+
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const baht=n=>Number(n).toLocaleString('en-US');
+const pieceTag=p=>p.piece?` <span class="badge">ชิ้นที่ ${p.piece}</span>`:'';
+const key=s=>String(s||'').normalize('NFC').replace(/[\s​-‍﻿]+/g,'').toLowerCase();
+const roundName=r=>r===NO_ROUND?'ไม่ระบุรอบ':'รอบ '+r;
+
+// same CSV reader and prize parser as index.html, so both pages read the sheet the same way
+function parseCSV(text){
+  const rows=[];let row=[],f='',q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){f+='"';i++;} else q=false; } else f+=c; }
+    else if(c==='"')q=true;
+    else if(c===','){row.push(f);f='';}
+    else if(c==='\n'){row.push(f);rows.push(row);row=[];f='';}
+    else if(c!=='\r')f+=c;
+  }
+  if(f!==''||row.length){row.push(f);rows.push(row);}
+  return rows.map(r=>r.map(x=>x.trim()));
+}
+function parsePrizes(rows){
+  let h=-1;
+  for(let i=0;i<rows.length;i++)
+    if(rows[i].some(c=>c.toLowerCase().includes('prize_id'))){h=i;break;}
+  if(h<0)throw new Error('ไม่พบหัวตาราง prize_id ในแท็บรางวัล');
+  const cols={};
+  rows[h].forEach((c,i)=>{const k=c.toLowerCase();
+    ['prize_id','prize_name_th','qty','sponsor','order','price','round','code'].forEach(n=>{
+      if(k.includes(n)&&cols[n]===undefined)cols[n]=i;});});
+  // gviz blanks the headers of mostly-numeric columns; fall back to their normal position
+  const DEF={prize_id:0,prize_name_th:1,qty:2,sponsor:3,order:4,price:5,round:6,code:7};
+  Object.keys(DEF).forEach(k=>{if(cols[k]===undefined)cols[k]=DEF[k];});
+  const out=[];
+  for(let i=h+1;i<rows.length;i++){
+    const r=rows[i];
+    const name=(r[cols.prize_name_th]||'').trim();
+    const qty=parseInt(r[cols.qty],10);
+    if(!name||!Number.isFinite(qty)||qty<1)continue;   // skips blanks + the total row
+    out.push({id:(r[cols.prize_id]||('P'+(out.length+1))).trim(),name,qty,
+      sponsor:(r[cols.sponsor]||'').trim(),
+      order:parseInt(r[cols.order],10)||(out.length+1),
+      price:parseFloat(String(r[cols.price]||'').replace(/,/g,''))||0,
+      round:(r[cols.round]||'').trim().toUpperCase(),
+      code:(r[cols.code]||'').trim().toUpperCase()});
+  }
+  out.sort((a,b)=>a.order-b.order);
+  // "ชิ้นที่ 2/5" for an item split over several slots, counted A→D like the printed pages
+  const cnt={},seenK={};
+  out.forEach(p=>{if(p.code)cnt[p.code]=(cnt[p.code]||0)+1;});
+  out.slice().sort((a,b)=>a.round.localeCompare(b.round)||a.order-b.order).forEach(p=>{
+    if(cnt[p.code]>1)p.piece=(seenK[p.code]=(seenK[p.code]||0)+1)+'/'+cnt[p.code];});
+  return out;
+}
+
+async function load(){
+  $('list').innerHTML='<div class="sheet empty">กำลังโหลดรายการรางวัล…</div>';
+  try{
+    const url='https://docs.google.com/spreadsheets/d/'+encodeURIComponent(SHEET_ID)+
+      '/gviz/tq?tqx=out:csv&headers=0&sheet='+encodeURIComponent(PRIZE_TAB)+'&_='+Date.now();
+    const r=await fetch(url);
+    if(!r.ok)throw new Error('แท็บ "'+PRIZE_TAB+'" HTTP '+r.status);
+    prizes=parsePrizes(parseCSV(await r.text()));
+    loadedAt=new Date();
+    render();
+  }catch(e){
+    $('list').innerHTML='<div class="sheet empty err">โหลดไม่สำเร็จ: '+esc(e.message)+
+      '<br><small class="note">ตรวจสอบอินเทอร์เน็ต และว่า Sheet ตั้งค่าเป็น “ผู้ที่มีลิงก์ → ผู้อ่าน”</small></div>';
+  }
+}
+
+// rounds A→Z (A is the top tier), prizes with no round last
+function rounds(){
+  const by={};
+  prizes.forEach(p=>{const r=p.round||NO_ROUND;(by[r]=by[r]||[]).push(p);});
+  return Object.keys(by).sort((a,b)=>(a===NO_ROUND)-(b===NO_ROUND)||a.localeCompare(b))
+    .map(r=>({r,prizes:by[r]}));
+}
+const qtyOf=xs=>xs.reduce((s,p)=>s+p.qty,0);
+const valOf=xs=>xs.reduce((s,p)=>s+p.price*p.qty,0);
+function filtered(xs){
+  const k=key($('q').value);
+  return xs.filter(p=>!k||key([p.id,p.code,p.name,p.sponsor].join(' ')).includes(k));
+}
+
+function render(){
+  const rs=rounds();
+  if(tab!=='all'&&!rs.some(x=>x.r===tab))tab='all';
+  // one tab for everything, then one per round
+  $('tabs').innerHTML=[{r:'all',prizes}].concat(rs).map(x=>{
+    const v=valOf(x.prizes);
+    return `<button class="stat${x.r==='all'?' tot':''}${x.r===tab?' on':''}" data-t="${esc(x.r)}">
+      <div class="k">${x.r==='all'?'🎁 ทุกรอบ':esc(roundName(x.r))} · ${qtyOf(x.prizes)} รางวัล</div>
+      <div class="v">${v?baht(v):'—'}</div></button>`;}).join('');
+  const hasSponsor=prizes.some(p=>p.sponsor);
+  const shown=rs.filter(x=>tab==='all'||x.r===tab).map(x=>({...x,xs:filtered(x.prizes)})).filter(x=>x.xs.length);
+  $('list').innerHTML=!prizes.length?'<div class="sheet empty">ยังไม่มีรายการรางวัลในแท็บ Prizes</div>'
+    :!shown.length?'<div class="sheet empty">ไม่พบรางวัลที่ค้นหา</div>'
+    :shown.map(x=>`<section class="sheet round">
+      <h2 class="hand">${esc(roundName(x.r))}<small>${qtyOf(x.prizes)} รางวัล${valOf(x.prizes)?' · มูลค่ารวม '+baht(valOf(x.prizes))+' บาท':''}</small></h2>
+      <div class="wrap"><table>
+        <thead><tr><th>ลำดับ</th><th class="opt">รหัส</th><th>รายการ</th>
+          <th class="num">จำนวน</th><th class="num opt">ราคา/ชิ้น</th><th class="num">มูลค่า (บาท)</th></tr></thead>
+        <tbody>${x.xs.map(p=>`<tr><td class="id">${esc(p.round?p.id:p.order)}</td><td class="cd opt">${esc(p.code)}</td>
+          <td class="nm">${esc(p.name)}${pieceTag(p)}${hasSponsor&&p.sponsor?`<small>ผู้สนับสนุน: ${esc(p.sponsor)}</small>`:''}</td>
+          <td class="num">${p.qty}</td><td class="num opt">${p.price?baht(p.price):''}</td>
+          <td class="num val">${p.price?baht(p.price*p.qty):''}</td></tr>`).join('')}</tbody>
+        ${x.xs.length===x.prizes.length?`<tfoot><tr><td></td><td class="opt"></td><td style="text-align:right">รวม${esc(roundName(x.r))}</td>
+          <td class="num">${qtyOf(x.prizes)}</td><td class="opt"></td><td class="num">${valOf(x.prizes)?baht(valOf(x.prizes)):''}</td></tr></tfoot>`:''}
+      </table></div></section>`).join('');
+  $('foot').textContent='รวมทุกรอบ '+qtyOf(prizes)+' รางวัล มูลค่า '+baht(valOf(prizes))+' บาท · โหลดจาก Google Sheet เมื่อ '+
+    (loadedAt?loadedAt.toLocaleString('th-TH'):'—');
+}
+
+function csv(){
+  const q=s=>'"'+String(s??'').replace(/"/g,'""')+'"';
+  const L=[['รอบ','ลำดับ','รหัส','รายการ','ผู้สนับสนุน','จำนวน','ราคา/ชิ้น','มูลค่า'].join(',')];
+  rounds().filter(x=>tab==='all'||x.r===tab).forEach(x=>filtered(x.prizes).forEach(p=>
+    L.push([p.round,p.round?p.id:p.order,p.code,p.name+(p.piece?' (ชิ้นที่ '+p.piece+')':''),p.sponsor,
+      p.qty,p.price||'',p.price?p.price*p.qty:''].map(q).join(','))));
+  const b=new Blob(['﻿'+L.join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download='luckydraw_prizes'+(tab==='all'?'':'_'+tab)+'.csv';
+  document.body.appendChild(a);a.click();a.remove();
+}
+
+$('hdrEvent').textContent=EVENT;
+$('tabs').onclick=e=>{const b=e.target.closest('.stat');if(!b)return;tab=b.dataset.t;
+  try{localStorage.setItem('luckydraw_prizes_tab',tab);}catch(e){}render();};
+$('q').oninput=()=>{if(prizes.length)render();};
+$('reloadBtn').onclick=load;
+$('csvBtn').onclick=()=>{if(prizes.length)csv();};
+load();
+</script>
+</body>
+</html>
