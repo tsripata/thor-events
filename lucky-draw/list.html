@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="theme-color" content="#f6f0dc">
+<title>รายชื่อ — Lucky Draw</title>
+<link rel="icon" href="../auction/jittamett-logo.png?v=20261010">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Same palette as the draw page (index.html) */
+:root{
+  color-scheme:light;
+  --paper:#f6f0dc; --paper-2:#fffaf0; --edge:#eadfc2;
+  --ink:#3b2f27; --dim:#857766; --dim-2:#6d6047;
+  --red:#e2553f; --red-deep:#c23b28; --orange:#e8774d;
+  --olive:#7f8f52; --lemon:#e9ea8c; --lemon-2:#f2f2b4;
+  --wood:#9a4423; --wood-2:#b9592e;
+  --ok:#5aa469; --no:#e2553f;
+  --shadow:0 6px 0 rgba(59,47,39,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--paper);color:var(--ink);min-height:100vh;
+  font-family:"Sarabun",-apple-system,"Segoe UI",Tahoma,"Leelawadee UI",sans-serif;font-variant-numeric:tabular-nums}
+.hand{font-family:"Mali","Sarabun",cursive}
+button,a.btn{font-family:inherit;cursor:pointer;border-radius:12px;text-decoration:none;display:inline-block}
+input{font-family:inherit;border-radius:12px;border:2px solid var(--edge);background:#fff;color:var(--ink);padding:10px 12px;font-size:16px}
+input:focus{outline:none;border-color:var(--orange)}
+.btn{background:var(--paper-2);color:var(--wood);border:2px solid var(--wood);padding:9px 16px;font-size:15px;font-weight:700}
+.muted{color:var(--dim)}
+.hidden{display:none !important}
+header{display:flex;align-items:center;gap:10px 14px;padding:14px 18px 10px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;margin-right:6px}
+.brand img{width:46px;height:auto;display:block}
+.brand .ev{font-size:14px;font-weight:600;color:var(--olive);line-height:1.2;min-height:1em}
+header h1{margin:0;font-size:24px;line-height:1.15;color:var(--red);font-weight:700}
+.spacer{flex:1}
+main{width:min(1100px,calc(100% - 32px));margin:4px auto 40px}
+.sheet{background:var(--paper-2);border:2px solid var(--edge);border-radius:22px;box-shadow:var(--shadow)}
+.stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.stat{flex:1;min-width:140px;background:var(--lemon-2);border:3px solid transparent;border-radius:14px;
+  padding:10px 14px;text-align:left;color:var(--ink)}
+.stat .k{font-size:14px;color:var(--dim-2);font-weight:600}
+.stat .v{font-family:"Mali",cursive;font-size:32px;font-weight:700;line-height:1.2}
+.stat.on{background:var(--lemon);border-color:var(--wood)}
+.stat.win .v{color:var(--red-deep)} .stat.abs .v{color:var(--dim-2)} .stat.elig .v{color:#3f7a4c}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.tools input{flex:1 1 260px}
+.card{padding:6px 16px 12px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:16px}
+th,td{text-align:left;padding:9px 10px;border-bottom:2px dashed var(--edge);vertical-align:top}
+th{color:var(--dim);font-weight:600;font-size:13px;position:sticky;top:0;background:var(--paper-2)}
+td.no{width:48px;color:var(--dim);font-family:"Mali",cursive}
+td.nm{font-weight:600}
+td.pz small{display:block;color:var(--dim)}
+.tag{font-family:"Mali",cursive;font-weight:700;color:#fff6ea;background:var(--wood);border-radius:6px;padding:0 7px;margin-right:6px;font-size:13px}
+.empty{text-align:center;color:var(--dim-2);font-size:17px;padding:28px}
+.note{font-size:13px;color:var(--dim);line-height:1.65}
+@media (max-width:560px){header h1{font-size:20px}.stat .v{font-size:26px}th.opt,td.opt{display:none}}
+@media print{.tools,header .btn{display:none}.sheet{box-shadow:none}.stat{border-color:transparent}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <img src="../auction/jittamett-logo.png?v=20261010" alt="Jittamett Family">
+    <div>
+      <div class="ev hand" id="hdrEvent"></div>
+      <h1 class="hand">รายชื่อจับรางวัล</h1>
+    </div>
+  </div>
+  <span class="spacer"></span>
+  <a class="btn" href="./">🎰 กลับหน้าจับรางวัล</a>
+</header>
+
+<main>
+  <div class="stats" id="tabs">
+    <button class="stat win" data-t="win"><div class="k">🏆 ได้รับรางวัล</div><div class="v" id="nWin">0</div></button>
+    <button class="stat abs" data-t="abs"><div class="k">🚫 ไม่มา (สุ่มใหม่แล้ว)</div><div class="v" id="nAbs">0</div></button>
+    <button class="stat elig" data-t="elig"><div class="k">🎟 ยังมีสิทธิ์จับรางวัล</div><div class="v" id="nElig">0</div></button>
+  </div>
+  <div class="tools">
+    <input id="q" type="search" placeholder="ค้นหาชื่อ รุ่น หรือบ้าน…" autocomplete="off">
+    <button class="btn" id="csvBtn">⬇ CSV รายการนี้</button>
+  </div>
+  <div class="sheet card"><div id="list"></div></div>
+  <p class="note" id="foot"></p>
+</main>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+// the draw page (index.html) keeps its state here, on this machine only
+const LS='luckydraw_v2';
+const EVENT='งานโรงเรียน 2569';
+let S=null,tab='win';
+try{tab=localStorage.getItem('luckydraw_list_tab')||'win';}catch(e){}
+
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// same helpers as index.html, so names and "รุ่น · บ้าน" read the same on both pages
+const nameKey=n=>n.normalize('NFC').replace(/[\s​-‍﻿]+/g,'').toLowerCase();
+const gen=p=>p.r&&p.r!==p.n?(/^\d+$/.test(p.r)?'รุ่น '+p.r:p.r):'';
+const label=p=>(p.round?p.id+' · ':'')+p.name;
+
+function load(){
+  S=null;
+  try{const j=localStorage.getItem(LS);if(j)S=JSON.parse(j);}catch(e){}
+  if(S&&!S.pool)S=null;
+}
+// winners shown on stage, in prize order
+function winners(){
+  return S.prizes.flatMap(p=>S.revealed[p.id]?(S.alloc[p.id]||[]).map(w=>({...w,p})):[]);
+}
+function absent(){
+  return S.absent.map(w=>({...w,p:S.prizes.find(x=>x.id===w.pid)||{name:''}}));
+}
+// same rule as available() in index.html: not drawn for any prize and not marked absent
+function eligible(){
+  const out={};Object.values(S.alloc).flat().concat(S.absent).forEach(w=>out[nameKey(w.n)]=1);
+  return S.pool.filter(p=>!out[nameKey(p.n)]);
+}
+function rows(){
+  return tab==='win'?winners():tab==='abs'?absent():eligible().slice().sort((a,b)=>a.n.localeCompare(b.n,'th'));
+}
+function filtered(){
+  const k=nameKey($('q').value||'');
+  return rows().filter(w=>!k||nameKey([w.n,w.r,w.h,w.p&&label(w.p)].join(' ')).includes(k));
+}
+
+function render(){
+  $('hdrEvent').textContent=S?S.event:EVENT;
+  document.querySelectorAll('#tabs .stat').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
+  if(!S){
+    ['nWin','nAbs','nElig'].forEach(id=>$(id).textContent='—');
+    $('list').innerHTML='<div class="empty">ยังไม่มีการจับรางวัลในเครื่องนี้<br><small>เปิดหน้านี้บนเครื่องเดียวกับที่ใช้จับรางวัล</small></div>';
+    $('foot').textContent='';return;
+  }
+  $('nWin').textContent=winners().length;
+  $('nAbs').textContent=S.absent.length;
+  $('nElig').textContent=eligible().length;
+  const xs=filtered(),withPrize=tab!=='elig';
+  $('list').innerHTML=xs.length?`<table><thead><tr><th>#</th><th>ชื่อ</th>
+      <th class="opt">รุ่น</th><th class="opt">บ้าน</th>${withPrize?'<th>รางวัล</th>':''}</tr></thead><tbody>${
+    xs.map((w,i)=>`<tr><td class="no">${i+1}</td><td class="nm">${esc(w.n)}</td>
+      <td class="opt">${esc(gen(w))}</td><td class="opt">${esc(w.h)}</td>${withPrize?`<td class="pz">${
+        w.p.round?`<span class="tag">${esc(w.p.id)}</span>`:''}${esc(w.p.name)}</td>`:''}</tr>`).join('')
+  }</tbody></table>`
+    :`<div class="empty">${$('q').value?'ไม่พบชื่อที่ค้นหา':tab==='win'?'ยังไม่มีผู้ได้รับรางวัล':tab==='abs'?'ยังไม่มีคนที่ไม่มา':'ไม่เหลือผู้มีสิทธิ์แล้ว'}</div>`;
+  const d=new Date(S.syncedAt||S.frozenAt);
+  $('foot').textContent='ผู้เข้าร่วมทั้งหมด '+S.pool.length+' คน · รายชื่ออัปเดตล่าสุด '+d.toLocaleString('th-TH')+
+    ' · หน้านี้อัปเดตเองเมื่อมีการจับรางวัลในหน้าจับรางวัล';
+}
+
+function csv(){
+  const q=s=>'"'+String(s||'').replace(/"/g,'""')+'"';
+  const withPrize=tab!=='elig';
+  const L=[['ชื่อ','รุ่น','บ้าน'].concat(withPrize?['รางวัล']:[]).join(',')];
+  filtered().forEach(w=>L.push([w.n,w.r,w.h].concat(withPrize?[label(w.p)]:[]).map(q).join(',')));
+  const name={win:'winners',abs:'no-show',elig:'eligible'}[tab];
+  const b=new Blob(['﻿'+L.join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='luckydraw_'+name+'.csv';
+  document.body.appendChild(a);a.click();a.remove();
+}
+
+$('tabs').onclick=e=>{const b=e.target.closest('.stat');if(!b)return;tab=b.dataset.t;
+  try{localStorage.setItem('luckydraw_list_tab',tab);}catch(e){}render();};
+$('q').oninput=render;
+$('csvBtn').onclick=()=>{if(S)csv();};
+// the draw page saves after every spin, no-show and sync; follow it live from another tab
+addEventListener('storage',e=>{if(e.key===LS){load();render();}});
+load();render();
+</script>
+</body>
+</html>
