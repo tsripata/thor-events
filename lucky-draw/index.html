@@ -187,7 +187,21 @@ td.num{font-family:"Mali",cursive;font-weight:700;color:var(--red-deep)}
 #controls{border-top:2px solid var(--edge);background:rgba(255,250,240,.94);
   backdrop-filter:blur(6px);padding:12px 18px;display:flex;gap:10px;
   align-items:center;flex-wrap:wrap;position:sticky;bottom:0;z-index:40}
-#controls select{min-width:280px;max-width:min(560px,100%);font-size:16px;font-weight:600}
+/* prize picker: a custom list, since macOS draws its own check on a native <select>'s chosen option */
+.picker{position:relative;min-width:280px;max-width:min(560px,100%)}
+.picker-btn{width:100%;text-align:left;background:#fff;color:var(--ink);border:2px solid var(--edge);
+  padding:10px 34px 10px 12px;font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
+.picker-btn::after{content:"▾";position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--dim)}
+.picker-btn:focus-visible,.picker.open .picker-btn{outline:none;border-color:var(--orange)}
+.picker-list{position:absolute;left:0;bottom:calc(100% + 6px);min-width:100%;width:max-content;max-width:min(640px,calc(100vw - 32px));
+  max-height:min(60vh,520px);overflow-y:auto;margin:0;padding:6px;list-style:none;background:#fff;
+  border:2px solid var(--edge);border-radius:12px;box-shadow:0 10px 30px rgba(59,47,39,.18);z-index:50}
+.picker-list li{display:flex;gap:8px;align-items:baseline;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:15px;font-weight:600}
+.picker-list li:hover{background:var(--lemon-2)}
+.picker-list li.cur{background:var(--lemon)}
+.picker-list .mk{flex:none;width:1.1em;text-align:center}
+.picker-list .mk.arrow{color:var(--red)}
+.picker-list .mk.check{color:var(--ok)}
 #spinBtn{padding:12px 36px;font-size:21px;font-family:"Mali",cursive}
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;z-index:100;
   background:var(--ink);color:#fff;padding:11px 18px;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.2);
@@ -209,7 +223,7 @@ td.num{font-family:"Mali",cursive;font-weight:700;color:var(--red-deep)}
 footer.credit{text-align:center;color:var(--dim);font-size:13px;padding:0 16px 24px}
 @media (max-width:560px){
   header h1{font-size:20px}
-  #controls select{min-width:0;flex:1 1 100%}
+  #controls .picker{min-width:0;flex:1 1 100%}
   #spinBtn{flex:1}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -298,7 +312,11 @@ footer.credit{text-align:center;color:var(--dim);font-size:13px;padding:0 16px 2
 </section>
 
 <div id="controls" class="hidden">
-  <select id="prizeSel"></select>
+  <select id="prizeSel" class="hidden"></select>
+  <div class="picker" id="picker">
+    <button type="button" class="picker-btn" id="pickerBtn" aria-haspopup="listbox"></button>
+    <ul class="picker-list hidden" id="pickerList" role="listbox"></ul>
+  </div>
   <button class="btn btn-primary" id="spinBtn">🎰 หมุน</button>
   <button class="btn" id="instantBtn">แสดงผลทันที</button>
   <button class="btn hidden" id="redrawBtn">🔁 สุ่มใหม่</button>
@@ -642,10 +660,22 @@ function updHeader(){
 function buildPrizeSel(){
   $('prizeSel').innerHTML=STEPS.map(s=>
     `<option value="${esc(s.id)}">${isDone(s)?'✓ ':''}${esc(stepLabel(s))}</option>`).join('');
+  syncPicker();
 }
+// ▶ marks the prize on stage, ✓ marks prizes that already have winners
+function syncPicker(){
+  const cur=$('prizeSel').value,s=STEPS.find(x=>x.id===cur);
+  $('pickerBtn').textContent=s?(isDone(s)?'✓ ':'')+stepLabel(s):'';
+  $('pickerList').innerHTML=STEPS.map(s=>
+    `<li role="option" data-id="${esc(s.id)}"${s.id===cur?' class="cur" aria-selected="true"':''}>`+
+    `<span class="mk arrow">${s.id===cur?'▶':''}</span><span class="mk check">${isDone(s)?'✓':''}</span>`+
+    `<span>${esc(stepLabel(s))}</span></li>`).join('');
+}
+function closePicker(){$('pickerList').classList.add('hidden');$('picker').classList.remove('open');}
 
 function showStep(id){
   const s=STEPS.find(x=>x.id===id);if(!s)return;
+  syncPicker();
   const p=s.prizes[0];
   if(s.group){
     const vals=s.prizes.map(x=>x.price).filter(Boolean);
@@ -906,12 +936,20 @@ function boom(){
 }
 
 /* ================= wiring ================= */
-$('loadBtn').onclick=loadAll;
+$('loadBtn').onclick=()=>{
+  if(!$('resumeBtn').classList.contains('hidden')&&
+     !confirm('เริ่มใหม่ทั้งหมด?\nงานที่ค้างไว้ในเครื่องนี้ (รวมผู้ได้รางวัลที่จับไปแล้ว) จะถูกแทนที่เมื่อเริ่มจับรางวัลใหม่'))return;
+  loadAll();};
 $('reloadBtn').onclick=loadAll;
 $('freezeBtn').onclick=()=>{
   if(!confirm('เริ่มจับรางวัล ('+raw.regs.length+' คน)?\nผู้สมัครใหม่เพิ่มได้ภายหลังด้วยปุ่ม ↻ รายชื่อใหม่'))return;
   freeze();};
 $('prizeSel').onchange=()=>{marked.clear();showStep($('prizeSel').value);};
+$('pickerBtn').onclick=()=>{const open=$('pickerList').classList.toggle('hidden');$('picker').classList.toggle('open',!open);
+  if(!open){const c=$('pickerList').querySelector('.cur');if(c)c.scrollIntoView({block:'nearest'});}};
+$('pickerList').onclick=e=>{const li=e.target.closest('li');if(!li)return;closePicker();
+  if(li.dataset.id!==$('prizeSel').value){$('prizeSel').value=li.dataset.id;$('prizeSel').onchange();}};
+document.addEventListener('click',e=>{if(!$('picker').contains(e.target))closePicker();});
 $('redrawBtn').onclick=redraw;
 $('reels').onclick=e=>{const b=e.target.closest('.noshow');if(b)toggleMark(+b.dataset.i);};
 $('spinBtn').onclick=()=>spin(false);
@@ -928,6 +966,7 @@ $('resumeBtn').onclick=()=>{
   S=JSON.parse(j);enterStage();toast('กู้คืนแล้ว');syncRegs(true);};
 addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT')return;
+  if(e.key==='Escape')closePicker();
   if(e.code==='Space'&&!$('controls').classList.contains('hidden')){e.preventDefault();spin(false);}
   if(e.key==='z'&&(e.ctrlKey||e.metaKey)){e.preventDefault();undo();}});
 addEventListener('resize',()=>{if(S&&!spinning&&!$('stage').classList.contains('hidden'))showStep($('prizeSel').value);});
