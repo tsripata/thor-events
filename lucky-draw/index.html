@@ -753,7 +753,8 @@ function spin(instant){
   const xs=pairs(s);
   if(!xs.length){finish(s,true);return;}
   if(instant){finish(s);return;}
-  const h=renderIdle(s);
+  // blank boards for the drawn winners: slots() would count people still free *after* the draw
+  const h=renderLanded(s,new Set(xs.keys()));
   animate(xs,xs.map((x,i)=>i),h,()=>finish(s));
 }
 // roll the boards numbered `idxs` and stop each on its winner in xs
