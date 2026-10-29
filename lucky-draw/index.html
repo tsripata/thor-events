@@ -575,11 +575,12 @@ function available(){
   return S.pool.filter(p=>!out[nameKey(p.n)]);
 }
 const pick=avail=>({...avail.splice(rnd(avail.length),1)[0]});
-// A prize already drawn but never shown (the page closed mid-spin) keeps its winners.
+// A prize already drawn but never shown (the page closed mid-spin) keeps its winners;
+// only its empty slots (too few people at the time) are filled.
 function drawStep(s){
   const avail=available();
-  s.prizes.forEach(p=>{if(S.alloc[p.id])return;S.alloc[p.id]=[];
-    for(let k=0;k<p.qty&&avail.length;k++)S.alloc[p.id].push(pick(avail));});
+  s.prizes.forEach(p=>{const a=S.alloc[p.id]=S.alloc[p.id]||[];
+    while(a.length<p.qty&&avail.length)a.push(pick(avail));});
   save();
 }
 function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');
@@ -643,6 +644,8 @@ function stepsOf(prizes){
   return out;
 }
 const isDone=s=>s.prizes.every(p=>S.revealed[p.id]);
+// a shown step with empty slots (too few people back then) that newcomers could still fill
+const canTopUp=s=>isDone(s)&&s.prizes.some(p=>(S.alloc[p.id]||[]).length<p.qty)&&available().length>0;
 const pairs=s=>s.prizes.flatMap(p=>(S.alloc[p.id]||[]).map((w,k)=>({p,w,k})));
 // the boards a step will show before its spin: one per prize slot, as many as people are left
 const slots=s=>s.prizes.flatMap(p=>Array.from({length:p.qty},(_,k)=>({p,k}))).slice(0,available().length);
@@ -707,8 +710,8 @@ function showStep(id){
   setPhoto(s.solo?p:null);
   const done=isDone(s);
   if(done)renderLanded(s); else if(s.group)renderList(s); else renderIdle(s);
-  $('spinBtn').disabled=done;
-  $('instantBtn').disabled=done;
+  $('spinBtn').disabled=done&&!canTopUp(s);
+  $('instantBtn').disabled=done&&!canTopUp(s);
   updRedraw();
 }
 function setPhoto(p){
@@ -778,6 +781,7 @@ function renderIdle(s){
 // boards in `respin` are drawn blank, ready to spin again for a no-show
 function renderLanded(s,respin){
   const xs=pairs(s);
+  if(!xs.length&&canTopUp(s))return renderIdle(s);
   const {h}=gridFor(xs.length||1,s.group);
   if(!xs.length){$('reels').innerHTML=EMPTY;return h;}
   $('reels').innerHTML=xs.map((x,i)=>respin&&respin.has(i)?reelBox(s,x,i,h,reelHTML(i,Q,h))
@@ -802,7 +806,7 @@ function renderList(s){
 function spin(instant){
   if(spinning)return;
   const s=curStep();if(!s)return;
-  if(isDone(s)){if(!instant)redraw();return;}
+  if(isDone(s)){if(canTopUp(s))topUp(s,instant);else if(!instant)redraw();return;}
   drawStep(s);
   const xs=pairs(s);
   if(!xs.length){finish(s,true);return;}
@@ -849,6 +853,22 @@ function finish(s,quiet,instant){
 function cheer(){const r=$('stageRow');r.classList.remove('cheer');void r.offsetWidth;r.classList.add('cheer');
   clearTimeout(cheer._t);cheer._t=setTimeout(()=>r.classList.remove('cheer'),2100);}
 
+// People registered after this step was shown with empty slots: spin just those slots.
+function topUp(s,instant){
+  marked.clear();updRedraw();
+  const before={};s.prizes.forEach(p=>before[p.id]=(S.alloc[p.id]||[]).length);
+  drawStep(s);
+  const xs=pairs(s),idxs=xs.map((x,i)=>x.k>=before[x.p.id]?i:-1).filter(i=>i>=0);
+  if(!idxs.length)return toast('ไม่เหลือผู้เข้าร่วมให้สุ่มแล้ว');
+  S.history.push({topup:s.prizes.filter(p=>S.alloc[p.id].length>before[p.id]).map(p=>({id:p.id,from:before[p.id]}))});
+  logEv('topup',{step:stepLabel(s),instant:!!instant,winners:idxs.map(i=>who(xs[i].w,xs[i].p.id))});
+  save();
+  const done=()=>{buildPrizeSel();$('prizeSel').value=s.id;showStep(s.id);renderResults();updHeader();boom();cheer();};
+  if(instant)return done();
+  const h=renderLanded(s,new Set(idxs));
+  animate(xs,idxs,h,done);
+}
+
 /* ---------- no-shows ---------- */
 // boards (by index on the step on screen) marked "ไม่มา"; cleared when the step changes
 const marked=new Set();
@@ -884,15 +904,23 @@ function undo(){
   const last=S.history[S.history.length-1];
   if(!last)return toast('ไม่มีรายการให้ยกเลิก');
   // undo has no redo, and spinning again picks different winners, so ask first
-  const lastId=last.redraw?last.redraw[0].id:[].concat(last)[0];
+  const lastId=last.redraw?last.redraw[0].id:last.topup?last.topup[0].id:[].concat(last)[0];
   const ls=STEPS.find(x=>x.prizes.some(p=>p.id===lastId)),lbl=ls?' "'+stepLabel(ls)+'"':'';
-  if(!confirm(last.redraw
+  if(!confirm(last.topup
+    ?'ยกเลิกการสุ่มเพิ่ม'+lbl+'?\nผู้ได้รับรางวัลที่เพิ่งสุ่มเพิ่มจะถูกลบ'
+    :last.redraw
     ?'ยกเลิกการสุ่มใหม่'+lbl+'?\n'+last.redraw.map(c=>c.old.n).join(', ')+' จะกลับมาเป็นผู้ได้รับรางวัล'
     :'ยกเลิกผลรางวัล'+lbl+'?\nรายชื่อผู้ได้รับรางวัลรอบนี้จะถูกลบ และถ้าหมุนใหม่จะได้คนอื่น'))return;
   S.history.pop();
   marked.clear();
   let s,msg;
-  if(last.redraw){
+  if(last.topup){
+    logEv('undo',{of:'topup',step:ls?stepLabel(ls):'',
+      removed:last.topup.flatMap(c=>S.alloc[c.id].slice(c.from).map(w=>who(w,c.id)))});
+    last.topup.forEach(c=>S.alloc[c.id].length=c.from);
+    s=STEPS.find(x=>x.prizes.some(p=>p.id===last.topup[0].id));
+    msg='ยกเลิกการสุ่มเพิ่ม'+lbl+' แล้ว';
+  }else if(last.redraw){
     logEv('undo',{of:'redraw',step:ls?stepLabel(ls):'',
       changes:last.redraw.map(c=>({old:who(S.alloc[c.id][c.k],c.id),new:who(c.old,c.id)}))});
     // put the absent winners back on their boards and in the draw

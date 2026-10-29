@@ -110,7 +110,7 @@ const label=id=>{const p=prizeOf(id);return (p.round?p.id+' · ':'')+p.name;};
 // what each kind of entry looks like, and which filter chip it falls under
 const KINDS={
   start:{ic:'🎰',f:'setup'}, reset:{ic:'🧹',f:'setup'}, resume:{ic:'⏯',f:'setup'},
-  sync:{ic:'➕',f:'sync'}, draw:{ic:'🏆',f:'draw'}, redraw:{ic:'🔁',f:'redraw'}, undo:{ic:'↩',f:'undo'}};
+  sync:{ic:'➕',f:'sync'}, draw:{ic:'🏆',f:'draw'}, topup:{ic:'🏆',f:'draw'}, redraw:{ic:'🔁',f:'redraw'}, undo:{ic:'↩',f:'undo'}};
 const FILTERS=[['all','ทั้งหมด'],['draw','🏆 เปิดรางวัล'],['redraw','🔁 สุ่มใหม่'],['undo','↩ ยกเลิก'],
   ['sync','➕ ผู้สมัครใหม่'],['setup','🎰 เริ่ม/กู้คืน']];
 
@@ -121,8 +121,9 @@ function title(e){
     case 'resume':return 'กู้คืนงานที่ค้างไว้ (เปิดหน้าจับรางวัลใหม่)';
     case 'sync':return 'เพิ่มผู้สมัครใหม่ '+e.added.length+' คน — รวม '+e.total+' คน';
     case 'draw':return 'เปิดรางวัล '+e.step+(e.instant?' (แสดงผลทันที)':'')+' — '+(e.winners.length?e.winners.length+' คน':'ไม่มีผู้รับ');
+    case 'topup':return 'สุ่มเพิ่มช่องที่ยังว่าง '+e.step+(e.instant?' (แสดงผลทันที)':'')+' — '+e.winners.length+' คน';
     case 'redraw':return 'สุ่มใหม่แทนคนที่ไม่มา '+e.changes.length+' คน — '+e.step;
-    case 'undo':return e.of==='redraw'?'ยกเลิกการสุ่มใหม่ — '+e.step:'ยกเลิกผลรางวัล '+e.step;
+    case 'undo':return e.of==='redraw'?'ยกเลิกการสุ่มใหม่ — '+e.step:e.of==='topup'?'ยกเลิกการสุ่มเพิ่ม — '+e.step:'ยกเลิกผลรางวัล '+e.step;
   }
   return e.type;
 }
@@ -131,7 +132,7 @@ const tag=id=>{const p=prizeOf(id);return p.round?`<span class="tag">${esc(p.id)
 function details(e){
   let li=[];
   if(e.type==='sync')li=e.added.map(w=>person(w));
-  if(e.type==='draw')li=e.winners.map(w=>tag(w.pid)+person(w)+(prizeOf(w.pid).round?'':` <small class="muted">${esc(label(w.pid))}</small>`));
+  if(e.type==='draw'||e.type==='topup')li=e.winners.map(w=>tag(w.pid)+person(w)+(prizeOf(w.pid).round?'':` <small class="muted">${esc(label(w.pid))}</small>`));
   if(e.type==='undo'&&e.removed)li=e.removed.map(w=>tag(w.pid)+person(w,'out'));
   // re-draw: the no-show loses the prize to the new name; undoing one swaps them back
   if(e.changes)li=e.changes.map(c=>tag(c.old.pid)+person(c.old,'out')+' → '+person(c.new,'in'));
@@ -183,7 +184,7 @@ function render(){
 // one row per person an entry touches, so the file can be sorted and filtered in a spreadsheet
 function csv(){
   const q=s=>'"'+String(s==null?'':s).replace(/"/g,'""')+'"';
-  const ACT={draw:'ได้รับรางวัล',sync:'เพิ่มผู้สมัคร',removed:'ยกเลิกรางวัล',out:'ออก',in:'เข้าแทน'};
+  const ACT={draw:'ได้รับรางวัล',topup:'ได้รับรางวัล',sync:'เพิ่มผู้สมัคร',removed:'ยกเลิกรางวัล',out:'ออก',in:'เข้าแทน'};
   const L=[['เวลา','ประเภท','รายการ','รางวัล','ชื่อ','รุ่น','บ้าน','การเปลี่ยนแปลง'].join(',')];
   filtered().forEach(e=>{
     const base=[new Date(e.t).toLocaleString('th-TH'),e.type,title(e)];

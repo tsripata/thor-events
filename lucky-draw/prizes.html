@@ -59,6 +59,17 @@ th{color:var(--dim);font-weight:600;font-size:13px}
 td.id{font-family:"Mali",cursive;font-weight:700;color:var(--red-deep);white-space:nowrap;width:3.6em}
 td.cd{color:var(--dim);font-size:14px;width:4.5em}
 td.nm{min-width:9em}
+/* round A items' photos (img/<code>.jpg, -2, -3 …), same files the draw page shows */
+.ph{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.ph:empty{display:none}
+.ph button{padding:0;border:3px solid var(--wood);border-radius:8px;background:#fff;overflow:hidden;line-height:0}
+.ph img{width:min(220px,60vw);height:min(165px,45vw);object-fit:cover;display:block}
+.ph button+button img{width:min(110px,30vw);height:min(82px,22vw)}
+#lb{position:fixed;inset:0;z-index:50;background:rgba(59,47,39,.88);display:flex;align-items:center;justify-content:center;padding:16px}
+#lb img{max-width:100%;max-height:calc(100vh - 90px);border:6px solid var(--paper-2);border-radius:8px;background:#fff}
+#lb .nav{position:absolute;top:50%;transform:translateY(-50%);font-size:28px;padding:6px 14px}
+#lb .prev{left:12px} #lb .next{right:12px}
+#lb .cap{position:absolute;left:0;right:0;bottom:14px;text-align:center;color:#fff6ea;font-size:16px;font-weight:600;padding:0 16px}
 td.nm small{display:block;color:var(--dim);font-size:13px}
 .num{text-align:right;white-space:nowrap}
 td.val{font-weight:700}
@@ -68,7 +79,7 @@ tfoot td{background:var(--lemon-2);font-weight:700;border-bottom:none}
 .err{color:var(--red-deep)}
 .note{font-size:13px;color:var(--dim);line-height:1.65}
 @media (max-width:560px){header h1{font-size:20px}.stat .v{font-size:26px}th.opt,td.opt{display:none}}
-@media print{.tools,header .btn{display:none}.sheet,.stat{box-shadow:none}.round{break-inside:avoid}}
+@media print{.tools,header .btn,#lb{display:none !important}.sheet,.stat{box-shadow:none}.round{break-inside:avoid}}
 </style>
 </head>
 <body>
@@ -94,6 +105,10 @@ tfoot td{background:var(--lemon-2);font-weight:700;border-bottom:none}
   <div id="list"><div class="sheet empty">กำลังโหลดรายการรางวัล…</div></div>
   <p class="note" id="foot"></p>
 </main>
+<div id="lb" class="hidden"><img id="lbImg" alt="">
+  <button class="btn nav prev" id="lbPrev" aria-label="ก่อนหน้า">‹</button>
+  <button class="btn nav next" id="lbNext" aria-label="ถัดไป">›</button>
+  <div class="cap" id="lbCap"></div></div>
 
 <script>
 'use strict';
@@ -111,6 +126,36 @@ const baht=n=>Number(n).toLocaleString('en-US');
 const pieceTag=p=>p.piece?` <span class="badge">ชิ้นที่ ${p.piece}</span>`:'';
 const key=s=>String(s||'').normalize('NFC').replace(/[\s​-‍﻿]+/g,'').toLowerCase();
 const roundName=r=>r===NO_ROUND?'ไม่ระบุรอบ':'รอบ '+r;
+// rounds whose items get their photos listed (the one-at-a-time prizes on the draw page)
+const PHOTO_ROUNDS=['A'];
+// same lookup as photosOf() in index.html: img/W004.jpg, then img/W004-2.jpg … to the first missing
+const MAX_PHOTOS=6;
+const photoCache={};
+function photosOf(code){
+  if(!code)return Promise.resolve([]);
+  if(photoCache[code])return photoCache[code];
+  const base='img/'+encodeURIComponent(code);
+  const probe=u=>new Promise(r=>{const i=new Image();i.onload=()=>r(u);i.onerror=()=>r(null);i.src=u;});
+  return photoCache[code]=(async()=>{const out=[];
+    for(let k=1;k<=MAX_PHOTOS;k++){const u=await probe(base+(k>1?'-'+k:'')+'.jpg');if(!u)break;out.push(u);}
+    return out;})();
+}
+function fillPhotos(){
+  document.querySelectorAll('.ph[data-code]').forEach(el=>photosOf(el.dataset.code).then(us=>{
+    if(!el.isConnected)return;
+    el.innerHTML=us.map((u,i)=>`<button type="button" data-i="${i}"><img src="${esc(u)}" alt="" loading="lazy"></button>`).join('');
+    el.onclick=e=>{const b=e.target.closest('button');if(b)openLB(us,+b.dataset.i,el.dataset.name);};
+  }));
+}
+// tap a photo to see it large; ‹ › or the arrow keys step through that item's photos
+let lb={us:[],i:0,name:''};
+function showLB(){
+  $('lbImg').src=lb.us[lb.i];
+  $('lbCap').textContent=lb.name+(lb.us.length>1?' · '+(lb.i+1)+'/'+lb.us.length:'');
+  $('lbPrev').classList.toggle('hidden',lb.us.length<2);$('lbNext').classList.toggle('hidden',lb.us.length<2);
+}
+function openLB(us,i,name){lb={us,i,name};showLB();$('lb').classList.remove('hidden');}
+const stepLB=d=>{lb.i=(lb.i+d+lb.us.length)%lb.us.length;showLB();};
 
 // same CSV reader and prize parser as index.html, so both pages read the sheet the same way
 function parseCSV(text){
@@ -209,7 +254,8 @@ function render(){
         <thead><tr><th>ลำดับ</th><th class="opt">รหัส</th><th>รายการ</th>
           <th class="num">จำนวน</th><th class="num opt">ราคา/ชิ้น</th><th class="num">มูลค่า (บาท)</th></tr></thead>
         <tbody>${x.xs.map(p=>`<tr><td class="id">${esc(p.round?p.id:p.order)}</td><td class="cd opt">${esc(p.code)}</td>
-          <td class="nm">${esc(p.name)}${pieceTag(p)}${hasSponsor&&p.sponsor?`<small>ผู้สนับสนุน: ${esc(p.sponsor)}</small>`:''}</td>
+          <td class="nm">${esc(p.name)}${pieceTag(p)}${hasSponsor&&p.sponsor?`<small>ผู้สนับสนุน: ${esc(p.sponsor)}</small>`:''}${
+            PHOTO_ROUNDS.includes(p.round)&&p.code?`<div class="ph" data-code="${esc(p.code)}" data-name="${esc(p.id+' · '+p.name)}"></div>`:''}</td>
           <td class="num">${p.qty}</td><td class="num opt">${p.price?baht(p.price):''}</td>
           <td class="num val">${p.price?baht(p.price*p.qty):''}</td></tr>`).join('')}</tbody>
         ${x.xs.length===x.prizes.length?`<tfoot><tr><td></td><td class="opt"></td><td style="text-align:right">รวม${esc(roundName(x.r))}</td>
@@ -217,6 +263,7 @@ function render(){
       </table></div></section>`).join('');
   $('foot').textContent='รวมทุกรอบ '+qtyOf(prizes)+' รางวัล มูลค่า '+baht(valOf(prizes))+' บาท · โหลดจาก Google Sheet เมื่อ '+
     (loadedAt?loadedAt.toLocaleString('th-TH'):'—');
+  fillPhotos();
 }
 
 function csv(){
@@ -232,6 +279,10 @@ function csv(){
 }
 
 $('hdrEvent').textContent=EVENT;
+$('lb').onclick=e=>{if(e.target.closest('.nav'))return;$('lb').classList.add('hidden');};
+$('lbPrev').onclick=()=>stepLB(-1);$('lbNext').onclick=()=>stepLB(1);
+addEventListener('keydown',e=>{if($('lb').classList.contains('hidden'))return;
+  if(e.key==='Escape')$('lb').classList.add('hidden');else if(e.key==='ArrowLeft')stepLB(-1);else if(e.key==='ArrowRight')stepLB(1);});
 $('tabs').onclick=e=>{const b=e.target.closest('.stat');if(!b)return;tab=b.dataset.t;
   try{localStorage.setItem('luckydraw_prizes_tab',tab);}catch(e){}render();};
 $('q').oninput=()=>{if(prizes.length)render();};
