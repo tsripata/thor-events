@@ -733,13 +733,12 @@ function setPhoto(p){
 }
 function gridFor(n,cap){
   const g=$('reels');
-  // at most 3 across so names and prizes stay readable; bigger rounds scroll instead of shrinking
-  const cols=innerWidth<560?Math.min(n,n<=4?1:2):n<=1?1:n<=3?n:n<=4?2:3;
+  const cols=innerWidth<560?Math.min(n,n<=4?1:2):n<=1?1:n<=3?n:n<=4?2:n<=9?3:n<=12?4:5;
   g.style.gridTemplateColumns=`repeat(${cols},minmax(0,1fr))`;
   // few winners: keep the boards a readable width instead of stretching across the whole projector
   g.style.maxWidth=({1:760,2:1200,3:1500}[cols]||'')+(cols<=3?'px':'');
   const rows=Math.ceil(n/cols);
-  const h=Math.max(rows>3?130:74,Math.min(210,Math.floor((window.innerHeight-380-(cap?rows*76:0))/rows)));
+  const h=Math.max(74,Math.min(210,Math.floor((window.innerHeight-380-(cap?rows*76:0))/rows)));
   gridFor.colW=Math.min(g.clientWidth||g.parentNode.clientWidth||innerWidth,parseInt(g.style.maxWidth,10)||1e9)/cols;
   return {cols,h};
 }
