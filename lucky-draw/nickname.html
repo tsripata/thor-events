@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="theme-color" content="#f6f0dc">
+<title>จับรางวัล (ชื่อเล่น) — Lucky Draw</title>
+<link rel="icon" href="../auction/jittamett-logo.png?v=20261010">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Same palette as the auction pages (auction/index.html): the event poster's paper, bunting, wood and lemon board */
+:root{
+  color-scheme:light;
+  --paper:#f6f0dc; --paper-2:#fffaf0; --edge:#eadfc2;
+  --ink:#3b2f27; --dim:#857766; --dim-2:#6d6047;
+  --red:#e2553f; --red-deep:#c23b28; --orange:#e8774d;
+  --olive:#7f8f52; --lemon:#e9ea8c; --lemon-2:#f2f2b4;
+  --ring:#a3a9c6; --pink:#f3a7a3;
+  --wood:#9a4423; --wood-2:#b9592e;
+  --ok:#5aa469; --no:#e2553f;
+  --shadow:0 6px 0 rgba(59,47,39,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:"Sarabun",-apple-system,"Segoe UI",Tahoma,"Leelawadee UI",sans-serif;
+  font-variant-numeric:tabular-nums;
+  display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden;
+}
+.hand{font-family:"Mali","Sarabun",cursive}
+button{font-family:inherit;cursor:pointer;border-radius:12px;transition:transform .12s,filter .12s,box-shadow .12s}
+button:disabled{opacity:.4;cursor:not-allowed}
+select,input{font-family:inherit;border-radius:12px;border:2px solid var(--edge);
+  background:#fff;color:var(--ink);padding:10px 12px;font-size:15px}
+select:focus,input:focus{outline:none;border-color:var(--orange)}
+.btn{background:var(--paper-2);color:var(--wood);border:2px solid var(--wood);
+  padding:9px 16px;font-size:15px;font-weight:700}
+.btn:hover:not(:disabled),.btn:focus-visible{filter:brightness(1.04);transform:translateY(-1px);outline:none}
+.btn-primary{background:var(--red);border-color:var(--red-deep);color:#fff;box-shadow:0 4px 0 var(--red-deep)}
+.btn-primary:hover:not(:disabled){filter:brightness(1.06)}
+.btn-primary:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--red-deep)}
+.muted{color:var(--dim)}
+.hidden{display:none !important}
+
+/* ---------- bunting ---------- */
+.bunting{display:block;width:100%;height:48px;flex:none}
+.bunting g{transform-box:fill-box;transform-origin:50% 0;animation:flag 2.6s ease-in-out infinite alternate}
+.bunting g:nth-child(2n){animation-delay:-1.3s}
+@keyframes flag{from{transform:rotate(-4deg)}to{transform:rotate(4deg)}}
+
+/* ---------- header ---------- */
+header{display:flex;align-items:center;gap:10px 14px;padding:2px 18px 10px;flex-wrap:wrap;flex:none}
+.brand{display:flex;align-items:center;gap:12px;margin-right:6px}
+.brand img{width:46px;height:auto;display:block}
+.brand .ev{font-size:14px;font-weight:600;color:var(--olive);line-height:1.2;min-height:1em}
+header h1{margin:0;font-size:24px;line-height:1.15;color:var(--red);font-weight:700}
+.pill{background:var(--paper-2);border:2px solid var(--edge);border-radius:999px;
+  padding:4px 13px;font-size:14px;color:var(--dim);white-space:nowrap}
+.pill b{color:var(--red-deep)}
+.spacer{flex:1}
+
+/* ---------- setup ---------- */
+.sheet{background:var(--paper-2);border:2px solid var(--edge);border-radius:22px;box-shadow:var(--shadow)}
+#setup{width:min(860px,calc(100% - 32px));margin:12px auto 40px;padding:26px 26px 22px}
+.hero{text-align:center;margin-bottom:8px}
+.hero img{width:96px;height:auto}
+.hero h2{margin:6px 0 2px;font-size:30px;color:var(--red);font-weight:700}
+.hero p{margin:0}
+.field{margin:16px 0}
+.field label{display:block;font-size:14px;color:var(--dim-2);margin-bottom:6px;font-weight:600}
+.field input{width:100%}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.note{font-size:13px;color:var(--dim);line-height:1.65}
+#loadMsg{margin-top:14px;font-size:14px;min-height:22px;line-height:1.6;text-align:center}
+.err{color:var(--red-deep)}
+.good{color:#3f7a4c}
+
+/* ---------- preview / freeze ---------- */
+#preview{width:min(980px,calc(100% - 32px));margin:12px auto 40px}
+.card{padding:20px;margin-bottom:18px}
+.card h3{margin:0 0 12px;font-size:20px;color:var(--red)}
+.stats{display:flex;gap:12px;flex-wrap:wrap}
+.stat{flex:1;min-width:150px;background:var(--lemon-2);border-radius:14px;padding:10px 14px}
+.stat .k{font-size:13px;color:var(--dim-2)}
+.stat .v{font-family:"Mali",cursive;font-size:30px;font-weight:700;line-height:1.2}
+.stat.hi{background:var(--lemon)}
+.stat.hi .v{color:var(--red-deep)}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:9px 10px;border-bottom:2px dashed var(--edge)}
+th{color:var(--dim);font-weight:600;font-size:13px}
+td.num,th.num{text-align:center;width:90px}
+td.num{font-family:"Mali",cursive;font-weight:700;color:var(--red-deep)}
+.warn{background:#fbe6e2;border:2px solid #f3c2b8;color:#8c2618;
+  padding:12px 14px;border-radius:14px;font-size:14px;margin-bottom:14px;line-height:1.6}
+.freeze{text-align:center;background:var(--lemon);border:7px solid var(--wood);border-radius:8px;box-shadow:var(--shadow)}
+.freeze .note{font-size:15px;color:var(--dim-2)}
+
+/* ---------- stage ---------- */
+#stage{flex:1;display:flex;flex-direction:column;padding:0 20px;min-height:0}
+#prizeBanner{text-align:center;margin:0 0 14px;display:flex;flex-direction:column;align-items:center}
+.plank{
+  display:inline-block;padding:3px 18px 5px;margin-bottom:6px;
+  background:linear-gradient(180deg,var(--wood-2),var(--wood));color:#fff6ea;
+  border-radius:8px 14px 9px 12px;transform:rotate(-2deg);box-shadow:0 3px 0 rgba(0,0,0,.15);
+  font-family:"Mali",cursive;font-weight:600;font-size:16px
+}
+.plank b{font-size:21px;margin:0 3px}
+#prizeName{font-size:clamp(30px,5vw,64px);font-weight:700;color:var(--red);line-height:1.15}
+#prizeName.long{font-size:clamp(22px,2.6vw,40px);max-width:1400px;line-height:1.3;margin-top:4px}
+#prizeSub{font-size:16px;color:var(--olive);margin-top:4px;font-weight:600}
+.stage-row{flex:1;display:flex;align-items:safe center;justify-content:center;gap:10px;min-height:0;padding-bottom:16px}
+#reels{flex:1 1 auto;display:grid;gap:14px;align-content:safe center;min-width:0}
+.buddy{flex:none;width:clamp(90px,11vw,190px);align-self:flex-end;pointer-events:none}
+.buddy img{display:block;width:100%;height:auto;transform-origin:50% 100%;animation:sway 3.6s ease-in-out infinite}
+.buddy.r img{animation-delay:-1.8s;animation-duration:4.2s}
+@keyframes sway{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-3px) rotate(1.5deg)}}
+.stage-row.cheer .buddy img{animation:cheer .5s ease-in-out 4}
+@keyframes cheer{0%,100%{transform:translateY(0)}50%{transform:translateY(-22px) rotate(-3deg)}}
+@media (max-width:820px){.buddy{display:none}}
+/* the item's photo beside the board for the one-at-a-time prizes (round A) */
+.photo{flex:0 1 auto;display:flex;align-items:center;justify-content:center;min-width:0}
+/* several photos crossfade in one frame; the first sets the frame's size, the rest cover it */
+.photo .frame{position:relative;overflow:hidden;border:6px solid var(--wood);border-radius:8px;box-shadow:var(--shadow);background:#fff}
+.photo img{display:block;max-width:min(46vw,820px);max-height:calc(100vh - 400px);width:auto;height:auto;
+  opacity:0;transition:opacity 1.2s ease;animation:drift 9s ease-in-out infinite alternate}
+.photo img+img{position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;object-fit:cover}
+.photo img:nth-child(2n){animation-delay:-4.5s}
+.photo img.on{opacity:1}
+@keyframes drift{from{transform:scale(1)}to{transform:scale(1.07)}}
+.photo .dots{position:absolute;left:0;right:0;bottom:10px;display:flex;justify-content:center;gap:8px;z-index:2}
+.photo .dots i{width:10px;height:10px;border-radius:50%;background:rgba(255,250,240,.55);box-shadow:0 0 0 2px rgba(59,47,39,.25);transition:background .4s}
+.photo .dots i.on{background:var(--red)}
+@media (max-width:820px){.stage-row{flex-direction:column;align-items:stretch}.photo img{max-width:100%;max-height:45vh}}
+
+/* the printed prize page (one per round) shown on screen before the round spins */
+.plist{background:var(--paper-2);border:6px solid var(--wood);border-radius:8px;box-shadow:var(--shadow);overflow:hidden}
+.plist table{font-size:clamp(13px,min(1.4vw,1.85vh),21px)}
+.plist th,.plist td{padding:.2em .6em;line-height:1.3}
+.plist th{background:var(--lemon);color:var(--dim-2);font-size:.75em}
+.plist td.id{font-family:"Mali",cursive;font-weight:700;color:var(--red-deep);white-space:nowrap;width:3.4em}
+.plist td.cd{color:var(--dim);font-size:.75em;width:4em}
+.plist .val{text-align:right;font-weight:700;white-space:nowrap;width:6em}
+.plist tfoot td{background:var(--lemon);font-weight:700}
+.badge{display:inline-block;background:var(--dim);color:#fff;border-radius:999px;font-size:.62em;
+  padding:0 .6em;margin-left:.3em;vertical-align:.15em;white-space:nowrap}
+
+.reel{background:var(--lemon);border:6px solid var(--wood);border-radius:8px;
+  overflow:hidden;position:relative;box-shadow:var(--shadow);transition:border-color .3s,box-shadow .3s}
+.reel.landed{border-color:var(--red);background:var(--lemon-2);
+  box-shadow:0 0 0 5px rgba(226,85,63,.18),var(--shadow);animation:land .7s ease}
+@keyframes land{0%{transform:scale(1)}30%{transform:scale(1.04) rotate(-.6deg)}60%{transform:scale(.99) rotate(.3deg)}100%{transform:none}}
+.win{position:relative;overflow:hidden}
+.win::before,.win::after{content:'';position:absolute;left:0;right:0;height:26%;z-index:3;pointer-events:none}
+.win::before{top:0;background:linear-gradient(180deg,var(--lemon) 0%,rgba(233,234,140,0) 100%)}
+.win::after{bottom:0;background:linear-gradient(0deg,var(--lemon) 0%,rgba(233,234,140,0) 100%)}
+.reel.landed .win::before,.reel.landed .win::after{display:none}
+/* which prize this board is for, when a whole round spins at once */
+.reel .cap{position:relative;z-index:4;background:var(--wood);color:#fff6ea;font-size:20px;font-weight:600;line-height:1.3;
+  padding:5px 12px;overflow:hidden;text-align:center;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.strip{will-change:transform}
+.item{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:0 8px;overflow:hidden}
+.item .nm{font-family:"Mali","Sarabun",cursive;font-weight:700;line-height:1.25;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.item .mt{color:var(--dim-2);margin-top:2px;white-space:nowrap}
+/* nickname line under the real name (this version only) */
+.item .nk{font-family:"Mali","Sarabun",cursive;font-weight:600;color:var(--orange);line-height:1.2;
+  white-space:nowrap;overflow:hidden;max-width:100%}
+.reel.marked .item .nk{color:var(--dim)}
+.item .nm.q{color:var(--wood-2);letter-spacing:.15em}
+.reel.landed .item .nm{color:var(--red-deep)}
+.slotmark{position:absolute;left:8px;top:6px;z-index:4;font-family:"Mali",cursive;font-weight:700;
+  font-size:13px;color:#fff6ea;background:var(--wood);border-radius:6px 9px 6px 8px;padding:1px 9px;transform:rotate(-4deg)}
+.reel .bow{position:absolute;right:6px;top:4px;z-index:4;width:34px;height:28px;transform:rotate(14deg)}
+/* "ไม่มา" on a landed board: marks a winner who is not here, to be redrawn */
+.noshow{position:absolute;right:8px;bottom:6px;z-index:5;font-size:13px;padding:2px 10px;line-height:1.5;
+  background:var(--paper-2);color:var(--dim-2);border:2px solid var(--edge);border-radius:999px}
+.reel.marked{border-color:var(--dim);background:#efe8d4;box-shadow:var(--shadow)}
+.reel.marked .item .nm{color:var(--dim);text-decoration:line-through}
+.reel.marked .noshow{background:var(--red);color:#fff;border-color:var(--red-deep)}
+#redrawBtn{background:var(--red);color:#fff;border:2px solid var(--red-deep);font-weight:700;padding:10px 18px}
+.empty{text-align:center;color:var(--dim-2);font-size:18px;background:var(--paper-2);
+  border:2px dashed var(--edge);border-radius:18px;padding:28px}
+
+/* ---------- controls ---------- */
+#controls{border-top:2px solid var(--edge);background:rgba(255,250,240,.94);
+  backdrop-filter:blur(6px);padding:12px 18px;display:flex;gap:10px;
+  align-items:center;flex-wrap:wrap;position:sticky;bottom:0;z-index:40}
+/* prize picker: a custom list, since macOS draws its own check on a native <select>'s chosen option */
+.picker{position:relative;min-width:280px;max-width:min(560px,100%)}
+.picker-btn{width:100%;text-align:left;background:#fff;color:var(--ink);border:2px solid var(--edge);
+  padding:10px 34px 10px 12px;font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
+.picker-btn::after{content:"▾";position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--dim)}
+.picker-btn:focus-visible,.picker.open .picker-btn{outline:none;border-color:var(--orange)}
+.picker-list{position:absolute;left:0;bottom:calc(100% + 6px);min-width:100%;width:max-content;max-width:min(640px,calc(100vw - 32px));
+  max-height:min(60vh,520px);overflow-y:auto;margin:0;padding:6px;list-style:none;background:#fff;
+  border:2px solid var(--edge);border-radius:12px;box-shadow:0 10px 30px rgba(59,47,39,.18);z-index:50}
+.picker-list li{display:flex;gap:8px;align-items:baseline;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:15px;font-weight:600}
+.picker-list li:hover{background:var(--lemon-2)}
+.picker-list li.cur{background:var(--lemon)}
+.picker-list .mk{flex:none;width:1.1em;text-align:center}
+.picker-list .mk.arrow{color:var(--red)}
+.picker-list .mk.check{color:var(--ok)}
+#spinBtn{padding:12px 36px;font-size:21px;font-family:"Mali",cursive}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;z-index:100;
+  background:var(--ink);color:#fff;padding:11px 18px;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.2);
+  font-size:15px;opacity:0;transition:.25s;pointer-events:none;max-width:calc(100vw - 32px)}
+#toast.show{opacity:1}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:90}
+
+/* ---------- results ---------- */
+#resultsPanel{position:fixed;top:0;right:0;bottom:0;width:min(460px,92vw);
+  background:var(--paper-2);border-left:2px solid var(--edge);box-shadow:-8px 0 30px rgba(59,47,39,.12);z-index:60;
+  transform:translateX(100%);transition:.25s;overflow-y:auto;padding:20px}
+#resultsPanel.open{transform:none}
+#resultsPanel h3{margin:0;color:var(--red);font-size:24px}
+.rgroup{margin-bottom:18px}
+.rgroup h4{margin:0 0 6px;font-size:17px;color:var(--wood);font-family:"Mali",cursive}
+.rline{display:flex;justify-content:space-between;gap:10px;font-size:15px;
+  padding:5px 0;border-bottom:2px dashed var(--edge)}
+.st-present{color:var(--ok)} .st-absent{color:var(--no)} .st-none{color:var(--dim)}
+footer.credit{text-align:center;color:var(--dim);font-size:13px;padding:0 16px 24px}
+@media (max-width:560px){
+  header h1{font-size:20px}
+  #controls .picker{min-width:0;flex:1 1 100%}
+  #spinBtn{flex:1}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{body{background:#fff}.bunting,#controls{display:none}}
+</style>
+</head>
+<body>
+
+<svg class="bunting" viewBox="0 0 1200 48" preserveAspectRatio="none" aria-hidden="true">
+  <path d="M0 3 Q600 30 1200 3" fill="none" stroke="#e2553f" stroke-width="2.5"/>
+  <g id="flags"></g>
+</svg>
+
+<header>
+  <div class="brand">
+    <img src="../auction/jittamett-logo.png?v=20261010" alt="Jittamett Family">
+    <div>
+      <div class="ev hand" id="hdrEvent"></div>
+      <h1 class="hand">จับรางวัล <small style="font-size:.55em;color:var(--orange)">· ชื่อเล่น</small></h1>
+    </div>
+  </div>
+  <span class="pill" id="pillPool">ผู้เข้าร่วม <b>—</b></span>
+  <span class="pill" id="pillPrize">รางวัล <b>—</b></span>
+  <span class="pill hidden" id="pillFrozen"></span>
+  <span class="spacer"></span>
+  <button class="btn" id="resultsBtn">📋 ผลรางวัล</button>
+  <a class="btn" href="list.html" target="_blank" rel="noopener" style="text-decoration:none">👥 รายชื่อ</a>
+  <a class="btn" href="prizes.html" target="_blank" rel="noopener" style="text-decoration:none">🎁 รายการรางวัล</a>
+  <a class="btn" href="log.html" target="_blank" rel="noopener" style="text-decoration:none">🕘 ประวัติ</a>
+  <button class="btn" id="fsBtn">⛶ เต็มจอ</button>
+</header>
+
+<!-- ============ LOADING ============ -->
+<section id="setup" class="sheet">
+  <div class="hero">
+    <img src="../auction/jittamett-logo.png?v=20261010" alt="Jittamett Family">
+    <h2 class="hand">จับรางวัล</h2>
+  </div>
+  <div id="loadMsg"></div>
+  <div class="row" style="justify-content:center;margin-top:14px">
+    <button class="btn-primary btn hidden" id="loadBtn">โหลดรายชื่อจาก Google Sheet</button>
+    <button class="btn hidden" id="resumeBtn">กู้คืนงานที่ค้างไว้</button>
+  </div>
+</section>
+
+<!-- ============ PREVIEW / FREEZE ============ -->
+<section id="preview" class="hidden">
+  <div id="warnBox"></div>
+  <div class="card sheet">
+    <h3 class="hand">ตรวจสอบรายชื่อ</h3>
+    <div class="stats">
+      <div class="stat"><div class="k">ผู้สมัครทั้งหมด (รายการ)</div><div class="v" id="pvRaw">0</div></div>
+      <div class="stat"><div class="k">ซ้ำ/ตัดออก</div><div class="v" id="pvDup">0</div></div>
+      <div class="stat hi"><div class="k">เข้าร่วมจับรางวัล (คน)</div><div class="v" id="pvNet">0</div></div>
+    </div>
+    <div id="dupList" class="note" style="margin-top:10px"></div>
+  </div>
+  <div class="card sheet">
+    <h3 class="hand">รายการรางวัล</h3>
+    <table><thead><tr><th>ลำดับ</th><th>รางวัล</th><th class="num">จำนวน</th><th class="num">มูลค่า</th></tr></thead>
+    <tbody id="pvPrizes"></tbody></table>
+    <div style="margin-top:10px;font-size:15px">รวม <b id="pvQty" style="color:var(--red-deep)">0</b> รางวัล</div>
+  </div>
+  <div class="card freeze">
+    <p class="note">ไม่มีเวลาปิดรับสมัคร — ระหว่างจับรางวัลกด <b>↻ รายชื่อใหม่</b> เพื่อเพิ่มผู้สมัครที่เพิ่งลงทะเบียน
+      (หรือกดรีเฟรชหน้าเว็บ) <b>สุ่มผู้ได้รับรางวัลตอนกดหมุนบนเวที</b><br>
+      ผู้ที่ได้รางวัลแล้วจะไม่ถูกสุ่มซ้ำ · ถ้าผู้ได้รับรางวัลไม่มา กด “ไม่มา” ที่ป้ายชื่อ แล้วกดสุ่มใหม่</p>
+    <p class="note">ผลการสุ่มเก็บไว้ในเครื่องนี้เท่านั้น — ใช้เครื่องเดิมตลอดงาน และกด ⬇ CSV เก็บผลไว้</p>
+    <button class="btn-primary btn hand" id="freezeBtn" style="padding:14px 40px;font-size:20px;margin-top:6px">
+      🎰 เริ่มจับรางวัล</button>
+    <div style="margin-top:14px"><button class="btn" id="reloadBtn">↻ โหลดรายชื่อใหม่</button></div>
+  </div>
+</section>
+
+<!-- ============ STAGE ============ -->
+<section id="stage" class="hidden">
+  <div id="prizeBanner">
+    <div class="plank" id="prizePlank">รางวัล</div>
+    <div id="prizeName" class="hand">เลือกรางวัลด้านล่าง</div>
+    <div id="prizeSub"></div>
+  </div>
+  <div class="stage-row" id="stageRow">
+    <div class="buddy l"><img src="../auction/hood/flower.webp?v=20261010c" alt="" aria-hidden="true" draggable="false"></div>
+    <div id="photoBox" class="photo hidden"></div>
+    <div id="reels"></div>
+    <div class="buddy r"><img src="../auction/hood/dance.webp?v=20261010c" alt="" aria-hidden="true" draggable="false"></div>
+  </div>
+</section>
+
+<div id="controls" class="hidden">
+  <select id="prizeSel" class="hidden"></select>
+  <div class="picker" id="picker">
+    <button type="button" class="picker-btn" id="pickerBtn" aria-haspopup="listbox"></button>
+    <ul class="picker-list hidden" id="pickerList" role="listbox"></ul>
+  </div>
+  <button class="btn btn-primary" id="spinBtn">🎰 หมุน</button>
+  <button class="btn" id="instantBtn">แสดงผลทันที</button>
+  <button class="btn hidden" id="redrawBtn">🔁 สุ่มใหม่</button>
+  <button class="btn" id="undoBtn">↩ ยกเลิกครั้งล่าสุด</button>
+  <button class="btn" id="syncBtn">↻ รายชื่อใหม่</button>
+  <span class="spacer"></span>
+  <button class="btn" id="exportBtn">⬇ CSV ผลรางวัล</button>
+</div>
+
+<aside id="resultsPanel">
+  <div style="display:flex;align-items:center;margin-bottom:14px">
+    <h3 class="hand" style="flex:1">📋 ผลรางวัล</h3>
+    <button class="btn" id="closeResults">ปิด</button>
+  </div>
+  <div id="resultsBody"></div>
+</aside>
+
+<canvas id="confetti"></canvas>
+<div id="toast"></div>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const LS='luckydraw_v2';   // v1 saves held a seeded draw made in advance; v2 draws live
+// the sheet the draw reads from (read-only, via the public gviz CSV export)
+const SHEET_ID='1Z0fg03PqXRkHUvxk9VOnHNTXxpv33ku5nD82znZYcHg';
+const PRIZE_TAB='Prizes';
+const RESP_TAB='Form Responses 1';
+const EVENT='งานโรงเรียน 2569';
+let S=null;              // application state
+let raw={prizes:[],regs:[],dups:[]};
+let spinning=false;
+
+/* ================= utilities ================= */
+function toast(m,ms=2400){const t=$('toast');t.textContent=m;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms);}
+
+function parseCSV(text){
+  const rows=[];let row=[],f='',q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){f+='"';i++;} else q=false; } else f+=c; }
+    else if(c==='"')q=true;
+    else if(c===','){row.push(f);f='';}
+    else if(c==='\n'){row.push(f);rows.push(row);row=[];f='';}
+    else if(c!=='\r')f+=c;
+  }
+  if(f!==''||row.length){row.push(f);rows.push(row);}
+  return rows.map(r=>r.map(x=>x.trim()));
+}
+
+// cryptographically strong integer in [0,n)
+function rnd(n){
+  if(n<=0)return 0;
+  const lim=Math.floor(0xFFFFFFFF/n)*n;const a=new Uint32Array(1);
+  let v;do{crypto.getRandomValues(a);v=a[0];}while(v>=lim);
+  return v%n;
+}
+function gvizURL(id,tab){
+  return 'https://docs.google.com/spreadsheets/d/'+encodeURIComponent(id)+
+         '/gviz/tq?tqx=out:csv&headers=0&sheet='+encodeURIComponent(tab)+'&_='+Date.now();
+}
+function dl(name,text){
+  const b=new Blob(['﻿'+text],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;
+  document.body.appendChild(a);a.click();a.remove();
+}
+// "รุ่น 25 · บ้านยินดี" under a winner's name; a bare number gets the รุ่น prefix
+const metaOf=p=>[p.r&&p.r!==p.n?(/^\d+$/.test(p.r)?'รุ่น '+p.r:p.r):'',p.h].filter(Boolean).join(' · ');
+// 1 ชื่อ 1 สิทธิ์: duplicates are judged on the child's real name alone. Spaces,
+// zero-width chars and letter case are ignored so "สมชาย  ใจดี" = "สมชายใจดี".
+const nameKey=n=>n.normalize('NFC').replace(/[\s\u200b-\u200d\ufeff]+/g,'').toLowerCase();
+// red ribbon bow (same drawing as auction/girl.js) tied on each winner's board
+const BOW=`<svg class="bow" viewBox="0 0 60 50" aria-hidden="true" focusable="false">
+  <g fill="#ee6a5c" stroke="#b93a2c" stroke-width="2.2" stroke-linejoin="round">
+    <path d="M30 18 C22 4 6 4 6 14 C6 24 20 24 30 18 Z"/><path d="M30 18 C38 4 54 4 54 14 C54 24 40 24 30 18 Z"/>
+    <path d="M28 20 L16 44 L22 41 L25 47 L31 22 Z"/><path d="M32 20 L44 42 L38 40 L36 46 L29 22 Z"/></g>
+  <path d="M14 11 q6 2 10 6 M46 11 q-6 2 -10 6" stroke="#fff3e8" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <circle cx="30" cy="19" r="4.5" fill="#b93a2c"/></svg>`;
+// bunting across the top, in the poster's flag colours
+(function(){const c=['#e2553f','#e9ea8c','#7f8f52','#e8774d','#f3a7a3'];let h='';
+  for(let i=0;i<24;i++){const x=i*50+6,t=(x+19)/1200,y=3+27*2*t*(1-t);
+    h+=`<g><path d="M${x} ${y.toFixed(1)} L${x+38} ${y.toFixed(1)} L${x+19} ${(y+30).toFixed(1)} Z" fill="${c[i%c.length]}" opacity=".92"/></g>`;}
+  $('flags').innerHTML=h;})();
+
+/* ================= parsing ================= */
+// Prizes: locate the header row containing prize_id, then read rows below it.
+function parsePrizes(rows){
+  let h=-1;
+  for(let i=0;i<rows.length;i++)
+    if(rows[i].some(c=>c.toLowerCase().includes('prize_id'))){h=i;break;}
+  if(h<0)throw new Error('ไม่พบหัวตาราง prize_id ในแท็บรางวัล');
+  const cols={};
+  rows[h].forEach((c,i)=>{const k=c.toLowerCase();
+    ['prize_id','prize_name_th','qty','sponsor','order','price','round','code'].forEach(n=>{
+      if(k.includes(n)&&cols[n]===undefined)cols[n]=i;});});
+  // A blank header cell must not kill the column — fall back to its normal position.
+  // Google's CSV export blanks text in mostly-numeric columns, so the "qty", "order" and
+  // "price" headers always arrive empty; only a missing required text header is worth a warning.
+  const DEF={prize_id:0,prize_name_th:1,qty:2,sponsor:3,order:4,price:5,round:6,code:7};
+  const OPTIONAL=['qty','order','price','round','code'];
+  parsePrizes.missing=[];
+  Object.keys(DEF).forEach(k=>{
+    if(cols[k]===undefined){cols[k]=DEF[k];if(!OPTIONAL.includes(k))parsePrizes.missing.push(k);}});
+  const out=[];
+  for(let i=h+1;i<rows.length;i++){
+    const r=rows[i];
+    const name=(r[cols.prize_name_th]||'').trim();
+    const qty=parseInt(r[cols.qty],10);
+    if(!name||!Number.isFinite(qty)||qty<1)continue;   // skips blanks + the total row
+    out.push({id:(r[cols.prize_id]||('P'+(out.length+1))).trim(),name,qty,
+      sponsor:(r[cols.sponsor]||'').trim(),
+      order:parseInt(r[cols.order],10)||(out.length+1),
+      price:parseFloat(String(r[cols.price]||'').replace(/,/g,''))||0,
+      round:(r[cols.round]||'').trim().toUpperCase(),
+      code:(r[cols.code]||'').trim().toUpperCase()});
+  }
+  out.sort((a,b)=>a.order-b.order);
+  // "ชิ้นที่ 2/5" for an item split over several slots, counted A→D like the printed pages
+  const cnt={},seenK={};
+  out.forEach(p=>{if(p.code)cnt[p.code]=(cnt[p.code]||0)+1;});
+  out.slice().sort((a,b)=>a.round.localeCompare(b.round)||a.order-b.order).forEach(p=>{
+    if(cnt[p.code]>1)p.piece=(seenK[p.code]=(seenK[p.code]||0)+1)+'/'+cnt[p.code];});
+  // guarantee unique ids
+  const seen={};out.forEach((p,i)=>{if(seen[p.id])p.id=p.id+'_'+i;seen[p.id]=1;});
+  return out;
+}
+
+// Registrations: find the header row with ชื่อ, map ชื่อ/รุ่น/บ้าน (or ห้อง) by name.
+// Headers are matched by "contains" so form questions like
+// "ชื่อเด็กจริง ---- (1 ชื่อ 1 สิทธ์)" still work; a header containing
+// "ชื่อเด็กจริง" wins over any other ชื่อ column (e.g. a parent's name). A column headed
+// "ไม่ใช้แล้ว" (retired question) is used for รุ่น only when the รุ่น cell is empty.
+// This version also reads a nickname column (header containing ชื่อเล่น or "nickname"),
+// which is never mistaken for the name column.
+const isNick=c=>c.includes('ชื่อเล่น')||/nick/i.test(c);
+function parseRegs(rows){
+  const isName=c=>!isNick(c)&&(c.includes('ชื่อ')||c.toLowerCase()==='name');
+  let h=-1;
+  for(let i=0;i<rows.length;i++)
+    if(rows[i].some(isName)){h=i;break;}
+  // gviz blanks the text header of a mostly-numeric column (รุ่น holds "25"), so
+  // with a header row found, columns start unset and รุ่น falls back to content below
+  // rather than a positional guess that can land on the name column.
+  const ci=h>=0?{n:0,r:-1,h:-1,old:-1,k:-1}:{n:0,r:1,h:2,old:-1,k:-1};
+  if(h>=0){
+    const seen={};
+    const set=(k,i)=>{if(!seen[k]){ci[k]=i;seen[k]=1;}};
+    const real=rows[h].findIndex(c=>c.includes('ชื่อเด็กจริง'));
+    if(real>=0)set('n',real);
+    rows[h].forEach((c,i)=>{const l=c.toLowerCase();
+      if(isNick(c))set('k',i);
+      else if(isName(c))set('n',i);
+      else if(c.includes('รุ่น')||l==='year')set('r',i);
+      else if(c.includes('บ้าน')||c.includes('ห้อง')||l==='room'||l==='class')set('h',i);
+      else if(c.includes('ไม่ใช้แล้ว'))set('old',i);});
+    if(ci.r<0){
+      // an untitled column whose filled cells are all 1–3 digit numbers is the รุ่น column
+      const data=rows.slice(h+1).filter(r=>r&&(r[ci.n]||'').trim());
+      ci.r=rows[h].findIndex((c,i)=>{
+        if(c||i===ci.n||i===ci.h||i===ci.k)return false;
+        const v=data.map(r=>(r[i]||'').trim()).filter(Boolean);
+        return v.length>0&&v.every(x=>/^\d{1,3}$/.test(x));});
+    }
+  }
+  const out=[];
+  for(let i=h+1;i<rows.length;i++){
+    const r=rows[i];if(!r)continue;
+    const n=(r[ci.n]||'').trim();
+    if(!n)continue;
+    let gen=(r[ci.r]||'').trim()||(ci.old>=0?(r[ci.old]||'').trim():'');
+    if(nameKey(gen)===nameKey(n))gen='';
+    let k=ci.k>=0?(r[ci.k]||'').trim():'';
+    if(nameKey(k)===nameKey(n))k='';
+    out.push({n,r:gen,h:(r[ci.h]||'').trim(),k});
+  }
+  parseRegs.hasNick=ci.k>=0;
+  return out;
+}
+function dedupe(list){
+  const seen={},keep=[],dups=[];
+  list.forEach(p=>{const k=nameKey(p.n);if(seen[k]){dups.push(p);}else{seen[k]=1;keep.push(p);}});
+  return {keep,dups};
+}
+
+/* ================= loading ================= */
+async function loadAll(){
+  const id=SHEET_ID,pt=PRIZE_TAB,rt=RESP_TAB;
+  $('preview').classList.add('hidden');$('setup').classList.remove('hidden');
+  $('loadBtn').classList.add('hidden');
+  setMsg('กำลังโหลดรายชื่อ…');
+  try{
+    const [pr,rr]=await Promise.all([
+      fetch(gvizURL(id,pt)).then(r=>{if(!r.ok)throw new Error('แท็บ "'+pt+'" HTTP '+r.status);return r.text()}),
+      fetch(gvizURL(id,rt)).then(r=>{if(!r.ok)throw new Error('แท็บ "'+rt+'" HTTP '+r.status);return r.text()})
+    ]);
+    raw.prizes=parsePrizes(parseCSV(pr));
+    const d=dedupe(parseRegs(parseCSV(rr)));
+    raw.regs=d.keep;raw.dups=d.dups;raw.rawCount=d.keep.length+d.dups.length;
+    setMsg('');
+    showPreview();
+  }catch(e){
+    setMsg('โหลดไม่สำเร็จ: '+e.message+
+      '<br><span class="note">ตรวจสอบอินเทอร์เน็ต และว่า Sheet ตั้งค่าเป็น “ผู้ที่มีลิงก์ → ผู้อ่าน”</span>','err');
+    $('loadBtn').classList.remove('hidden');
+  }
+}
+function setMsg(h,c){const m=$('loadMsg');m.innerHTML=h;m.className=c||'';}
+
+/* ================= preview ================= */
+function showPreview(){
+  $('setup').classList.add('hidden');$('preview').classList.remove('hidden');
+  $('pvRaw').textContent=raw.rawCount||raw.regs.length;
+  $('pvDup').textContent=raw.dups.length;
+  $('pvNet').textContent=raw.regs.length;
+  $('dupList').innerHTML=raw.dups.length
+    ? 'ตัดออกเพราะชื่อเด็กซ้ำ (1 ชื่อ 1 สิทธิ์): '+raw.dups.slice(0,12).map(p=>p.n).join(' · ')+
+      (raw.dups.length>12?' …และอีก '+(raw.dups.length-12):'')
+    : '';
+  const tot=raw.prizes.reduce((s,p)=>s+p.qty,0);
+  $('pvPrizes').innerHTML=raw.prizes.map(p=>
+    `<tr><td>${esc(p.round?p.id:p.order)}</td><td>${esc(p.name)}${pieceTag(p)}</td><td class="num">${p.qty}</td>
+      <td class="num">${p.price?baht(p.price):''}</td></tr>`).join('');
+  const per={};raw.prizes.forEach(p=>{if(p.round)per[p.round]=(per[p.round]||0)+p.qty;});
+  $('pvQty').textContent=tot+(Object.keys(per).length?' ('+Object.keys(per).map(r=>'รอบ '+r+' '+per[r]).join(' · ')+')':'');
+  const w=[];
+  if(!raw.regs.length)w.push('ยังไม่มีรายชื่อผู้สมัครเลย');
+  else if(!parseRegs.hasNick)w.push('ไม่พบคอลัมน์ชื่อเล่นในแท็บ "'+RESP_TAB+'" — หัวคอลัมน์ต้องมีคำว่า <b>ชื่อเล่น</b> '+
+    '(จะแสดงเฉพาะชื่อจริงไปก่อน)');
+  if(!raw.prizes.length)w.push('อ่านรายการรางวัลไม่ได้เลย — ตรวจสอบว่าแท็บ Prizes มีคอลัมน์ '+
+    '<b>prize_name_th</b> (ชื่อรางวัล) และ <b>qty</b> (จำนวน เป็นตัวเลขมากกว่า 0)');
+  else if((parsePrizes.missing||[]).length)w.push('หัวตารางบางคอลัมน์ว่าง ('+parsePrizes.missing.join(', ')+
+    ') — ใช้ตำแหน่งคอลัมน์มาตรฐานแทน (A=prize_id, B=ชื่อ, C=จำนวน, D=ผู้สนับสนุน, E=ลำดับ) '+
+    'กรุณาตรวจสอบตารางด้านล่างว่าถูกต้อง');
+  if(tot>raw.regs.length)w.push(`จำนวนรางวัล (${tot}) มากกว่าผู้เข้าร่วม (${raw.regs.length}) — บางรางวัลจะไม่มีผู้รับ`);
+  $('warnBox').innerHTML=w.length?`<div class="warn">⚠ ${w.join('<br>')}</div>`:'';
+  $('freezeBtn').disabled=!raw.regs.length||!raw.prizes.length;
+  updHeader();
+}
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const baht=n=>Number(n).toLocaleString('en-US');
+const pieceTag=p=>p.piece?` <span class="badge">ชิ้นที่ ${p.piece}</span>`:'';
+
+/* ================= freeze + draw ================= */
+// Freezing only locks the participant list. Winners are drawn when a step spins, from
+// the people who have not won yet and were not marked absent, so nobody wins twice.
+function freeze(){
+  // starting fresh replaces the saved draw, but its change log carries over
+  let old=null;try{old=JSON.parse(localStorage.getItem(LS));}catch(e){}
+  S={event:EVENT,sheetId:SHEET_ID,prizeTab:PRIZE_TAB,respTab:RESP_TAB,
+     frozenAt:new Date().toISOString(),pool:raw.regs.slice(),prizes:raw.prizes,alloc:{},absent:[],
+     revealed:{},history:[],dupCount:raw.dups.length,log:old&&Array.isArray(old.log)?old.log:[]};
+  if(old&&old.pool)logEv('reset',{winners:Object.keys(old.revealed||{}).reduce((a,id)=>a+((old.alloc||{})[id]||[]).length,0),
+    absent:(old.absent||[]).length,startedAt:old.frozenAt});
+  logEv('start',{pool:S.pool.length,dups:S.dupCount,prizes:S.prizes.reduce((a,p)=>a+p.qty,0)});
+  save();
+  toast('เริ่มจับรางวัล — '+S.pool.length+' คน',3500);
+  enterStage();
+}
+// everyone who can still be drawn: not a winner (shown or drawn) and not marked absent
+function available(){
+  const out={};Object.values(S.alloc).flat().concat(S.absent).forEach(w=>out[nameKey(w.n)]=1);
+  return S.pool.filter(p=>!out[nameKey(p.n)]);
+}
+const pick=avail=>({...avail.splice(rnd(avail.length),1)[0]});
+// A prize already drawn but never shown (the page closed mid-spin) keeps its winners;
+// only its empty slots (too few people at the time) are filled.
+function drawStep(s){
+  const avail=available();
+  s.prizes.forEach(p=>{const a=S.alloc[p.id]=S.alloc[p.id]||[];
+    while(a.length<p.qty&&avail.length)a.push(pick(avail));});
+  save();
+}
+function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'_'+p(d.getHours())+p(d.getMinutes());}
+function save(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
+// Change log: every start, sync, draw, re-draw and undo with its time, oldest first. Unlike
+// history (the undo stack) nothing is ever taken out of it; log.html shows it.
+function logEv(type,d){(S.log||(S.log=[])).push({t:new Date().toISOString(),type,...d});}
+const who=(w,pid)=>({pid,n:w.n,r:w.r,h:w.h,k:w.k});
+
+// No cut-off: pull the registrations again and add anyone new to the pool. Nobody is ever
+// removed, so winners, absentees and boards already drawn stay as they are.
+async function syncRegs(quiet){
+  if(!S||syncing)return;syncing=true;$('syncBtn').disabled=true;
+  try{
+    const r=await fetch(gvizURL(S.sheetId||SHEET_ID,S.respTab||RESP_TAB));
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const regs=dedupe(parseRegs(parseCSV(await r.text()))).keep;
+    const have={};S.pool.forEach(p=>have[nameKey(p.n)]=1);
+    const add=regs.filter(p=>!have[nameKey(p.n)]);
+    // a draw started on the plain page (or before the nickname question existed) picks up
+    // nicknames here, for the pool and for anyone already drawn
+    const nick={};regs.forEach(p=>{if(p.k)nick[nameKey(p.n)]=p.k;});
+    Object.values(S.alloc).flat().concat(S.pool,S.absent).forEach(w=>{if(!w.k&&nick[nameKey(w.n)])w.k=nick[nameKey(w.n)];});
+    S.pool.push(...add);S.syncedAt=new Date().toISOString();
+    if(add.length)logEv('sync',{added:add.map(w=>who(w)),total:S.pool.length});
+    save();
+    updHeader();
+    if(add.length&&!spinning&&!$('stage').classList.contains('hidden'))showStep($('prizeSel').value);
+    if(add.length||!quiet)toast(add.length?'เพิ่มผู้สมัครใหม่ '+add.length+' คน — รวม '+S.pool.length+' คน':'ยังไม่มีผู้สมัครใหม่');
+  }catch(e){toast('โหลดรายชื่อใหม่ไม่สำเร็จ: '+e.message,3500);}
+  finally{syncing=false;$('syncBtn').disabled=false;}
+}
+let syncing=false;
+
+/* ================= stage ================= */
+// The show runs in steps. Prizes that share a round (D, C, B) are one step: the round's
+// printed page is shown first, then one spin reveals every winner of that round at once.
+// Prizes in SOLO_ROUNDS (A) are a step each, shown with the item's photo.
+// A prize with no round is a step of its own, as before.
+const SOLO_ROUNDS=['A'];
+let STEPS=[];
+// An item's photos: img/W004.jpg, then img/W004-2.jpg, -3 … up to the first one that's missing.
+// More than one and they take turns in the frame every PHOTO_EVERY ms.
+const MAX_PHOTOS=6,PHOTO_EVERY=4000;
+const photoCache={};
+let photoTimer=0,photoToken=0;
+function photosOf(p){
+  if(!p||!p.code)return Promise.resolve([]);
+  if(photoCache[p.code])return photoCache[p.code];
+  const base='img/'+encodeURIComponent(p.code);
+  const probe=u=>new Promise(r=>{const i=new Image();i.onload=()=>r(u);i.onerror=()=>r(null);i.src=u;});
+  return photoCache[p.code]=(async()=>{const out=[];
+    for(let k=1;k<=MAX_PHOTOS;k++){const u=await probe(base+(k>1?'-'+k:'')+'.jpg');if(!u)break;out.push(u);}
+    return out;})();
+}
+function stepsOf(prizes){
+  const out=[],by={};
+  prizes.forEach(p=>{
+    if(p.round&&!SOLO_ROUNDS.includes(p.round)){
+      if(!by[p.round])out.push(by[p.round]={id:'round:'+p.round,round:p.round,group:true,prizes:[]});
+      by[p.round].prizes.push(p);
+    }else out.push({id:p.id,round:p.round,solo:!!p.round,prizes:[p]});
+  });
+  return out;
+}
+const isDone=s=>s.prizes.every(p=>S.revealed[p.id]);
+// a shown step with empty slots (too few people back then) that newcomers could still fill
+const canTopUp=s=>isDone(s)&&s.prizes.some(p=>(S.alloc[p.id]||[]).length<p.qty)&&available().length>0;
+const pairs=s=>s.prizes.flatMap(p=>(S.alloc[p.id]||[]).map((w,k)=>({p,w,k})));
+// the boards a step will show before its spin: one per prize slot, as many as people are left
+const slots=s=>s.prizes.flatMap(p=>Array.from({length:p.qty},(_,k)=>({p,k}))).slice(0,available().length);
+const stepLabel=s=>s.group?'รอบ '+s.round+' — '+s.prizes.length+' รางวัล'
+  :s.solo?s.prizes[0].id+' · '+s.prizes[0].name:s.prizes[0].name+' ('+s.prizes[0].qty+' รางวัล)';
+function curStep(){return STEPS.find(s=>s.id===$('prizeSel').value);}
+
+function enterStage(){
+  $('setup').classList.add('hidden');$('preview').classList.add('hidden');
+  $('stage').classList.remove('hidden');$('controls').classList.remove('hidden');
+  STEPS=stepsOf(S.prizes);
+  // warm the photo cache so round A doesn't wait on the projector
+  STEPS.filter(s=>s.solo).forEach(s=>photosOf(s.prizes[0]));
+  buildPrizeSel();updHeader();renderResults();
+  const next=STEPS.find(s=>!isDone(s));
+  if(next){$('prizeSel').value=next.id;showStep(next.id);}
+}
+function updHeader(){
+  $('hdrEvent').textContent=S?S.event:EVENT;
+  $('pillPool').innerHTML='ผู้เข้าร่วม <b>'+(S?S.pool.length:raw.regs.length)+'</b> คน'+
+    (S?' · ยังไม่ได้รางวัล <b>'+available().length+'</b>':'');
+  const ps=S?S.prizes:raw.prizes;
+  $('pillPrize').innerHTML='รางวัล <b>'+ps.reduce((s,p)=>s+p.qty,0)+'</b> ชิ้น';
+  if(S){const d=new Date(S.syncedAt||S.frozenAt);
+    $('pillFrozen').classList.remove('hidden');
+    $('pillFrozen').innerHTML='↻ อัปเดตรายชื่อ '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+}
+function buildPrizeSel(){
+  $('prizeSel').innerHTML=STEPS.map(s=>
+    `<option value="${esc(s.id)}">${isDone(s)?'✓ ':''}${esc(stepLabel(s))}</option>`).join('');
+  syncPicker();
+}
+// ▶ marks the prize on stage, ✓ marks prizes that already have winners
+function syncPicker(){
+  const cur=$('prizeSel').value,s=STEPS.find(x=>x.id===cur);
+  $('pickerBtn').textContent=s?(isDone(s)?'✓ ':'')+stepLabel(s):'';
+  $('pickerList').innerHTML=STEPS.map(s=>
+    `<li role="option" data-id="${esc(s.id)}"${s.id===cur?' class="cur" aria-selected="true"':''}>`+
+    `<span class="mk arrow">${s.id===cur?'▶':''}</span><span class="mk check">${isDone(s)?'✓':''}</span>`+
+    `<span>${esc(stepLabel(s))}</span></li>`).join('');
+}
+function closePicker(){$('pickerList').classList.add('hidden');$('picker').classList.remove('open');}
+
+function showStep(id){
+  const s=STEPS.find(x=>x.id===id);if(!s)return;
+  syncPicker();
+  const p=s.prizes[0];
+  if(s.group){
+    const vals=s.prizes.map(x=>x.price).filter(Boolean);
+    $('prizePlank').innerHTML='รอบ<b>'+esc(s.round)+'</b>';
+    $('prizeName').textContent='รอบ '+s.round+' — '+s.prizes.length+' รางวัล';
+    $('prizeSub').textContent=vals.length?'มูลค่าต่อชิ้น '+baht(Math.min(...vals))+' – '+baht(Math.max(...vals))+
+      ' บาท · รวม '+baht(vals.reduce((a,b)=>a+b,0))+' บาท':'';
+  }else{
+    $('prizePlank').innerHTML=s.solo?'รางวัลใหญ่<b>'+esc(p.id)+'</b>'
+      :'รางวัลที่<b>'+(STEPS.indexOf(s)+1)+'</b>/ '+STEPS.length;
+    $('prizeName').textContent=p.name;
+    $('prizeSub').textContent=[p.sponsor&&'💝 สนับสนุนโดย '+p.sponsor,p.price&&'มูลค่า '+baht(p.price)+' บาท',
+      !s.solo&&p.qty+' รางวัล'].filter(Boolean).join(' · ');
+  }
+  $('prizeName').classList.toggle('long',$('prizeName').textContent.length>36);
+  setPhoto(s.solo?p:null);
+  const done=isDone(s);
+  if(done)renderLanded(s); else if(s.group)renderList(s); else renderIdle(s);
+  $('spinBtn').disabled=done&&!canTopUp(s);
+  $('instantBtn').disabled=done&&!canTopUp(s);
+  updRedraw();
+}
+function setPhoto(p){
+  const b=$('photoBox'),t=++photoToken;
+  clearInterval(photoTimer);
+  const none=()=>{b.classList.add('hidden');b.innerHTML='';};
+  if(!p)return none();
+  photosOf(p).then(us=>{
+    if(t!==photoToken)return;          // moved on to another step meanwhile
+    if(!us.length)return none();
+    b.innerHTML='<div class="frame">'+us.map((u,i)=>`<img src="${u}" alt="${esc(p.name)}"${i?'':' class="on"'}>`).join('')+
+      (us.length>1?'<div class="dots">'+us.map((_,i)=>`<i${i?'':' class="on"'}></i>`).join('')+'</div>':'')+'</div>';
+    b.classList.remove('hidden');
+    if(us.length<2)return;
+    const im=b.querySelectorAll('img'),dt=b.querySelectorAll('.dots i');let k=0;
+    photoTimer=setInterval(()=>{im[k].classList.remove('on');dt[k].classList.remove('on');
+      k=(k+1)%im.length;im[k].classList.add('on');dt[k].classList.add('on');},PHOTO_EVERY);
+  });
+}
+function gridFor(n,cap){
+  const g=$('reels');
+  const cols=innerWidth<560?Math.min(n,n<=4?1:2):n<=1?1:n<=3?n:n<=4?2:n<=9?3:n<=12?4:5;
+  g.style.gridTemplateColumns=`repeat(${cols},minmax(0,1fr))`;
+  // few winners: keep the boards a readable width instead of stretching across the whole projector
+  g.style.maxWidth=({1:760,2:1200,3:1500}[cols]||'')+(cols<=3?'px':'');
+  const rows=Math.ceil(n/cols);
+  const h=Math.max(74,Math.min(210,Math.floor((window.innerHeight-380-(cap?rows*76:0))/rows)));
+  gridFor.colW=Math.min(g.clientWidth||g.parentNode.clientWidth||innerWidth,parseInt(g.style.maxWidth,10)||1e9)/cols;
+  return {cols,h};
+}
+function reelHTML(n,item,h){
+  const nf=Math.max(15,Math.min(40,Math.floor(h*0.30),Math.floor((gridFor.colW||1e9)/9)));
+  const mf=Math.max(11,Math.floor(nf*0.52));
+  return `<div class="item" style="height:${h}px">
+      <div class="nm${item.q?' q':''}" style="font-size:${nf}px">${esc(item.n)}</div>
+      ${item.k?`<div class="nk" style="font-size:${Math.max(13,Math.floor(nf*0.62))}px">(${esc(item.k)})</div>`:''}
+      <div class="mt" style="font-size:${mf}px">${esc(metaOf(item))}</div>
+    </div>`;
+}
+// long names: shrink the font until the whole name fits on the board, rather than cutting it off with "…"
+function fitNames(root){
+  (root||$('reels')).querySelectorAll('.item .nm:not(.q),.item .nk').forEach(el=>{
+    const f0=parseFloat(el.dataset.f||el.style.fontSize);el.dataset.f=f0;
+    let f=f0;el.style.fontSize=f+'px';
+    while(el.scrollWidth>el.clientWidth+1&&f>Math.max(12,f0*0.45)){f--;el.style.fontSize=f+'px';}
+  });
+}
+document.fonts&&document.fonts.ready.then(()=>fitNames());
+// one board: tag (D1 / #1) top-left, the spinning window, and for a whole round the prize's name below
+function reelBox(s,x,i,h,inner,landed){
+  const ns=landed&&x.w?`<button class="noshow" data-i="${i}">ไม่มา</button>`:'';
+  const cap=s.group?x.p.name+(x.p.piece?' (ชิ้นที่ '+x.p.piece+')':''):'';
+  return `<div class="reel${landed?' landed':''}" id="reel${i}"${cap?` title="${esc(cap)}"`:''}>
+       <div class="slotmark">${esc(s.round?x.p.id:'#'+(i+1))}</div>${landed?BOW:''}
+       <div class="win" style="height:${h}px"><div class="strip" id="strip${i}">${inner}</div>${ns}</div>
+       ${cap?`<div class="cap">${esc(cap)}</div>`:''}
+     </div>`;
+}
+const EMPTY='<div class="empty">รางวัลนี้ไม่มีผู้รับ (ผู้เข้าร่วมไม่พอ)</div>';
+const Q={n:'???',r:'',h:'',q:1};
+function renderIdle(s){
+  const xs=slots(s);
+  const {h}=gridFor(xs.length||1,s.group);
+  if(!xs.length){$('reels').innerHTML=EMPTY;return h;}
+  $('reels').innerHTML=xs.map((x,i)=>reelBox(s,x,i,h,reelHTML(i,Q,h))).join('');
+  return h;
+}
+// boards in `respin` are drawn blank, ready to spin again for a no-show
+function renderLanded(s,respin){
+  const xs=pairs(s);
+  if(!xs.length&&canTopUp(s))return renderIdle(s);
+  const {h}=gridFor(xs.length||1,s.group);
+  if(!xs.length){$('reels').innerHTML=EMPTY;return h;}
+  $('reels').innerHTML=xs.map((x,i)=>respin&&respin.has(i)?reelBox(s,x,i,h,reelHTML(i,Q,h))
+    :reelBox(s,x,i,h,reelHTML(i,x.w,h),true)).join('');
+  marked.forEach(i=>$('reel'+i)&&$('reel'+i).classList.add('marked'));
+  fitNames();
+  return h;
+}
+// the round's printed page (same columns as the PDF), before its spin
+function renderList(s){
+  const g=$('reels');g.style.gridTemplateColumns='minmax(0,1fr)';g.style.maxWidth='1180px';
+  const sum=s.prizes.reduce((a,p)=>a+p.price*p.qty,0);
+  g.innerHTML=`<div class="plist"><table>
+    <thead><tr><th>ลำดับ</th><th>รหัส</th><th>รายการ</th><th class="val">มูลค่า (บาท)</th></tr></thead>
+    <tbody>${s.prizes.map(p=>`<tr><td class="id">${esc(p.id)}</td><td class="cd">${esc(p.code)}</td>
+      <td>${esc(p.name)}${pieceTag(p)}</td><td class="val">${p.price?baht(p.price):''}</td></tr>`).join('')}</tbody>
+    ${sum?`<tfoot><tr><td colspan="3" style="text-align:right">มูลค่ารวมรอบนี้</td><td class="val">${baht(sum)}</td></tr></tfoot>`:''}
+  </table></div>`;
+}
+
+/* ---------- the slot machine ---------- */
+function spin(instant){
+  if(spinning)return;
+  const s=curStep();if(!s)return;
+  if(isDone(s)){if(canTopUp(s))topUp(s,instant);else if(!instant)redraw();return;}
+  drawStep(s);
+  const xs=pairs(s);
+  if(!xs.length){finish(s,true);return;}
+  if(instant){finish(s,false,true);return;}
+  // blank boards for the drawn winners: slots() would count people still free *after* the draw
+  const h=renderLanded(s,new Set(xs.keys()));
+  animate(xs,xs.map((x,i)=>i),h,()=>finish(s));
+}
+// roll the boards numbered `idxs` and stop each on its winner in xs
+function animate(xs,idxs,h,done){
+  spinning=true;$('spinBtn').disabled=true;$('instantBtn').disabled=true;$('redrawBtn').disabled=true;
+  const pool=S.pool;
+  const lag=idxs.length>6?140:260;   // a full round of 15 still lands within ~4 seconds
+  let n=0;
+  idxs.forEach((i,j)=>{
+    const strip=$('strip'+i);
+    const N=26+rnd(10);
+    let html='';
+    for(let k=0;k<N;k++)html+=reelHTML(i,pool[rnd(pool.length)],h);
+    html+=reelHTML(i,xs[i].w,h);
+    strip.innerHTML=html;
+    const dist=N*h;
+    strip.style.transform='translateY(0)';
+    const dur=2100+j*lag+rnd(400);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      strip.style.transition=`transform ${dur}ms cubic-bezier(.12,.72,.16,1)`;
+      strip.style.transform=`translateY(-${dist}px)`;
+    }));
+    setTimeout(()=>{
+      $('reel'+i).classList.add('landed');$('reel'+i).insertAdjacentHTML('beforeend',BOW);
+      fitNames(strip.lastElementChild);
+      if(++n===idxs.length){spinning=false;$('redrawBtn').disabled=false;done();}
+    },dur+40);
+  });
+}
+function finish(s,quiet,instant){
+  s.prizes.forEach(p=>S.revealed[p.id]=true);S.history.push(s.prizes.map(p=>p.id));
+  logEv('draw',{step:stepLabel(s),instant:!!instant,winners:pairs(s).map(x=>who(x.w,x.p.id))});
+  save();
+  buildPrizeSel();$('prizeSel').value=s.id;showStep(s.id);renderResults();updHeader();
+  spinning=false;if(!quiet){boom();cheer();}
+}
+// the two red-hood girls beside the boards hop for joy
+function cheer(){const r=$('stageRow');r.classList.remove('cheer');void r.offsetWidth;r.classList.add('cheer');
+  clearTimeout(cheer._t);cheer._t=setTimeout(()=>r.classList.remove('cheer'),2100);}
+
+// People registered after this step was shown with empty slots: spin just those slots.
+function topUp(s,instant){
+  marked.clear();updRedraw();
+  const before={};s.prizes.forEach(p=>before[p.id]=(S.alloc[p.id]||[]).length);
+  drawStep(s);
+  const xs=pairs(s),idxs=xs.map((x,i)=>x.k>=before[x.p.id]?i:-1).filter(i=>i>=0);
+  if(!idxs.length)return toast('ไม่เหลือผู้เข้าร่วมให้สุ่มแล้ว');
+  S.history.push({topup:s.prizes.filter(p=>S.alloc[p.id].length>before[p.id]).map(p=>({id:p.id,from:before[p.id]}))});
+  logEv('topup',{step:stepLabel(s),instant:!!instant,winners:idxs.map(i=>who(xs[i].w,xs[i].p.id))});
+  save();
+  const done=()=>{buildPrizeSel();$('prizeSel').value=s.id;showStep(s.id);renderResults();updHeader();boom();cheer();};
+  if(instant)return done();
+  const h=renderLanded(s,new Set(idxs));
+  animate(xs,idxs,h,done);
+}
+
+/* ---------- no-shows ---------- */
+// boards (by index on the step on screen) marked "ไม่มา"; cleared when the step changes
+const marked=new Set();
+function toggleMark(i){
+  if(spinning)return;
+  marked.has(i)?marked.delete(i):marked.add(i);
+  $('reel'+i).classList.toggle('marked',marked.has(i));updRedraw();
+}
+function updRedraw(){
+  const b=$('redrawBtn');b.classList.toggle('hidden',!marked.size);
+  b.textContent='🔁 สุ่มใหม่แทนคนที่ไม่มา ('+marked.size+')';
+}
+// The marked winners lose the prize and are left out of every later draw; each of their
+// boards spins again for someone who has not won yet.
+function redraw(){
+  if(spinning||!marked.size)return;
+  const s=curStep(),xs=pairs(s),avail=available();
+  if(!avail.length)return toast('ไม่เหลือผู้เข้าร่วมให้สุ่มแล้ว');
+  const idxs=[...marked].filter(i=>xs[i]).sort((a,b)=>a-b).slice(0,avail.length);
+  const changes=idxs.map(i=>{const {p,k,w}=xs[i],nw=pick(avail);
+    S.absent.push({...w,pid:p.id});S.alloc[p.id][k]=nw;xs[i]={p,k,w:nw};
+    return {id:p.id,k,old:w};});
+  if(idxs.length<marked.size)toast('ผู้เข้าร่วมเหลือไม่พอ — สุ่มใหม่ได้ '+idxs.length+' คน');
+  S.history.push({redraw:changes});
+  logEv('redraw',{step:stepLabel(s),changes:changes.map(c=>({old:who(c.old,c.id),new:who(S.alloc[c.id][c.k],c.id)}))});
+  save();
+  idxs.forEach(i=>marked.delete(i));updRedraw();
+  const h=renderLanded(s,new Set(idxs));
+  animate(xs,idxs,h,()=>{showStep(s.id);renderResults();updHeader();boom();cheer();});
+}
+function undo(){
+  if(spinning)return toast('รอให้หมุนเสร็จก่อน');
+  const last=S.history[S.history.length-1];
+  if(!last)return toast('ไม่มีรายการให้ยกเลิก');
+  // undo has no redo, and spinning again picks different winners, so ask first
+  const lastId=last.redraw?last.redraw[0].id:last.topup?last.topup[0].id:[].concat(last)[0];
+  const ls=STEPS.find(x=>x.prizes.some(p=>p.id===lastId)),lbl=ls?' "'+stepLabel(ls)+'"':'';
+  if(!confirm(last.topup
+    ?'ยกเลิกการสุ่มเพิ่ม'+lbl+'?\nผู้ได้รับรางวัลที่เพิ่งสุ่มเพิ่มจะถูกลบ'
+    :last.redraw
+    ?'ยกเลิกการสุ่มใหม่'+lbl+'?\n'+last.redraw.map(c=>c.old.n).join(', ')+' จะกลับมาเป็นผู้ได้รับรางวัล'
+    :'ยกเลิกผลรางวัล'+lbl+'?\nรายชื่อผู้ได้รับรางวัลรอบนี้จะถูกลบ และถ้าหมุนใหม่จะได้คนอื่น'))return;
+  S.history.pop();
+  marked.clear();
+  let s,msg;
+  if(last.topup){
+    logEv('undo',{of:'topup',step:ls?stepLabel(ls):'',
+      removed:last.topup.flatMap(c=>S.alloc[c.id].slice(c.from).map(w=>who(w,c.id)))});
+    last.topup.forEach(c=>S.alloc[c.id].length=c.from);
+    s=STEPS.find(x=>x.prizes.some(p=>p.id===last.topup[0].id));
+    msg='ยกเลิกการสุ่มเพิ่ม'+lbl+' แล้ว';
+  }else if(last.redraw){
+    logEv('undo',{of:'redraw',step:ls?stepLabel(ls):'',
+      changes:last.redraw.map(c=>({old:who(S.alloc[c.id][c.k],c.id),new:who(c.old,c.id)}))});
+    // put the absent winners back on their boards and in the draw
+    last.redraw.slice().reverse().forEach(c=>{S.alloc[c.id][c.k]=c.old;
+      const j=S.absent.map(w=>nameKey(w.n)).lastIndexOf(nameKey(c.old.n));if(j>=0)S.absent.splice(j,1);});
+    s=STEPS.find(x=>x.prizes.some(p=>p.id===last.redraw[0].id));
+    msg='ยกเลิกการสุ่มใหม่ — '+last.redraw.map(c=>c.old.n).join(', ')+' กลับมาเป็นผู้ได้รับรางวัล';
+  }else{
+    const ids=[].concat(last);
+    logEv('undo',{of:'draw',step:ls?stepLabel(ls):'',
+      removed:ids.flatMap(id=>(S.alloc[id]||[]).map(w=>who(w,id)))});
+    ids.forEach(id=>{delete S.revealed[id];delete S.alloc[id];});
+    s=STEPS.find(x=>x.prizes.some(p=>p.id===ids[0]));
+    if(s)msg='ยกเลิกการเปิด "'+stepLabel(s)+'" แล้ว';
+  }
+  save();buildPrizeSel();renderResults();updHeader();
+  if(s){$('prizeSel').value=s.id;showStep(s.id);toast(msg,3500);}
+}
+
+/* ---------- results + export ---------- */
+function renderResults(){
+  const prizeOf=id=>S.prizes.find(p=>p.id===id)||{};
+  $('resultsBody').innerHTML=`<p class="note">ผู้เข้าร่วม ${S.pool.length} คน · ยังไม่ได้รางวัล ${available().length} คน</p>`+
+  STEPS.map(s=>{
+    const head=`<div class="rgroup"><h4>${esc(stepLabel(s))}</h4>`;
+    if(!isDone(s))return head+`<div class="rline st-none"><span>ยังไม่เปิด</span>
+      <span>${s.prizes.reduce((a,p)=>a+p.qty,0)} รางวัล</span></div></div>`;
+    const xs=pairs(s);
+    return head+(xs.length?xs.map(x=>`<div class="rline"><span>${s.round?'<b>'+esc(x.p.id)+'</b> ':''}${esc(x.w.n)}${x.w.k?' ('+esc(x.w.k)+')':''}
+        ${s.group?`<br><small class="muted">${esc(x.p.name)}</small>`:''}</span>
+        <span class="muted">${esc(metaOf(x.w))}</span></div>`).join('')
+      :'<div class="rline st-none"><span>ไม่มีผู้รับ</span><span></span></div>')+'</div>';
+  }).join('')+(S.absent.length?`<div class="rgroup"><h4>ไม่มารับรางวัล (สุ่มใหม่แล้ว)</h4>${S.absent.map(w=>
+    `<div class="rline st-absent"><span>${esc(w.n)}${w.k?' ('+esc(w.k)+')':''}<br><small class="muted">${esc((prizeOf(w.pid).round?w.pid+' · ':'')+(prizeOf(w.pid).name||''))}</small></span>
+      <span class="muted">${esc(metaOf(w))}</span></div>`).join('')}</div>`:'');
+}
+function csvAll(){
+  const L=['รางวัล,ชื่อ,ชื่อเล่น,รุ่น,ห้อง,สถานะ'];
+  const q=s=>'"'+String(s||'').replace(/"/g,'""')+'"';
+  const label=p=>(p.round?p.id+' · ':'')+p.name;
+  S.prizes.forEach(p=>{if(S.revealed[p.id])(S.alloc[p.id]||[]).forEach(w=>
+    L.push([label(p),w.n,w.k,w.r,w.h,'ได้รับรางวัล'].map(q).join(',')));});
+  S.absent.forEach(w=>{const p=S.prizes.find(x=>x.id===w.pid)||{name:''};
+    L.push([label(p),w.n,w.k,w.r,w.h,'ไม่มา (สุ่มใหม่)'].map(q).join(','));});
+  return L.join('\n');
+}
+function boom(){
+  const c=$('confetti'),x=c.getContext('2d');
+  c.width=innerWidth;c.height=innerHeight;
+  const cols=['#e2553f','#e9ea8c','#7f8f52','#e8774d','#f3a7a3','#a3a9c6'];
+  const ps=Array.from({length:130},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*0.5,
+    r:4+Math.random()*6,vy:2.2+Math.random()*3.4,vx:-1.4+Math.random()*2.8,
+    a:Math.random()*6.28,va:-.15+Math.random()*.3,c:cols[Math.floor(Math.random()*cols.length)]}));
+  let f=0;
+  (function loop(){
+    x.clearRect(0,0,c.width,c.height);f++;
+    ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.a+=p.va;
+      x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;
+      x.fillRect(-p.r/2,-p.r/2,p.r,p.r*.6);x.restore();});
+    if(f<190)requestAnimationFrame(loop);else x.clearRect(0,0,c.width,c.height);
+  })();
+}
+
+/* ================= wiring ================= */
+$('loadBtn').onclick=()=>{
+  if(!$('resumeBtn').classList.contains('hidden')&&
+     !confirm('เริ่มใหม่ทั้งหมด?\nงานที่ค้างไว้ในเครื่องนี้ (รวมผู้ได้รางวัลที่จับไปแล้ว) จะถูกแทนที่เมื่อเริ่มจับรางวัลใหม่'))return;
+  loadAll();};
+$('reloadBtn').onclick=loadAll;
+$('freezeBtn').onclick=()=>{
+  if(!confirm('เริ่มจับรางวัล ('+raw.regs.length+' คน)?\nผู้สมัครใหม่เพิ่มได้ภายหลังด้วยปุ่ม ↻ รายชื่อใหม่'))return;
+  freeze();};
+$('prizeSel').onchange=()=>{marked.clear();showStep($('prizeSel').value);};
+$('pickerBtn').onclick=()=>{const open=$('pickerList').classList.toggle('hidden');$('picker').classList.toggle('open',!open);
+  if(!open){const c=$('pickerList').querySelector('.cur');if(c)c.scrollIntoView({block:'nearest'});}};
+$('pickerList').onclick=e=>{const li=e.target.closest('li');if(!li)return;closePicker();
+  if(li.dataset.id!==$('prizeSel').value){$('prizeSel').value=li.dataset.id;$('prizeSel').onchange();}};
+document.addEventListener('click',e=>{if(!$('picker').contains(e.target))closePicker();});
+$('redrawBtn').onclick=redraw;
+$('reels').onclick=e=>{const b=e.target.closest('.noshow');if(b)toggleMark(+b.dataset.i);};
+$('spinBtn').onclick=()=>spin(false);
+$('instantBtn').onclick=()=>spin(true);
+$('undoBtn').onclick=undo;
+$('syncBtn').onclick=()=>syncRegs(false);
+$('exportBtn').onclick=()=>dl('winners_'+stamp()+'.csv',csvAll());
+$('resultsBtn').onclick=()=>$('resultsPanel').classList.toggle('open');
+$('closeResults').onclick=()=>$('resultsPanel').classList.remove('open');
+$('fsBtn').onclick=()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();
+$('resumeBtn').onclick=()=>{
+  const j=localStorage.getItem(LS);
+  if(!j)return toast('ไม่พบงานที่ค้างไว้ในเครื่องนี้');
+  S=JSON.parse(j);logEv('resume',{});save();enterStage();toast('กู้คืนแล้ว');syncRegs(true);};
+addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  if(e.key==='Escape')closePicker();
+  if(e.code==='Space'&&!$('controls').classList.contains('hidden')){e.preventDefault();spin(false);}
+  if(e.key==='z'&&(e.ctrlKey||e.metaKey)){e.preventDefault();undo();}});
+addEventListener('resize',()=>{if(S&&!spinning&&!$('stage').classList.contains('hidden'))showStep($('prizeSel').value);});
+addEventListener('beforeunload',e=>{if(S&&Object.keys(S.revealed).length<S.prizes.length){e.preventDefault();e.returnValue='';}});
+
+$('hdrEvent').textContent=EVENT;
+// a draw in progress on this machine: offer to resume it, otherwise load the sheet straight away
+(function(){const j=localStorage.getItem(LS);let s=null;
+  if(j)try{s=JSON.parse(j);}catch(e){}
+  if(s&&s.pool&&Object.keys(s.revealed||{}).length<(s.prizes||[]).length){
+    setMsg('พบงานที่ค้างไว้ (เริ่มเมื่อ '+new Date(s.frozenAt).toLocaleString('th-TH')+
+      ', ผู้เข้าร่วม '+s.pool.length+' คน)','good');
+    $('resumeBtn').classList.remove('hidden');$('loadBtn').classList.remove('hidden');
+    $('loadBtn').textContent='เริ่มใหม่ (โหลดรายชื่อ)';
+  }else loadAll();})();
+</script>
+</body>
+</html>
