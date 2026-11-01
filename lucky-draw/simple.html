@@ -89,7 +89,9 @@ const TOTAL=PRIZES.reduce((a,p)=>a+p.qty,0);
 /* ---------- helpers ---------- */
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const baht=n=>Number(n).toLocaleString('en-US');
-const nameKey=n=>n.normalize('NFC').replace(/[\s​-‍﻿]+/g,'').toLowerCase();
+// same child however the name was typed: spaces and a leading ด.ช./ด.ญ./เด็กชาย/เด็กหญิง/น้อง ignored
+const nameKey=n=>String(n||'').normalize('NFC').replace(/[\s\u200b-\u200d\ufeff]+/g,'')
+  .replace(/^(เด็กชาย|เด็กหญิง|ด\.ช\.|ด\.ญ\.|น้อง)/,'').toLowerCase();
 const who=w=>w.n+(w.k?' ('+w.k+')':'');
 function rnd(n){const lim=Math.floor(0xFFFFFFFF/n)*n,a=new Uint32Array(1);let v;
   do{crypto.getRandomValues(a);v=a[0];}while(v>=lim);return v%n;}
@@ -118,10 +120,13 @@ function parseRegs(rows){
   const seen={},out=[];
   rows.slice(h+1).forEach(r=>{
     const n=(r[ci.n]||'').trim();if(!n)return;
-    const key=nameKey(n);if(seen[key])return;seen[key]=1;     // 1 ชื่อ 1 สิทธิ์
     const ans=ci.e>=0?(r[ci.e]||''):'';
-    out.push({n,k:ci.k>=0?(r[ci.k]||'').trim():'',h:ci.h>=0?(r[ci.h]||'').trim():'',
-      e:Object.keys(ELIG).filter(x=>ELIG[x].re.test(ans))});
+    const w={n,k:ci.k>=0?(r[ci.k]||'').trim():'',h:ci.h>=0?(r[ci.h]||'').trim():'',
+      e:Object.keys(ELIG).filter(x=>ELIG[x].re.test(ans))};
+    // 1 ชื่อ 1 สิทธิ์ — a name signed up twice stays one person, with every condition ticked on any row
+    const key=nameKey(n),o=seen[key];
+    if(o){o.e=Object.keys(ELIG).filter(x=>o.e.includes(x)||w.e.includes(x));o.k=o.k||w.k;o.h=o.h||w.h;return;}
+    seen[key]=w;out.push(w);
   });
   return out;
 }

@@ -428,7 +428,9 @@ function dl(name,text){
 const metaOf=p=>[p.r&&p.r!==p.n?(/^\d+$/.test(p.r)?'รุ่น '+p.r:p.r):'',p.h].filter(Boolean).join(' · ');
 // 1 ชื่อ 1 สิทธิ์: duplicates are judged on the child's real name alone. Spaces,
 // zero-width chars and letter case are ignored so "สมชาย  ใจดี" = "สมชายใจดี".
-const nameKey=n=>n.normalize('NFC').replace(/[\s\u200b-\u200d\ufeff]+/g,'').toLowerCase();
+// same child however the name was typed: spaces and a leading ด.ช./ด.ญ./เด็กชาย/เด็กหญิง/น้อง ignored
+const nameKey=n=>String(n||'').normalize('NFC').replace(/[\s\u200b-\u200d\ufeff]+/g,'')
+  .replace(/^(เด็กชาย|เด็กหญิง|ด\.ช\.|ด\.ญ\.|น้อง)/,'').toLowerCase();
 // red ribbon bow (same drawing as auction/girl.js) tied on each winner's board
 const BOW=`<svg class="bow" viewBox="0 0 60 50" aria-hidden="true" focusable="false">
   <g fill="#ee6a5c" stroke="#b93a2c" stroke-width="2.2" stroke-linejoin="round">
@@ -541,7 +543,12 @@ function parseRegs(rows){
 }
 function dedupe(list){
   const seen={},keep=[],dups=[];
-  list.forEach(p=>{const k=nameKey(p.n);if(seen[k]){dups.push(p);}else{seen[k]=1;keep.push(p);}});
+  // same name signed up twice: keep one entry, with every condition ticked on any of the rows,
+  // and fill in a blank nickname / room / class from the later rows
+  list.forEach(p=>{const k=nameKey(p.n),o=seen[k];
+    if(o){dups.push(p);o.e=Object.keys(ELIG).filter(x=>o.e.includes(x)||(p.e||[]).includes(x));
+      o.k=o.k||p.k;o.h=o.h||p.h;o.r=o.r||p.r;}
+    else{seen[k]=p;keep.push(p);}});
   return {keep,dups};
 }
 
