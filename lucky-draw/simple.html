@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>จับรางวัลทั้งหมด — Lucky Draw</title>
+<style>
+:root{color-scheme:light;--ink:#222;--dim:#777;--line:#ddd;--red:#c23b28;--ok:#2e7d32;--bg:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Sarabun",-apple-system,"Segoe UI",Tahoma,"Leelawadee UI",sans-serif}
+main{max-width:1000px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:24px;margin:0 0 4px}
+h2{font-size:19px;margin:28px 0 8px}
+.muted{color:var(--dim)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0}
+button{font:inherit;padding:8px 14px;border:1px solid #999;border-radius:6px;background:#f6f6f6;cursor:pointer}
+button.main{background:var(--red);border-color:var(--red);color:#fff;font-weight:700;font-size:18px;padding:10px 22px}
+button.sm{padding:1px 8px;font-size:13px}
+button:disabled{opacity:.45;cursor:not-allowed}
+.hidden{display:none!important}
+.msg{padding:10px 12px;border-radius:6px;background:#f3f3f3;margin:10px 0}
+.msg.err{background:#fde8e5;color:#8c2618}
+.msg.warn{background:#fff6dc}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:13px;color:var(--dim);font-weight:600}
+td.n{color:var(--dim);width:36px}
+td.v{text-align:right;white-space:nowrap}
+tr.first td{border-top:2px solid #bbb}
+.tag{font-size:12px;background:#eef3e6;color:#4d5e2a;border-radius:4px;padding:0 6px;white-space:nowrap}
+.none{color:var(--dim);font-style:italic}
+.abs{color:var(--dim);text-decoration:line-through;font-size:13px}
+@media print{.bar,button,.noprint{display:none!important}main{padding:0}}
+</style>
+</head>
+<body>
+<main>
+  <h1>🎁 จับรางวัลทั้งหมด (84 รางวัล)</h1>
+  <div class="muted">1 คนได้หลายรางวัล — ทุกคนที่มีสิทธิ์ได้คนละ 1 รางวัลก่อน แล้วจึงได้รางวัลที่ 2 · ไม่ได้รางวัลเดียวกันซ้ำ ·
+    รางวัลที่มีเงื่อนไขสุ่มเฉพาะผู้ที่ติ๊กในฟอร์ม (คำถามเพิ่มเติม)</div>
+
+  <div id="msg" class="msg">กำลังโหลดรายชื่อ…</div>
+  <div id="stats" class="muted"></div>
+
+  <div class="bar">
+    <button class="main" id="drawBtn" disabled>🎲 สุ่มทั้งหมด</button>
+    <button id="fillBtn" class="hidden"></button>
+    <button id="syncBtn">↻ โหลดรายชื่อใหม่</button>
+    <button id="csvBtn" disabled>⬇ CSV</button>
+    <button id="printBtn">🖨 พิมพ์</button>
+  </div>
+
+  <div id="out"></div>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const LS='luckydraw_simple_v1';
+const SHEET_ID='1_-nFTP--itaHt2v7UQ8xFT1e9uSO1FrcMJMPgSzb76U';
+const RESP_TAB='Form Responses 1';
+const ELIG={
+  pet:{label:'เลี้ยงสุนัขหรือแมว',icon:'🐾',re:/สุนัข|หมา|แมว|สัตว์เลี้ยง/i},
+  kid:{label:'ลูกต่ำกว่า 5 ขวบ / ไม่เกิน 20 กก.',icon:'👶',re:/ขวบ|20\s*ก|นน\.|น้ำหนัก|little\s*hug/i},
+  ev:{label:'มีรถไฟฟ้า',icon:'🚗',re:/รถไฟฟ้า|\bEV\b/i},
+};
+const PRIZES=[
+  ['ร้าน Hug and Heal โรงพยาบาลสัตว์',8,500,'pet'],
+  ['บัตรแลกน้ำปลาหวาน แม่ยาหยี พี่นิกี้ น้องเดฟ บ้านแสนดี',4,100],
+  ['คูปองแลกอาหารในร้านแม่อ้อ',2,100],
+  ['บัตรของขวัญ Little Hug',4,490,'kid'],
+  ["บัตร Lotus's",7,100],
+  ['ร้าน Vayla',7,50],
+  ['ร้าน Vayla',4,100],
+  ['บัตรดูภาพยนตร์ 1 ที่นั่ง Major',6,0],
+  ['บัตร bluO karaoke',8,0],
+  ['บัตร bluO Bowling',6,0],
+  ['Voucher อาหารและเครื่องดื่ม Bloom Haus',3,100],
+  ["คูปองร้าน Peter's Pan จากแม่บีม พี่แพลงตอน บ้านยินดี รุ่น 25",5,200],
+  ['Voucher mister donut มูลค่า 100 บาท',9,100],
+  ['บัตร EV Lab',1,1500,'ev'],
+  ['บัตร EV Lab',3,2000,'ev'],
+  ['บัตร EV Lab',1,5000,'ev'],
+  ['บัตรเข้า Giggle House (Adult Admission)',3,0],
+  ['บัตรเข้า Giggle House (Play zone)',3,0],
+].map(([name,qty,price,elig],i)=>({id:'P'+(i+1),no:i+1,name,qty,price,elig:elig||''}));
+const TOTAL=PRIZES.reduce((a,p)=>a+p.qty,0);
+
+/* ---------- helpers ---------- */
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const baht=n=>Number(n).toLocaleString('en-US');
+const nameKey=n=>n.normalize('NFC').replace(/[\s​-‍﻿]+/g,'').toLowerCase();
+const who=w=>w.n+(w.k?' ('+w.k+')':'');
+function rnd(n){const lim=Math.floor(0xFFFFFFFF/n)*n,a=new Uint32Array(1);let v;
+  do{crypto.getRandomValues(a);v=a[0];}while(v>=lim);return v%n;}
+function parseCSV(text){
+  const rows=[];let row=[],f='',q=false;
+  for(let i=0;i<text.length;i++){const c=text[i];
+    if(q){if(c==='"'){if(text[i+1]==='"'){f+='"';i++;}else q=false;}else f+=c;}
+    else if(c==='"')q=true; else if(c===','){row.push(f);f='';}
+    else if(c==='\n'){row.push(f);rows.push(row);row=[];f='';} else if(c!=='\r')f+=c;}
+  if(f!==''||row.length){row.push(f);rows.push(row);}
+  return rows.map(r=>r.map(x=>x.trim()));
+}
+// header row = first row with a ชื่อ column; columns found by their question text
+function parseRegs(rows){
+  const h=rows.findIndex(r=>r.some(c=>c.includes('ชื่อ')));
+  if(h<0)throw new Error('ไม่พบคอลัมน์ชื่อในแท็บ "'+RESP_TAB+'"');
+  const H=rows[h],find=f=>H.findIndex(f);
+  const ci={
+    k:find(c=>c.includes('ชื่อเล่น')),
+    e:find(c=>c.includes('คำถามเพิ่มเติม')||c.includes('เงื่อนไข')),
+    h:find(c=>c.includes('บ้าน')||c.includes('ห้อง')),
+  };
+  ci.n=find(c=>c.includes('ชื่อจริง'));
+  if(ci.n<0)ci.n=find((c,i)=>c.includes('ชื่อ')&&i!==ci.k);
+  parseRegs.hasElig=ci.e>=0;
+  const seen={},out=[];
+  rows.slice(h+1).forEach(r=>{
+    const n=(r[ci.n]||'').trim();if(!n)return;
+    const key=nameKey(n);if(seen[key])return;seen[key]=1;     // 1 ชื่อ 1 สิทธิ์
+    const ans=ci.e>=0?(r[ci.e]||''):'';
+    out.push({n,k:ci.k>=0?(r[ci.k]||'').trim():'',h:ci.h>=0?(r[ci.h]||'').trim():'',
+      e:Object.keys(ELIG).filter(x=>ELIG[x].re.test(ans))});
+  });
+  return out;
+}
+async function fetchRegs(){
+  const url='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&headers=0&sheet='+
+    encodeURIComponent(RESP_TAB)+'&_='+Date.now();
+  const r=await fetch(url);if(!r.ok)throw new Error('HTTP '+r.status);
+  return parseRegs(parseCSV(await r.text()));
+}
+
+/* ---------- state ---------- */
+// S.pool: everyone registered · S.alloc[prizeId]: winners · S.absent: no-shows (out of the draw)
+let S={pool:[],alloc:null,absent:[],at:null};
+try{const j=JSON.parse(localStorage.getItem(LS));if(j&&j.pool)S=j;}catch(e){}
+const save=()=>{try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}};
+
+/* ---------- drawing ---------- */
+const isEligible=(w,p)=>!p.elig||(w.e||[]).includes(p.elig);
+const isAbsent=w=>S.absent.some(a=>nameKey(a.n)===nameKey(w.n));
+function winCounts(){const c={};Object.values(S.alloc||{}).flat().forEach(w=>{const k=nameKey(w.n);c[k]=(c[k]||0)+1;});return c;}
+// someone who can take a slot of p: eligible, here, not already holding this prize line,
+// and among those, someone with the fewest wins so far
+function pickFor(p){
+  const held=new Set((S.alloc[p.id]||[]).map(w=>nameKey(w.n)));
+  const xs=S.pool.filter(w=>isEligible(w,p)&&!isAbsent(w)&&!held.has(nameKey(w.n)));
+  if(!xs.length)return null;
+  const c=winCounts(),cnt=w=>c[nameKey(w.n)]||0,min=Math.min(...xs.map(cnt));
+  const lo=xs.filter(w=>cnt(w)===min);
+  return {...lo[rnd(lo.length)]};
+}
+// prizes with conditions go first, so their winners don't also soak up the general prizes
+const drawOrder=()=>[...PRIZES.filter(p=>p.elig),...PRIZES.filter(p=>!p.elig)];
+function fillEmpty(){
+  let added=0;
+  drawOrder().forEach(p=>{const a=S.alloc[p.id]=S.alloc[p.id]||[];
+    while(a.length<p.qty){const w=pickFor(p);if(!w)break;a.push(w);added++;}});
+  return added;
+}
+function drawAll(){
+  if(S.alloc&&!confirm('สุ่มใหม่ทั้งหมด?\nผลเดิมจะถูกลบและได้ผู้รับรางวัลชุดใหม่'))return;
+  S.alloc={};S.absent=[];S.at=new Date().toISOString();
+  fillEmpty();save();render();
+}
+function noShow(pid,i){
+  const p=PRIZES.find(x=>x.id===pid),w=S.alloc[pid][i];
+  if(!confirm(who(w)+' ไม่มา?\nจะไม่ได้รางวัลนี้ และจะไม่ถูกสุ่มอีก (รางวัลที่ได้ไปแล้วยังเป็นของเดิม)\nแล้วสุ่มคนใหม่แทน'))return;
+  S.absent.push({...w,pid});
+  S.alloc[pid].splice(i,1);
+  const nw=pickFor(p);
+  if(nw)S.alloc[pid].splice(i,0,nw);else alert('ไม่มีผู้มีสิทธิ์เหลือให้สุ่มแทน');
+  save();render();
+}
+const emptySlots=()=>S.alloc?PRIZES.reduce((a,p)=>a+p.qty-(S.alloc[p.id]||[]).length,0):0;
+function canFill(){
+  if(!S.alloc)return 0;
+  return PRIZES.some(p=>(S.alloc[p.id]||[]).length<p.qty&&pickFor(p));
+}
+
+/* ---------- view ---------- */
+function setMsg(t,c){$('msg').className='msg '+(c||'');$('msg').innerHTML=t;$('msg').classList.toggle('hidden',!t);}
+function render(){
+  const ec=k=>S.pool.filter(w=>(w.e||[]).includes(k)).length;
+  $('stats').innerHTML=`ผู้เข้าร่วม <b>${S.pool.length}</b> คน · `+
+    Object.keys(ELIG).map(k=>ELIG[k].icon+' '+ELIG[k].label+' <b>'+ec(k)+'</b>').join(' · ')+
+    ` · รางวัล <b>${TOTAL}</b>`;
+  $('drawBtn').disabled=!S.pool.length;
+  $('drawBtn').textContent=S.alloc?'🎲 สุ่มใหม่ทั้งหมด':'🎲 สุ่มทั้งหมด '+TOTAL+' รางวัล';
+  $('csvBtn').disabled=!S.alloc;
+  const es=emptySlots();
+  $('fillBtn').classList.toggle('hidden',!(es&&canFill()));
+  $('fillBtn').textContent='➕ สุ่มเติมรางวัลที่ยังว่าง ('+es+')';
+
+  if(!S.alloc){
+    $('out').innerHTML=`<h2>รายการรางวัล</h2><table><tr><th>#</th><th>รางวัล</th><th>เงื่อนไข</th><th>จำนวน</th><th class="v">มูลค่า</th></tr>`+
+      PRIZES.map(p=>`<tr><td class="n">${p.no}</td><td>${esc(p.name)}</td><td>${tag(p)}</td><td>${p.qty}</td>
+        <td class="v">${p.price?baht(p.price):''}</td></tr>`).join('')+'</table>';
+    return;
+  }
+  const c=winCounts();
+  const counts={};Object.values(c).forEach(n=>counts[n]=(counts[n]||0)+1);
+  let h=`<div class="muted noprint">สุ่มเมื่อ ${new Date(S.at).toLocaleString('th-TH')} · ได้รางวัล ${Object.keys(c).length} คน (`+
+    Object.keys(counts).sort((a,b)=>a-b).map(n=>n+' รางวัล: '+counts[n]+' คน').join(', ')+`)`+
+    (es?` · <b style="color:var(--red)">ยังว่าง ${es} รางวัล</b>`:'')+`</div>`;
+  h+=`<h2>ผลรางวัล</h2><table><tr><th>#</th><th>รางวัล</th><th>ผู้ได้รับ</th><th>บ้าน</th><th class="noprint"></th></tr>`;
+  PRIZES.forEach(p=>{
+    const a=S.alloc[p.id]||[];
+    for(let i=0;i<p.qty;i++){const w=a[i];
+      h+=`<tr${i?'':' class="first"'}><td class="n">${i?'':p.no}</td>
+        <td>${i?'':esc(p.name)+(p.price?` <span class="muted">(${baht(p.price)})</span>`:'')+' '+tag(p)}</td>
+        <td>${w?`<b>${esc(w.n)}</b>${w.k?' ('+esc(w.k)+')':''}`:'<span class="none">— ยังไม่มีผู้มีสิทธิ์ —</span>'}</td>
+        <td>${w?esc(w.h):''}</td>
+        <td class="noprint">${w?`<button class="sm" data-p="${p.id}" data-i="${i}">ไม่มา</button>`:''}</td></tr>`;}
+  });
+  h+='</table>';
+  // per person
+  const m={};PRIZES.forEach(p=>(S.alloc[p.id]||[]).forEach(w=>{const k=nameKey(w.n);
+    (m[k]=m[k]||{w,ps:[]}).ps.push(p.name+(p.price?' ('+baht(p.price)+')':''));}));
+  const ppl=Object.values(m).sort((a,b)=>a.w.n.localeCompare(b.w.n,'th'));
+  const none=S.pool.filter(w=>!m[nameKey(w.n)]&&!isAbsent(w));
+  h+=`<h2>รายชื่อผู้ได้รางวัล (${ppl.length} คน)</h2><table><tr><th>ชื่อ</th><th>บ้าน</th><th>จำนวน</th><th>รางวัล</th></tr>`+
+    ppl.map(x=>`<tr><td><b>${esc(x.w.n)}</b>${x.w.k?' ('+esc(x.w.k)+')':''}</td><td>${esc(x.w.h)}</td>
+      <td>${x.ps.length}</td><td>${x.ps.map(esc).join('<br>')}</td></tr>`).join('')+'</table>';
+  if(none.length)h+=`<h2>ยังไม่ได้รางวัล (${none.length} คน)</h2><div>${none.map(w=>esc(who(w))).join(' · ')}</div>`;
+  if(S.absent.length)h+=`<h2>ไม่มา (${S.absent.length} คน)</h2><div class="abs">${S.absent.map(w=>esc(who(w))).join(' · ')}</div>`;
+  $('out').innerHTML=h;
+}
+const tag=p=>p.elig?`<span class="tag">${ELIG[p.elig].icon} ${esc(ELIG[p.elig].label)}</span>`:'';
+
+function csv(){
+  const q=s=>'"'+String(s??'').replace(/"/g,'""')+'"';
+  const L=[['ลำดับ','รางวัล','มูลค่า','ชื่อ','ชื่อเล่น','บ้าน'].join(',')];
+  PRIZES.forEach(p=>{const a=S.alloc[p.id]||[];
+    for(let i=0;i<p.qty;i++){const w=a[i]||{};L.push([p.no,p.name,p.price||'',w.n||'(ว่าง)',w.k,w.h].map(q).join(','));}});
+  S.absent.forEach(w=>L.push(['','ไม่มา','',w.n,w.k,w.h].map(q).join(',')));
+  const b=new Blob(['﻿'+L.join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download='lucky_draw_'+new Date().toISOString().slice(0,16).replace(/[-:T]/g,'')+'.csv';
+  document.body.appendChild(a);a.click();a.remove();
+}
+
+// load the sheet; new people are added, existing people's checkbox answers updated, nobody removed
+async function sync(){
+  $('syncBtn').disabled=true;setMsg('กำลังโหลดรายชื่อ…');
+  try{
+    const regs=await fetchRegs();
+    const by={};S.pool.forEach(w=>by[nameKey(w.n)]=w);
+    let add=0;
+    regs.forEach(r=>{const o=by[nameKey(r.n)];if(o){o.e=r.e;o.k=r.k||o.k;o.h=r.h||o.h;}else{S.pool.push(r);add++;}});
+    save();
+    const warn=[];
+    if(!parseRegs.hasElig)warn.push('ไม่พบคอลัมน์ "คำถามเพิ่มเติม" — รางวัลที่มีเงื่อนไขจะไม่มีผู้มีสิทธิ์');
+    PRIZES.filter(p=>p.elig).forEach(p=>{const n=S.pool.filter(w=>isEligible(w,p)).length;
+      if(n<p.qty)warn.push(`${esc(p.name)} (${baht(p.price)}): มีผู้มีสิทธิ์ ${n} คน แต่มี ${p.qty} รางวัล`);});
+    setMsg((add?'เพิ่มผู้สมัครใหม่ '+add+' คน':'โหลดรายชื่อแล้ว')+(warn.length?'<br>⚠ '+warn.join('<br>⚠ '):''),warn.length?'warn':'');
+  }catch(e){
+    setMsg('โหลดรายชื่อไม่สำเร็จ: '+esc(e.message)+' — ตรวจสอบอินเทอร์เน็ต และว่า Sheet แชร์เป็น “ทุกคนที่มีลิงก์ → ผู้อ่าน”','err');
+  }finally{$('syncBtn').disabled=false;render();}
+}
+
+$('drawBtn').onclick=drawAll;
+$('fillBtn').onclick=()=>{const n=fillEmpty();save();render();alert('สุ่มเติมแล้ว '+n+' รางวัล');};
+$('syncBtn').onclick=sync;
+$('csvBtn').onclick=csv;
+$('printBtn').onclick=()=>print();
+$('out').onclick=e=>{const b=e.target.closest('button[data-p]');if(b)noShow(b.dataset.p,+b.dataset.i);};
+render();sync();
+</script>
+</body>
+</html>
