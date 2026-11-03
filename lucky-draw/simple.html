@@ -185,10 +185,28 @@ function fillEmpty(){
     while(a.length<p.qty){const w=pickFor(p);if(!w)break;a.push(w);added++;}});
   return added;
 }
+// Even out the wins: while someone has 2+ more prizes than another child, hand one of their
+// slots (never a locked one) to that child, if the child may win that prize and doesn't hold it.
+function rebalance(prizes,people){
+  const key=w=>nameKey(w.n);
+  const locked=(p,w)=>LOCKS.some(([no,k,h])=>'P'+no===p.id&&nameKey(w.k||'')===nameKey(k)&&(w.h||'').includes(h));
+  for(let g=0;g<2000;g++){
+    const c={};people.forEach(w=>c[key(w)]=0);
+    prizes.forEach(p=>(S.alloc[p.id]||[]).forEach(w=>c[key(w)]=(c[key(w)]||0)+1));
+    let moved=false;
+    for(const q of people.slice().sort((a,b)=>c[key(a)]-c[key(b)])){
+      for(const p of prizes){const a=S.alloc[p.id]||[];
+        if(!isEligible(q,p)||a.some(w=>key(w)===key(q)))continue;
+        const i=a.findIndex(w=>c[key(w)]-c[key(q)]>=2&&!locked(p,w));
+        if(i>=0){a[i]={...q};moved=true;break;}}
+      if(moved)break;}
+    if(!moved)return;
+  }
+}
 function drawAll(){
   if(S.alloc&&!confirm('สุ่มใหม่ทั้งหมด?\nผลเดิมจะถูกลบและได้ผู้รับรางวัลชุดใหม่'))return;
   S.alloc={};S.absent=[];S.at=new Date().toISOString();
-  fillEmpty();save();render();
+  fillEmpty();rebalance(PRIZES,S.pool.filter(w=>!isAbsent(w)));save();render();
 }
 function noShow(pid,i){
   const p=PRIZES.find(x=>x.id===pid),w=S.alloc[pid][i];

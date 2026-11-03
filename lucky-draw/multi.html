@@ -633,6 +633,7 @@ function freeze(){
      revealed:{},history:[],dupCount:raw.dups.length,log:old&&Array.isArray(old.log)?old.log:[]};
   if(old&&old.pool)logEv('reset',{winners:Object.keys(old.revealed||{}).reduce((a,id)=>a+((old.alloc||{})[id]||[]).length,0),
     absent:(old.absent||[]).length,startedAt:old.frozenAt});
+  makePlan();
   logEv('start',{pool:S.pool.length,dups:S.dupCount,prizes:S.prizes.reduce((a,p)=>a+p.qty,0)});
   save();
   toast('เริ่มจับรางวัล — '+S.pool.length+' คน',3500);
@@ -657,8 +658,18 @@ function available(p){
 }
 const eligibleOf=p=>S.pool.filter(w=>isEligible(w,p));
 // someone with the fewest wins among those who can take prize p, or null
+// For picking only: a locked prize not drawn yet already counts as that child's win, so the
+// random prizes keep them level with everyone else (locked prize + random ones = same total).
+function drawCounts(){
+  const c=winCounts();
+  (S.prizes||[]).forEach(p=>LOCKS.filter(l=>'P'+l[0]===p.id).forEach(([,k,h])=>{
+    const xs=present().filter(x=>nameKey(x.k||'')===nameKey(k)&&(x.h||'').includes(h));
+    if(xs.length!==1)return;const key=nameKey(xs[0].n);
+    if(!(S.alloc[p.id]||[]).some(w=>nameKey(w.n)===key))c[key]=(c[key]||0)+1;}));
+  return c;
+}
 function pickFor(p){
-  const c=winCounts(),xs=available(p);if(!xs.length)return null;
+  const c=drawCounts(),xs=available(p);if(!xs.length)return null;
   const min=Math.min(...xs.map(w=>c[nameKey(w.n)]||0));
   const lo=xs.filter(w=>(c[nameKey(w.n)]||0)===min);
   return {...lo[rnd(lo.length)]};
@@ -674,9 +685,41 @@ function placeLocks(prizes){
     if(xs.length!==1||a.length>=p.qty||a.some(w=>nameKey(w.n)===nameKey(xs[0].n)))return;
     a.push({...xs[0]});}));
 }
+// Even out the wins: while someone has 2+ more prizes than another child, hand one of their
+// slots (never a locked one) to that child, if the child may win that prize and doesn't hold it.
+function rebalance(prizes,people){
+  const key=w=>nameKey(w.n);
+  const locked=(p,w)=>LOCKS.some(([no,k,h])=>'P'+no===p.id&&nameKey(w.k||'')===nameKey(k)&&(w.h||'').includes(h));
+  for(let g=0;g<2000;g++){
+    const c={};people.forEach(w=>c[key(w)]=0);
+    prizes.forEach(p=>(S.alloc[p.id]||[]).forEach(w=>c[key(w)]=(c[key(w)]||0)+1));
+    let moved=false;
+    for(const q of people.slice().sort((a,b)=>c[key(a)]-c[key(b)])){
+      for(const p of prizes){const a=S.alloc[p.id]||[];
+        if(!isEligible(q,p)||a.some(w=>key(w)===key(q)))continue;
+        const i=a.findIndex(w=>c[key(w)]-c[key(q)]>=2&&!locked(p,w));
+        if(i>=0){a[i]={...q};moved=true;break;}}
+      if(moved)break;}
+    if(!moved)return;
+  }
+}
+// The whole draw is worked out (hidden) when it starts, evened out, and kept in S.plan;
+// each step then reveals its part of the plan. Anyone in the plan who has since been marked
+// ไม่มา is skipped and their slot drawn fresh. Draws saved before S.plan existed just draw live.
+function makePlan(){
+  const real=S.alloc;S.alloc={};
+  const order=[...S.prizes.filter(p=>p.elig),...S.prizes.filter(p=>!p.elig)];
+  placeLocks(S.prizes);
+  order.forEach(p=>{const a=S.alloc[p.id]=S.alloc[p.id]||[];
+    while(a.length<p.qty){const w=pickFor(p);if(!w)break;a.push(w);}});
+  rebalance(S.prizes,present());
+  S.plan=S.alloc;S.alloc=real;
+}
 function drawStep(s){
   placeLocks(s.prizes);
   s.prizes.forEach(p=>{const a=S.alloc[p.id]=S.alloc[p.id]||[];
+    ((S.plan||{})[p.id]||[]).forEach(w=>{const k=nameKey(w.n);
+      if(a.length<p.qty&&!a.some(x=>nameKey(x.n)===k)&&available(p).some(x=>nameKey(x.n)===k))a.push({...w});});
     while(a.length<p.qty){const w=pickFor(p);if(!w)break;a.push(w);}});
   save();
 }
