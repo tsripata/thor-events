@@ -152,7 +152,12 @@ try{const j=JSON.parse(localStorage.getItem(LS));if(j&&j.pool)S=j;}catch(e){}
 const save=()=>{try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}};
 
 /* ---------- drawing ---------- */
-const isEligible=(w,p)=>!p.elig||(w.e||[]).includes(p.elig);
+// Never wins (organisers' request): [prize no., nickname, house]
+const EXCLUDE=[
+  [12,'แพลงตอน','ยินดี'],   // คูปองร้าน Peter's Pan
+];
+const isExcluded=(w,p)=>EXCLUDE.some(([no,k,h])=>'P'+no===p.id&&nameKey(w.k||'')===nameKey(k)&&(w.h||'').includes(h));
+const isEligible=(w,p)=>!isExcluded(w,p)&&(!p.elig||(w.e||[]).includes(p.elig));
 const isAbsent=w=>S.absent.some(a=>nameKey(a.n)===nameKey(w.n));
 function winCounts(){const c={};Object.values(S.alloc||{}).flat().forEach(w=>{const k=nameKey(w.n);c[k]=(c[k]||0)+1;});return c;}
 // someone who can take a slot of p: eligible, here, not already holding this prize line,

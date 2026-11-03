@@ -642,7 +642,12 @@ function freeze(){
    with the fewest wins so far, so nobody gets a 2nd prize while an eligible person still
    has none. A person never holds two slots of the same prize line, and someone marked
    "ไม่มา" (absent) is left out of every later draw. */
-const isEligible=(w,p)=>!p.elig||(w.e||[]).includes(p.elig);
+// Never wins (organisers' request): [prize no., nickname, house]
+const EXCLUDE=[
+  [12,'แพลงตอน','ยินดี'],   // คูปองร้าน Peter's Pan
+];
+const isExcluded=(w,p)=>EXCLUDE.some(([no,k,h])=>'P'+no===p.id&&nameKey(w.k||'')===nameKey(k)&&(w.h||'').includes(h));
+const isEligible=(w,p)=>!isExcluded(w,p)&&(!p.elig||(w.e||[]).includes(p.elig));
 const present=()=>{const out={};S.absent.forEach(w=>out[nameKey(w.n)]=1);return S.pool.filter(p=>!out[nameKey(p.n)]);};
 function winCounts(){const c={};Object.values(S.alloc).flat().forEach(w=>{const k=nameKey(w.n);c[k]=(c[k]||0)+1;});return c;}
 // people who could take a slot of prize p right now
