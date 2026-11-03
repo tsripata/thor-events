@@ -361,7 +361,7 @@ const ELIG={
   ev:{label:'มีรถไฟฟ้า',icon:'🚗',re:/รถไฟฟ้า|\bEV\b/i},
 };
 const PRIZES=[
-  ['ร้าน Hug and Heal โรงพยาบาลสัตว์',8,500,'pet'],
+  ['ร้าน Hug and Heal โรงพยาบาลสัตว์',9,500,'pet'],
   ['บัตรแลกน้ำปลาหวาน แม่ยาหยี พี่นิกี้ น้องเดฟ บ้านแสนดี',4,100],
   ['คูปองแลกอาหารในร้านแม่อ้อ',2,100],
   ['บัตรของขวัญ Little Hug',4,490,'kid'],
@@ -373,13 +373,21 @@ const PRIZES=[
   ['บัตร bluO Bowling',6,0],
   ['Voucher อาหารและเครื่องดื่ม Bloom Haus',3,100],
   ["คูปองร้าน Peter's Pan จากแม่บีม พี่แพลงตอน บ้านยินดี รุ่น 25",5,200],
-  ['Voucher mister donut มูลค่า 100 บาท',9,100],
+  ['Voucher mister donut มูลค่า 100 บาท',8,100],
   ['บัตร EV Lab',1,1500,'ev'],
   ['บัตร EV Lab',3,2000,'ev'],
   ['บัตร EV Lab',1,5000,'ev'],
   ['บัตรเข้า Giggle House (Adult Admission)',3,0],
   ['บัตรเข้า Giggle House (Play zone)',3,0],
+  ['ป้อน',1,0],
+  ['สติกเกอร์น้องน้ำจิตต',3,0],
 ].map(([name,qty,price,elig],i)=>({id:'P'+(i+1),order:i+1,name,qty,price,elig:elig||'',sponsor:'',round:'',code:''}));
+// Locked winners (organisers' request): this child always gets this prize line when it is drawn,
+// as long as they signed up and aren't marked ไม่มา. Found by nickname + house; skipped if 0 or 2+ match.
+const LOCKS=[   // [prize no., nickname, house] — must match exactly one sign-up
+  [19,'รดา','คิดดี'],   // ป้อน
+  [20,'ณณณ','แสนดี'],   // สติกเกอร์น้องน้ำจิตต
+];
 function RESTRICTED_NONE(w){
   raw.prizes.filter(p=>p.elig).forEach(p=>{const n=raw.regs.filter(r=>(r.e||[]).includes(p.elig)).length;
     if(n<p.qty)w.push(`${esc(p.name)}${p.price?' ('+baht(p.price)+' บาท)':''}: มีผู้มีสิทธิ์ ${n} คน แต่มี ${p.qty} รางวัล — ส่วนที่เหลือรอผู้สมัครใหม่`);});
@@ -654,7 +662,15 @@ const noWin=()=>{const c=winCounts();return present().filter(w=>!c[nameKey(w.n)]
 const multiWin=()=>Object.values(winCounts()).filter(n=>n>1).length;
 // A prize already drawn but never shown (the page closed mid-spin) keeps its winners;
 // only its empty slots (too few eligible people at the time) are filled.
+function placeLocks(prizes){
+  prizes.forEach(p=>LOCKS.filter(l=>'P'+l[0]===p.id).forEach(([,k,h])=>{
+    const a=S.alloc[p.id]=S.alloc[p.id]||[];
+    const xs=present().filter(x=>nameKey(x.k||'')===nameKey(k)&&(x.h||'').includes(h));
+    if(xs.length!==1||a.length>=p.qty||a.some(w=>nameKey(w.n)===nameKey(xs[0].n)))return;
+    a.push({...xs[0]});}));
+}
 function drawStep(s){
+  placeLocks(s.prizes);
   s.prizes.forEach(p=>{const a=S.alloc[p.id]=S.alloc[p.id]||[];
     while(a.length<p.qty){const w=pickFor(p);if(!w)break;a.push(w);}});
   save();
