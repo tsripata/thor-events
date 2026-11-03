@@ -382,6 +382,12 @@ const PRIZES=[
   ['ป้อน',1,0],
   ['สติกเกอร์น้องน้ำจิตต',3,0],
 ].map(([name,qty,price,elig],i)=>({id:'P'+(i+1),order:i+1,name,qty,price,elig:elig||'',sponsor:'',round:'',code:''}));
+// Locked winners (organisers' request): this child always gets this prize line when it is drawn,
+// as long as they signed up and aren't marked ไม่มา. Found by nickname + house; skipped if 0 or 2+ match.
+const LOCKS=[   // [prize no., nickname, house] — must match exactly one sign-up
+  [19,'รดา','คิดดี'],   // ป้อน
+  [20,'ณณณ','แสนดี'],   // สติกเกอร์น้องน้ำจิตต
+];
 function RESTRICTED_NONE(w){
   raw.prizes.filter(p=>p.elig).forEach(p=>{const n=raw.regs.filter(r=>(r.e||[]).includes(p.elig)).length;
     if(n<p.qty)w.push(`${esc(p.name)}${p.price?' ('+baht(p.price)+' บาท)':''}: มีผู้มีสิทธิ์ ${n} คน แต่มี ${p.qty} รางวัล — ส่วนที่เหลือรอผู้สมัครใหม่`);});
@@ -656,7 +662,15 @@ const noWin=()=>{const c=winCounts();return present().filter(w=>!c[nameKey(w.n)]
 const multiWin=()=>Object.values(winCounts()).filter(n=>n>1).length;
 // A prize already drawn but never shown (the page closed mid-spin) keeps its winners;
 // only its empty slots (too few eligible people at the time) are filled.
+function placeLocks(prizes){
+  prizes.forEach(p=>LOCKS.filter(l=>'P'+l[0]===p.id).forEach(([,k,h])=>{
+    const a=S.alloc[p.id]=S.alloc[p.id]||[];
+    const xs=present().filter(x=>nameKey(x.k||'')===nameKey(k)&&(x.h||'').includes(h));
+    if(xs.length!==1||a.length>=p.qty||a.some(w=>nameKey(w.n)===nameKey(xs[0].n)))return;
+    a.push({...xs[0]});}));
+}
 function drawStep(s){
+  placeLocks(s.prizes);
   s.prizes.forEach(p=>{const a=S.alloc[p.id]=S.alloc[p.id]||[];
     while(a.length<p.qty){const w=pickFor(p);if(!w)break;a.push(w);}});
   save();

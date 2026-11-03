@@ -87,6 +87,12 @@ const PRIZES=[
   ['สติกเกอร์น้องน้ำจิตต',3,0],
 ].map(([name,qty,price,elig],i)=>({id:'P'+(i+1),no:i+1,name,qty,price,elig:elig||''}));
 const TOTAL=PRIZES.reduce((a,p)=>a+p.qty,0);
+// Locked winners (organisers' request): this child always gets this prize line when it is drawn,
+// as long as they signed up and aren't marked ไม่มา. Found by nickname + house; skipped if 0 or 2+ match.
+const LOCKS=[   // [prize no., nickname, house] — must match exactly one sign-up
+  [19,'รดา','คิดดี'],   // ป้อน
+  [20,'ณณณ','แสนดี'],   // สติกเกอร์น้องน้ำจิตต
+];
 
 /* ---------- helpers ---------- */
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -161,8 +167,15 @@ function pickFor(p){
 }
 // prizes with conditions go first, so their winners don't also soak up the general prizes
 const drawOrder=()=>[...PRIZES.filter(p=>p.elig),...PRIZES.filter(p=>!p.elig)];
+function placeLocks(prizes){
+  prizes.forEach(p=>LOCKS.filter(l=>'P'+l[0]===p.id).forEach(([,k,h])=>{
+    const a=S.alloc[p.id]=S.alloc[p.id]||[];
+    const xs=S.pool.filter(x=>!isAbsent(x)).filter(x=>nameKey(x.k||'')===nameKey(k)&&(x.h||'').includes(h));
+    if(xs.length!==1||a.length>=p.qty||a.some(w=>nameKey(w.n)===nameKey(xs[0].n)))return;
+    a.push({...xs[0]});}));
+}
 function fillEmpty(){
-  let added=0;
+  let added=0;placeLocks(PRIZES);
   drawOrder().forEach(p=>{const a=S.alloc[p.id]=S.alloc[p.id]||[];
     while(a.length<p.qty){const w=pickFor(p);if(!w)break;a.push(w);added++;}});
   return added;
