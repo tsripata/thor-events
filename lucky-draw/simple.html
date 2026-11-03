@@ -65,7 +65,7 @@ const ELIG={
   ev:{label:'มีรถไฟฟ้า',icon:'🚗',re:/รถไฟฟ้า|\bEV\b/i},
 };
 const PRIZES=[
-  ['ร้าน Hug and Heal โรงพยาบาลสัตว์',9,500,'pet'],
+  ['ร้าน Hug and Heal โรงพยาบาลสัตว์',4,500,'pet'],
   ['บัตรแลกน้ำปลาหวาน แม่ยาหยี พี่นิกี้ น้องเดฟ บ้านแสนดี',4,100],
   ['คูปองแลกอาหารในร้านแม่อ้อ',2,100],
   ['บัตรของขวัญ Little Hug',4,490,'kid'],
@@ -84,7 +84,7 @@ const PRIZES=[
   ['บัตรเข้า Giggle House (Adult Admission)',3,0],
   ['บัตรเข้า Giggle House (Play zone)',3,0],
   ['ป้อน',1,0],
-  ['สติกเกอร์น้องน้ำจิตต',3,0],
+  ['สติกเกอร์น้องน้ำจิตต',8,0],
 ].map(([name,qty,price,elig],i)=>({id:'P'+(i+1),no:i+1,name,qty,price,elig:elig||''}));
 const TOTAL=PRIZES.reduce((a,p)=>a+p.qty,0);
 // Locked winners (organisers' request): this child always gets this prize line when it is drawn,
