@@ -1,0 +1,70 @@
+{
+  "week_of": "2026-12-07",
+  "start": "2026-12-07",
+  "end": "2026-12-13",
+  "label": "December 7–13, 2026",
+  "intro": "Christmas-market weekend: a German-style funfair at BITEC, a garden market at The Sukhothai, and the final nights of Vijit Chao Phraya.",
+  "weekday_note": null,
+  "activities": [
+    {
+      "title": "Christmas Festival Bangkok 2026 (German-style market + funfair)",
+      "section": "weekend",
+      "category": "market",
+      "date": "Thursday–Sunday December 10–13",
+      "time": "11am–10pm",
+      "location": "BITEC Buri, Bang Na BTS",
+      "price": "80 THB entry (kids may differ; check)",
+      "why": "Funfair rides, Christmas lights and food stalls. Rides plus Santa vibes, a big crowd-pleaser for a 5-year-old.",
+      "tip": "Go Thursday or Friday late afternoon to beat weekend crowds. It's right at Bang Na BTS.",
+      "link": "https://www.ticketmelon.com/MesseAsia/christmas-festival-2026",
+      "image": null,
+      "video": null,
+      "pick": true
+    },
+    {
+      "title": "Kimpton Maa-Lai gingerbread house workshop",
+      "section": "weekend",
+      "category": "workshop",
+      "date": "Saturday–Sunday December 12–13",
+      "time": "1pm–5pm",
+      "location": "Kimpton Maa-Lai Bangkok, Soi Tonson",
+      "price": "1,100++ THB per person",
+      "why": "Build, decorate, take home. Hands-on making he'll be proud of.",
+      "tip": "Book 2+ days ahead.",
+      "link": "https://www.timeout.com/bangkok/news/kimpton-maa-lai-bangkok-111126",
+      "image": null,
+      "video": null,
+      "pick": false
+    },
+    {
+      "title": "Bangkok Uncovered & Beyond Christmas Market",
+      "section": "weekend",
+      "category": "market",
+      "date": "Saturday–Sunday December 12–13",
+      "time": "2pm–9pm",
+      "location": "The Sukhothai Bangkok garden, Sathorn",
+      "price": "Free entry",
+      "why": "Leafy garden market with makers' stalls and live entertainment, calmer than the mall crowds.",
+      "tip": "Good stroller-free wander. Go at 4pm and stay for the lights.",
+      "link": "https://nomadmum.com/christmas-in-bangkok/",
+      "image": null,
+      "video": null,
+      "pick": false
+    },
+    {
+      "title": "Vijit Chao Phraya — final nights",
+      "section": "weekday",
+      "category": "outdoor",
+      "date": "Through Sunday December 13",
+      "time": "Evenings",
+      "location": "Chao Phraya riverside",
+      "price": "Free",
+      "why": "Last chance for the river light shows this year.",
+      "tip": "Pair with ICONSIAM's tree for a two-show evening.",
+      "link": "https://www.nationthailand.com/news/tourism/40073143",
+      "image": null,
+      "video": null,
+      "pick": true
+    }
+  ]
+}
