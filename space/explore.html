@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Explore the Solar System · สำรวจระบบสุริยะ — Space Crayon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  canvas { display: block; width: 100vw; height: 100vh; }
+  .hud { position: fixed; left: 50%; top: 14px; transform: translateX(-50%); z-index: 10; pointer-events: none; text-align: center;
+    color: #cfe3ff; font: 600 13px "Rajdhani", sans-serif; letter-spacing: .22em; text-transform: uppercase; }
+  .hud b { color: #ffd21a; font-size: 16px; }
+  .chips { display: flex; gap: 6px; margin-top: 6px; justify-content: center; }
+  .chip { font: 600 13px "Fredoka", sans-serif; letter-spacing: 0; text-transform: none; color: rgba(255,255,255,.45); padding: 4px 10px; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.15); background: rgba(8,12,28,.5); display: flex; align-items: center; gap: 6px; transition: all .4s; }
+  .chip i { width: 9px; height: 9px; border-radius: 50%; background: var(--c); opacity: .35; }
+  .chip.on { color: #fff; border-color: rgba(255,255,255,.4); background: rgba(30,40,80,.7); }
+  .chip.on i { opacity: 1; box-shadow: 0 0 8px var(--c); }
+  .chip.pop { transform: scale(1.25); }
+  .fleet { position: fixed; left: 18px; top: 14px; color: #fff; font: 600 18px "Fredoka", sans-serif; z-index: 10; pointer-events: none;
+    background: rgba(10,14,32,.55); border: 1px solid rgba(255,255,255,.18); padding: 8px 14px; border-radius: 999px; backdrop-filter: blur(6px); }
+  .fleet b { color: #ffd21a; }
+  .back { position: fixed; left: 18px; bottom: 16px; z-index: 10; color: rgba(255,255,255,.55); font: 600 14px "Fredoka", sans-serif; text-decoration: none; }
+  .pop-card { position: fixed; z-index: 11; pointer-events: none; transform: translate(-50%, -100%); min-width: 200px; max-width: 260px;
+    background: rgba(6,12,30,.78); border: 1px solid rgba(140,200,255,.45); border-radius: 14px; padding: 10px 14px; color: #fff;
+    font: 500 14px "Fredoka", sans-serif; backdrop-filter: blur(6px); box-shadow: 0 0 24px rgba(80,160,255,.25);
+    animation: pin .45s cubic-bezier(.2,1.6,.4,1) both, pout .6s ease 4.2s forwards; }
+  .pop-card h4 { margin: 0 0 4px; font: 600 17px "Fredoka", sans-serif; }
+  .pop-card h4 span { color: #ffd21a; }
+  .pop-card p { margin: 2px 0 0; color: #bcd3f5; line-height: 1.35; }
+  @keyframes pin { from { opacity: 0; transform: translate(-50%, -80%) scale(.7); } }
+  @keyframes pout { to { opacity: 0; transform: translate(-50%, -115%); } }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="hud">Planets explored · สำรวจแล้ว <b id="seen">0</b>/8<div class="chips" id="chips"></div></div>
+<div class="fleet">🚀 <b id="count">0</b> explorers · นักสำรวจ</div>
+<a class="back" href="./">← Space Crayon</a>
+<script src="shared.js"></script>
+<script>
+(() => {
+const S = SpaceCrayon, TAU = S.TAU, clamp = S.clamp;
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const PL = [
+  { key: 'mercury', en: 'Mercury', th: 'ดาวพุธ', size: 0.022, f: 0, a: 0.55, c: '#b5aca2', fact: 'Closest to the Sun. A year is only 88 days!', tf: 'อยู่ใกล้ดวงอาทิตย์ที่สุด 1 ปีมีแค่ 88 วัน' },
+  { key: 'venus', en: 'Venus', th: 'ดาวศุกร์', size: 0.036, f: 0.075, a: -0.62, c: '#e8cf94', fact: 'The hottest planet, hotter than an oven!', tf: 'ร้อนที่สุด ร้อนกว่าเตาอบอีก' },
+  { key: 'earth', en: 'Earth', th: 'โลก', size: 0.038, f: 0.16, a: 0.12, c: '#4a90e2', fact: 'Our home, the planet with oceans.', tf: 'บ้านของเรา ดาวเคราะห์ที่มีมหาสมุทร' },
+  { key: 'mars', en: 'Mars', th: 'ดาวอังคาร', size: 0.028, f: 0.25, a: 0.72, c: '#d27a43', fact: 'The red planet, with the tallest volcano.', tf: 'ดาวสีแดง มีภูเขาไฟสูงที่สุด' },
+  { key: 'jupiter', en: 'Jupiter', th: 'ดาวพฤหัสบดี', size: 0.095, f: 0.43, a: -0.32, c: '#d9b48a', fact: 'The biggest planet. The red spot is a giant storm.', tf: 'ใหญ่ที่สุด จุดแดงคือพายุยักษ์' },
+  { key: 'saturn', en: 'Saturn', th: 'ดาวเสาร์', size: 0.072, f: 0.63, a: 0.42, c: '#e6d2a4', ring: true, fact: 'Its rings are made of ice and rock.', tf: 'วงแหวนทำจากน้ำแข็งและหิน' },
+  { key: 'uranus', en: 'Uranus', th: 'ดาวยูเรนัส', size: 0.05, f: 0.82, a: -0.58, c: '#a9e2e6', fact: 'It spins on its side like a rolling ball.', tf: 'หมุนตะแคงเหมือนลูกบอลกลิ้ง' },
+  { key: 'neptune', en: 'Neptune', th: 'ดาวเนปจูน', size: 0.048, f: 1, a: 0.05, c: '#4a80e0', fact: 'The windiest planet, very far away.', tf: 'ลมแรงที่สุด อยู่ไกลมาก' }
+];
+const TEX = {};
+PL.forEach((p, i) => TEX[p.key] = S.planetTexture(p.key, 512, 256, 20 + i * 7));
+const sunTex = S.planetTexture('sun', 512, 256, 3), moonTex = S.planetTexture('moon', 256, 128, 4);
+const chipsEl = document.getElementById('chips'), seenEl = document.getElementById('seen'), countEl = document.getElementById('count');
+PL.forEach(p => { const c = document.createElement('div'); c.className = 'chip'; c.style.setProperty('--c', p.c); c.innerHTML = `<i></i>${p.th}`; chipsEl.appendChild(c); p.chip = c; p.visits = 0; });
+
+let W, H, DPR, bg, twk, sun, sx, sy, sunR, moon, frame = 0, time = 0;
+const ships = [], parts = new S.Particles(3000), asteroids = [], rocks = [];
+let comet = null, nextComet = 12;
+
+function makeRing(r, res) {
+  const Ro = r * 2.25, Ri = r * 1.25, size = Math.ceil(Ro * 2 * res), c = S.canvas(size, size), g = c.getContext('2d'), N = S.Noise(77);
+  g.translate(size / 2, size / 2); g.scale(res, res);
+  for (let rad = Ri; rad < Ro; rad += 0.5 / res) {
+    const t = (rad - Ri) / (Ro - Ri);
+    let a = 0.5 + 0.35 * (N.n(t * 60, 0.5) - 0.5) * 2 + 0.15 * Math.sin(t * 90);
+    if (t < 0.16) a *= 0.3; if (t > 0.7 && t < 0.75) a *= 0.06; if (t > 0.93) a *= 0.5;
+    const col = S.mix([150, 128, 96], [236, 220, 186], 0.5 + 0.5 * Math.sin(t * 13));
+    g.strokeStyle = `rgba(${col[0] | 0},${col[1] | 0},${col[2] | 0},${clamp(a, 0, 0.9)})`; g.lineWidth = 0.7 / res;
+    g.beginPath(); g.arc(0, 0, rad, 0, TAU); g.stroke();
+  }
+  return { c, Ro };
+}
+function makeRocks() {
+  const r = S.rng(42);
+  for (let k = 0; k < 8; k++) {
+    const s = 24, c = S.canvas(s, s), g = c.getContext('2d'), pts = [];
+    for (let i = 0; i < 9; i++) { const a = (i / 9) * TAU, rd = s * (0.3 + r() * 0.17); pts.push([s / 2 + Math.cos(a) * rd, s / 2 + Math.sin(a) * rd]); }
+    const gr = g.createLinearGradient(0, s / 2, s, s / 2); gr.addColorStop(0, '#b3a698'); gr.addColorStop(0.55, '#5e554c'); gr.addColorStop(1, '#16130f');
+    g.fillStyle = gr; g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); g.fill();
+    rocks.push(c);
+  }
+}
+makeRocks();
+
+function layout() {
+  DPR = Math.min(window.devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight;
+  cv.width = W * DPR; cv.height = H * DPR; ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  bg = S.makeSpaceBackground(W, H, 12, { res: DPR, nebula: ['#1d2a6b', '#4a1f5e', '#7a3a1a'], intensity: 0.7 });
+  twk = S.makeTwinklers(W, H, 60, 5);
+  const k = Math.min(1, W / (H * 1.7));
+  sunR = H * 0.42 * Math.max(0.75, k); sx = -H * 0.14; sy = H * 0.5;
+  sun = new S.Sphere(sunTex, sunR, { res: 0.6, bilinear: true, emissive: true, crop: { x0: -sx - 2, x1: sunR, y0: -sunR, y1: sunR } }); sun.render(0);
+  const dmin = sunR + H * 0.14, dmax = W - sx - H * 0.08 * Math.max(0.6, k) - 20;
+  PL.forEach((p, i) => {
+    p.d = dmin + p.f * (dmax - dmin); p.r = Math.max(8, p.size * H * k * 1.05);
+    p.th0 = Math.asin(clamp((p.a * H * 0.3) / p.d, -0.9, 0.9));
+    place(p, 0);
+    const L = [(sx - p.x) / p.d, (sy - p.y) / p.d, 0.55];
+    p.sphere = new S.Sphere(TEX[p.key], p.r, { res: DPR, light: L, tilt: p.ring ? 0.3 : p.key === 'uranus' ? 1.4 : 0.1, pitch: p.ring ? 0.26 : 0.12, ambient: 0.03 });
+    p.rot = Math.random() * 512; p.sphere.render(p.rot);
+    if (p.ring) p.ringImg = makeRing(p.r, DPR);
+    if (p.key === 'earth') { moon = new S.Sphere(moonTex, Math.max(4, p.r * 0.27), { res: DPR, light: L }); moon.render(10); }
+  });
+  asteroids.length = 0;
+  const m = PL[3], j = PL[4], r = S.rng(9);
+  for (let i = 0; i < 240; i++) {
+    const d = m.d + (j.d - m.d) * (0.3 + r() * 0.4), lim = Math.asin(Math.min(0.95, (H * 0.52) / d));
+    asteroids.push({ d, th: (r() * 2 - 1) * lim, lim, w: 0.004 + r() * 0.008, s: 1.1 + Math.pow(r(), 4) * 3.6, img: rocks[(r() * rocks.length) | 0], rot: r() * TAU });
+  }
+  ships.forEach(s => s.setHeight(shipH()));
+}
+function place(p, t) { const th = p.th0 + Math.sin(t * 0.03 + p.f * 9) * 0.015; p.x = sx + Math.cos(th) * p.d; p.y = sy + Math.sin(th) * p.d; }
+const shipH = () => clamp(H * 0.075, 34, 92);
+const orbitR = p => (p.ring ? p.r * 2.4 : p.r * 1.35) + shipH() * 0.7;
+let rT; addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(layout, 250); });
+layout();
+
+/* ---------- ships ---------- */
+function pickTarget(s) {
+  const opts = PL.map((p, i) => i).filter(i => i !== s.at);
+  opts.sort((a, b) => (PL[a].visits + Math.random() * 2.5) - (PL[b].visits + Math.random() * 2.5));
+  return opts[0];
+}
+function addShip(img) {
+  const e = PL[2], s = new S.Ship(img, { height: shipH(), x: e.x, y: e.y });
+  s.mode = 'travel'; s.at = 2; s.target = pickTarget(s); s.maxSp = 150 + Math.random() * 90;
+  const a = Math.random() * TAU; s.vx = Math.cos(a) * 160; s.vy = Math.sin(a) * 160;
+  ships.push(s); if (ships.length > 24) ships.shift();
+  countEl.textContent = ships.length;
+  ui.toast(`🚀 Explorer #${s.id} launched from Earth! · ยานลำที่ ${s.id} ออกเดินทางจากโลกแล้ว!`);
+  for (let k = 0; k < 40; k++) { const a2 = Math.random() * TAU, sp = 40 + Math.random() * 160; parts.add({ x: e.x, y: e.y, vx: Math.cos(a2) * sp, vy: Math.sin(a2) * sp, life: 0.7, size: 6, color: '#9fdcff', drag: 2 }); }
+}
+function arrive(s, p) {
+  p.visits++;
+  if (p.visits === 1) { p.chip.classList.add('on', 'pop'); setTimeout(() => p.chip.classList.remove('pop'), 600); seenEl.textContent = PL.filter(q => q.visits).length; }
+  if (p.card) p.card.remove();
+  const c = document.createElement('div'); c.className = 'pop-card';
+  c.innerHTML = `<h4>🚀 #${s.id} reached <span>${p.en}</span> · ${p.th}</h4><p>${p.fact}</p><p>${p.tf}</p>`;
+  c.style.left = p.x + 'px'; c.style.top = Math.max(120, p.y - orbitR(p) * (p.ring ? 0.4 : 0.6) - 10) + 'px';
+  document.body.appendChild(c); p.card = c; setTimeout(() => { if (p.card === c) p.card = null; c.remove(); }, 5000);
+}
+function updateShip(s, dt) {
+  s.update(dt);
+  const p = PL[s.target];
+  if (s.mode === 'travel') {
+    const R = orbitR(p), ex = (s.x - p.x) / R, ey = (s.y - p.y) / (R * 0.32), phi = Math.atan2(ey, ex);
+    const tx = p.x + Math.cos(phi) * R, ty = p.y + Math.sin(phi) * R * 0.32, dx = tx - s.x, dy = ty - s.y, dist = Math.hypot(dx, dy);
+    const sp = Math.min(s.maxSp, dist * 1.4 + 40), k = Math.min(1, dt * 1.8);
+    s.vx += (dx / (dist || 1) * sp - s.vx) * k; s.vy += (dy / (dist || 1) * sp - s.vy) * k;
+    s.x += s.vx * dt; s.y += s.vy * dt; s.scale += (1 - s.scale) * k; s.dim *= 0.95;
+    if (dist < 18) { s.mode = 'orbit'; s.phi = phi; s.orbitT = 0; s.dir = s.vx * -Math.sin(phi) + s.vy * Math.cos(phi) >= 0 ? 1 : -1; s.at = s.target; arrive(s, p); }
+  } else {
+    const R = orbitR(p), w = 0.9 * s.dir; s.phi += w * dt; s.orbitT += dt;
+    const nx = p.x + Math.cos(s.phi) * R, ny = p.y + Math.sin(s.phi) * R * 0.32;
+    s.vx = (nx - s.x) / Math.max(dt, 1e-3); s.vy = (ny - s.y) / Math.max(dt, 1e-3); s.x = nx; s.y = ny;
+    const depth = Math.sin(s.phi); s.scale = 0.85 + 0.15 * depth; s.dim = depth < 0 ? -depth * 0.45 : 0; s.behind = depth < 0;
+    if (s.orbitT > TAU / 0.9 + 0.5 && depth > 0.2) { s.mode = 'travel'; s.behind = false; s.target = pickTarget(s); }
+  }
+  if (Math.abs(s.vx) > 25) s.face = s.vx >= 0 ? 1 : -1;
+  const aim = s.aimAt(s.vx, s.vy, 0.55); s.angle += (aim - s.angle) * Math.min(1, dt * 5);
+  s.exhaust(parts, s.mode === 'travel' ? 1 : 0.6);
+}
+
+/* ---------- drawing helpers ---------- */
+function drawRingHalf(p, front) {
+  const ri = p.ringImg, Ro = ri.Ro;
+  ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(0.3); ctx.scale(1, 0.26);
+  ctx.beginPath(); front ? ctx.rect(-Ro, 0, Ro * 2, Ro) : ctx.rect(-Ro, -Ro, Ro * 2, Ro); ctx.clip();
+  ctx.drawImage(ri.c, -Ro, -Ro, Ro * 2, Ro * 2);
+  ctx.restore();
+}
+function drawPlanet(p) {
+  if (p.ring) drawRingHalf(p, false);
+  p.sphere.draw(ctx, p.x, p.y);
+  if (p.key === 'earth' || p.key === 'neptune' || p.key === 'uranus' || p.key === 'venus') {
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    const g = ctx.createRadialGradient(p.x, p.y, p.r * 0.92, p.x, p.y, p.r * 1.18);
+    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.35, p.key === 'venus' ? 'rgba(255,220,150,.35)' : 'rgba(110,170,255,.4)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 1.2, 0, TAU); ctx.fill(); ctx.restore();
+  }
+  if (p.ring) drawRingHalf(p, true);
+}
+function drawLabel(p) {
+  const y = p.y + (p.ring ? p.r * 2.25 * 0.26 + p.r * 0.5 : p.r) + 18;
+  ctx.save(); ctx.textAlign = 'center';
+  ctx.font = '600 13px Rajdhani, sans-serif'; if ('letterSpacing' in ctx) ctx.letterSpacing = '3px';
+  ctx.fillStyle = 'rgba(220,232,255,.85)'; ctx.fillText(p.en.toUpperCase(), p.x, y);
+  if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+  ctx.font = '500 13px "Fredoka", sans-serif'; ctx.fillStyle = 'rgba(200,215,240,.6)'; ctx.fillText(p.th, p.x, y + 16);
+  ctx.restore();
+}
+
+/* ---------- main loop ---------- */
+let lastT = performance.now();
+function loop(now) {
+  const dt = clamp((now - lastT) / 1000, 0, 0.05); lastT = now; time += dt; frame++;
+  if (frame % 3 === 0) sun.render(time * 6);
+  PL.forEach((p, i) => { place(p, time); if ((frame + i) % 2 === 0) { p.rot += (p.key === 'jupiter' || p.key === 'saturn' ? 1.2 : 0.6); p.sphere.render(p.rot); } });
+  ships.forEach(s => updateShip(s, dt));
+  for (const a of asteroids) { a.th += a.w * dt; if (a.th > a.lim) a.th = -a.lim; a.rot += dt * 0.5; }
+  if ((nextComet -= dt) <= 0 && !comet) { comet = { x: W + 40, y: H * (0.08 + Math.random() * 0.3), vx: -(220 + Math.random() * 80), vy: 60 + Math.random() * 60 }; nextComet = 25 + Math.random() * 15; }
+  if (comet) {
+    comet.x += comet.vx * dt; comet.y += comet.vy * dt;
+    const ax = comet.x - sx, ay = comet.y - sy, al = Math.hypot(ax, ay);
+    for (let k = 0; k < 3; k++) parts.add({ x: comet.x, y: comet.y, vx: ax / al * (60 + Math.random() * 60) + (Math.random() - 0.5) * 20, vy: ay / al * (60 + Math.random() * 60) + (Math.random() - 0.5) * 20, life: 1.6, size: 7 + Math.random() * 5, color: k ? '#a8d8ff' : '#ffffff', alpha: 0.5, grow: 1.2 });
+    if (comet.x < -100 || comet.y > H + 100) comet = null;
+  }
+  parts.update(dt);
+
+  ctx.drawImage(bg, 0, 0, W, H);
+  S.drawTwinklers(ctx, twk, time);
+  ctx.save(); ctx.strokeStyle = 'rgba(150,185,255,.09)'; ctx.lineWidth = 1;
+  PL.forEach(p => { const lim = Math.asin(Math.min(0.98, (H * 0.62) / p.d)); ctx.beginPath(); ctx.arc(sx, sy, p.d, -lim, lim); ctx.stroke(); });
+  ctx.restore();
+  sun.draw(ctx, sx, sy);
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  const fl = 1 + Math.sin(time * 1.7) * 0.03 + Math.sin(time * 4.3) * 0.015;
+  S.drawGlow(ctx, '#ff7a1a', sx, sy, sunR * 2.5 * fl, 0.45);
+  S.drawGlow(ctx, '#ffd27a', sx, sy, sunR * 1.45 * fl, 0.55);
+  ctx.restore();
+  for (const a of asteroids) { const x = sx + Math.cos(a.th) * a.d, y = sy + Math.sin(a.th) * a.d; ctx.drawImage(a.img, x - a.s, y - a.s, a.s * 2, a.s * 2); }
+  parts.draw(ctx);
+  if (comet) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; S.drawGlow(ctx, '#cfe8ff', comet.x, comet.y, 26, 1); S.drawGlow(ctx, '#ffffff', comet.x, comet.y, 8, 1); ctx.restore(); }
+  PL.forEach(p => {
+    ships.forEach(s => { if (s.mode === 'orbit' && s.target === PL.indexOf(p) && s.behind) s.draw(ctx); });
+    if (p.key === 'earth') {
+      const ma = time * 0.35, mx = p.x + Math.cos(ma) * p.r * 2.1, my = p.y + Math.sin(ma) * p.r * 0.5;
+      if (Math.sin(ma) < 0) { moon.draw(ctx, mx, my); drawPlanet(p); } else { drawPlanet(p); moon.draw(ctx, mx, my); }
+    } else drawPlanet(p);
+    ships.forEach(s => { if (s.mode === 'orbit' && s.target === PL.indexOf(p) && !s.behind) s.draw(ctx); });
+    drawLabel(p);
+  });
+  ships.forEach(s => { if (s.mode === 'travel') s.draw(ctx); });
+  PL.forEach(p => { if (p.card) { p.card.style.left = p.x + 'px'; } });
+  requestAnimationFrame(loop);
+}
+
+const ui = S.setupShipInput(addShip);
+if (new URLSearchParams(location.search).get('demo') !== '0') {
+  [300, 1500, 2700].forEach((t, i) => setTimeout(() => addShip(S.kidShip(301 + i * 13)), t));
+  let n = 0; const iv = setInterval(() => { if (++n > 3 || ships.length >= 7) return clearInterval(iv); addShip(S.kidShip(900 + n * 31)); }, 14000);
+}
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

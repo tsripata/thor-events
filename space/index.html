@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#fff3e0">
+<title>Space Crayon · ยานอวกาศฝีมือหนู</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #fff3e0; --card: #fff; --ink: #33302e; --muted: #8a7f74; --red: #e23636; --gold: #f5a623; --line: #f3d9b8; --radius: 22px; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Nunito", -apple-system, sans-serif; font-weight: 500;
+    background-image: radial-gradient(rgba(226,54,54,.05) 2px, transparent 2px); background-size: 26px 26px; min-height: 100vh; }
+  main { max-width: 680px; margin: 0 auto; padding: 48px 16px 64px; }
+  h1 { font-family: "Fredoka", sans-serif; font-weight: 700; font-size: clamp(32px, 8vw, 44px); margin: 0 0 6px; color: var(--red); }
+  .sub { margin: 0 0 28px; color: var(--muted); font-size: 17px; }
+  a.card { display: block; background: #050814; border-radius: var(--radius); overflow: hidden; color: #fff; text-decoration: none; margin-bottom: 18px;
+    box-shadow: 0 6px 0 rgba(51,48,46,.12); transition: transform .12s; position: relative; }
+  a.card:hover { transform: translateY(-3px); }
+  .card canvas { display: block; width: 100%; height: 180px; }
+  .card .txt { padding: 16px 20px 18px; }
+  .card h2 { font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 24px; margin: 0 0 4px; }
+  .card p { margin: 0; color: #b8c4dc; }
+  .how { background: var(--card); border: 2px solid var(--line); border-radius: var(--radius); padding: 18px 22px; margin-top: 26px; }
+  .how h3 { font-family: "Fredoka", sans-serif; font-weight: 600; margin: 0 0 8px; font-size: 20px; }
+  .how ol { margin: 0; padding-left: 20px; line-height: 1.7; }
+  .how kbd { background: #f6ecdc; border-radius: 6px; padding: 1px 7px; font-family: inherit; font-weight: 700; }
+  .back { color: var(--muted); text-decoration: none; font-weight: 700; }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="../">← Thor Events</a>
+  <h1>Space Crayon 🚀</h1>
+  <p class="sub">Kids draw a spaceship, scan it, and watch it fly on the big screen. · วาดยานอวกาศ แล้วดูยานของหนูบินบนจอใหญ่</p>
+
+  <a class="card" href="defend.html">
+    <canvas id="p1"></canvas>
+    <div class="txt"><h2>👾 Defend Earth · ปกป้องโลก</h2><p>Every new ship joins the fleet to fight the giant alien. Beat it, and a bigger one comes!</p></div>
+  </a>
+  <a class="card" href="explore.html">
+    <canvas id="p2"></canvas>
+    <div class="txt"><h2>🪐 Explore the Solar System · สำรวจระบบสุริยะ</h2><p>Ships launch from Earth and visit every planet, with a fun fact at each stop.</p></div>
+  </a>
+
+  <div class="how">
+    <h3>How to run it at an event</h3>
+    <ol>
+      <li>Open a scene on the projector or TV and press <kbd>F</kbd> for full screen.</li>
+      <li>Kids draw a ship on white paper, pointing right →. Thick crayons or markers work best.</li>
+      <li>Take a photo and press <b>📷 Upload</b>, drag the photo onto the screen, or draw straight on a tablet with <b>✏️ Draw</b>.</li>
+      <li>The white paper is removed automatically and the ship flies in.</li>
+    </ol>
+    <p style="color:var(--muted);margin:12px 0 0">Keys: <kbd>D</kbd> draw · <kbd>S</kbd> surprise ship · <kbd>F</kbd> full screen. Add <kbd>?demo=0</kbd> to start with an empty sky, or <kbd>?ui=0</kbd> to hide the buttons.</p>
+  </div>
+</main>
+<script src="shared.js"></script>
+<script>
+/* little animated previews */
+(() => {
+  const S = SpaceCrayon;
+  [['p1', 1], ['p2', 2]].forEach(([id, k]) => {
+    const cv = document.getElementById(id), w = cv.clientWidth, h = 180, dpr = Math.min(devicePixelRatio || 1, 2);
+    cv.width = w * dpr; cv.height = h * dpr; const g = cv.getContext('2d'); g.scale(dpr, dpr);
+    const bg = S.makeSpaceBackground(w, h, k * 7, { res: dpr, nebula: k === 1 ? ['#3a1a6e', '#0c4a7a', '#8a2f55'] : ['#1d2a6b', '#4a1f5e', '#7a3a1a'] });
+    const tex = S.planetTexture(k === 1 ? 'earth' : 'saturn', 256, 128, 11), pr = k === 1 ? 60 : 38;
+    const pl = new S.Sphere(tex, pr, { res: dpr, light: [-0.6, -0.5, 0.6], pitch: 0.2 });
+    const ships = [0, 1, 2].map(i => { const s = new S.Ship(S.kidShip(k * 50 + i * 7), { height: 40 }); s.pop = 1; s.bx = 60 + i * 110; s.by = 50 + (i % 2) * 60; return s; });
+    const ps = new S.Particles(400); let t = 0, last = performance.now(), rot = 0;
+    (function f(now) {
+      const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now; t += dt; rot += 0.4;
+      g.drawImage(bg, 0, 0, w, h);
+      pl.render(rot); pl.draw(g, w - 90, k === 1 ? 110 : 95);
+      ships.forEach((s, i) => { s.update(dt); s.x = s.bx + Math.sin(t * 0.8 + i) * 20; s.y = s.by + Math.cos(t * 1.1 + i * 2) * 10; s.exhaust(ps, 0.6); });
+      ps.update(dt); ps.draw(g); ships.forEach(s => s.draw(g));
+      requestAnimationFrame(f);
+    })(last);
+  });
+})();
+</script>
+</body>
+</html>
