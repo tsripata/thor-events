@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Defend Earth · ปกป้องโลก — Space Crayon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  canvas { display: block; width: 100vw; height: 100vh; }
+  .hud { position: fixed; left: 50%; top: 18px; transform: translateX(-50%); width: min(520px, 70vw); text-align: center; color: #d9f7c8;
+    font: 600 14px "Rajdhani", sans-serif; letter-spacing: .22em; text-transform: uppercase; pointer-events: none; z-index: 10; }
+  .bar { margin-top: 6px; height: 10px; border: 1px solid rgba(190,255,160,.5); border-radius: 6px; padding: 2px; background: rgba(0,10,0,.35); }
+  .bar i { display: block; height: 100%; width: 100%; border-radius: 4px; background: linear-gradient(90deg,#6dff3a,#c8ff6a); box-shadow: 0 0 12px #8dff4a; transition: width .25s; }
+  .fleet { position: fixed; left: 18px; top: 16px; color: #fff; font: 600 18px "Fredoka", sans-serif; z-index: 10; pointer-events: none;
+    background: rgba(10,14,32,.55); border: 1px solid rgba(255,255,255,.18); padding: 8px 14px; border-radius: 999px; backdrop-filter: blur(6px); }
+  .fleet b { color: #ffd21a; }
+  .back { position: fixed; left: 18px; bottom: 16px; z-index: 10; color: rgba(255,255,255,.55); font: 600 14px "Fredoka", sans-serif; text-decoration: none; }
+  .banner { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; z-index: 12;
+    color: #fff; font: 700 clamp(36px, 7vw, 96px) "Fredoka", sans-serif; text-shadow: 0 0 30px rgba(120,220,255,.8), 0 4px 0 rgba(0,0,0,.4); opacity: 0; transition: opacity .6s; text-align: center; }
+  .banner small { font-size: .42em; font-weight: 600; margin-top: .2em; color: #ffd21a; }
+  .banner.on { opacity: 1; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="hud">Alien shield · โล่เอเลี่ยน <span id="wave"></span><div class="bar"><i id="hp"></i></div></div>
+<div class="fleet">🚀 <b id="count">0</b> hero ships · ยานฮีโร่</div>
+<div class="banner" id="banner"></div>
+<a class="back" href="./">← Space Crayon</a>
+<script src="shared.js"></script>
+<script>
+(() => {
+const S = SpaceCrayon, TAU = S.TAU, clamp = S.clamp;
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const hpEl = document.getElementById('hp'), countEl = document.getElementById('count'), bannerEl = document.getElementById('banner'), waveEl = document.getElementById('wave');
+let W, H, DPR, bg, twk, earth, moon, earthRot = 0, frame = 0, time = 0;
+const earthTex = S.planetTexture('earth', 1024, 512, 11), moonTex = S.planetTexture('moon', 256, 128, 4);
+const ships = [], back = new S.Particles(2500), front = new S.Particles(3500), lasers = [], plasmas = [], debris = [], rings = [];
+let alien = null, shake = 0, flash = 0, state = 'enter', stateT = 0, wave = 1;
+
+/* ---------- realistic alien (bump-mapped, procedurally lit) ---------- */
+function makeAlienBody(R, seed) {
+  const N = S.Noise(seed), w = Math.ceil(R * 2.3), h = Math.ceil(R * 1.9), cx = w / 2, cy = h * 0.46;
+  const c = S.canvas(w, h), g = c.getContext('2d'), im = g.createImageData(w, h), d = im.data;
+  const eyes = [{ x: -0.36, y: -0.02, r: 0.15 }, { x: 0, y: -0.2, r: 0.2 }, { x: 0.36, y: -0.02, r: 0.15 }];
+  const mouth = { x: 0, y: 0.36, rx: 0.3, ry: 0.07 };
+  const hgt = new Float32Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const nx = (x - cx) / R, ny = (y - cy) / R, e = N.fbm(nx * 3 + 10, ny * 3 + 10, 5);
+    const ridge = 0.5 + 0.5 * Math.sin((ny + (e - 0.5) * 0.4) * 26);
+    hgt[y * w + x] = e * 0.75 + ridge * 0.25 * S.smooth(0.15, -0.6, ny);
+  }
+  const L = [-0.5, -0.62, 0.6], Ll = Math.hypot(...L); L[0] /= Ll; L[1] /= Ll; L[2] /= Ll;
+  const Hh = [L[0], L[1], L[2] + 1], Hl = Math.hypot(...Hh); Hh[0] /= Hl; Hh[1] /= Hl; Hh[2] /= Hl;
+  const skin = [[0, [20, 30, 22]], [0.45, [58, 86, 52]], [0.7, [112, 140, 82]], [1, [188, 204, 140]]];
+  const skinAt = t => { t = clamp(t, 0, 1); for (let i = 1; i < skin.length; i++) if (t <= skin[i][0]) { const a = skin[i - 1], b = skin[i], k = (t - a[0]) / (b[0] - a[0]); return S.mix(a[1], b[1], k); } return skin[3][1]; };
+  for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+    const nx = (x - cx) / R, ny = (y - cy) / (R * (y < cy ? 0.86 : 0.6));
+    const q = nx * nx + ny * ny; if (q > 1.02) continue;
+    const a = clamp((1 - Math.sqrt(q)) * R * 0.7 + 0.5, 0, 1);
+    let n0 = nx, n1 = ny, n2 = Math.sqrt(Math.max(0, 1 - q));
+    const i = y * w + x, gx = (hgt[i + 1] - hgt[i - 1]) * R * 0.5, gy = (hgt[i + w] - hgt[i - w]) * R * 0.5;
+    n0 -= gx * 0.35; n1 -= gy * 0.35; const nl = Math.hypot(n0, n1, n2) || 1; n0 /= nl; n1 /= nl; n2 /= nl;
+    const lam = Math.max(0, n0 * L[0] + n1 * L[1] + n2 * L[2]);
+    const spec = Math.pow(Math.max(0, n0 * Hh[0] + n1 * Hh[1] + n2 * Hh[2]), 28) * 0.55;
+    const rim = Math.pow(1 - n2, 2.2) * Math.max(0, n0 * 0.7 + n1 * 0.45 + 0.2);
+    let col = skinAt(hgt[i] * 1.15 - 0.05);
+    const vein = Math.abs(N.fbm(nx * 4 + 3, ny * 4 + 8, 4) - 0.5);
+    if (vein < 0.018) col = S.mix(col, [70, 26, 74], 0.75 * (1 - vein / 0.018));
+    let k = 0.06 + 0.94 * lam;
+    for (const ey of eyes) { const dd = Math.hypot(nx * R - ey.x * R, (y - cy) - ey.y * R) / (ey.r * R); k *= 1 - 0.8 * S.smooth(1.5, 0.95, dd); }
+    { const mx = (nx - mouth.x) / (mouth.rx * 1.25), my = ((y - cy) / R - mouth.y) / (mouth.ry * 1.6); k *= 1 - 0.85 * S.smooth(1.2, 0.7, Math.hypot(mx, my)); }
+    const p = i * 4;
+    d[p] = col[0] * k + spec * 220 + rim * 20; d[p + 1] = col[1] * k + spec * 255 + rim * 80; d[p + 2] = col[2] * k + spec * 210 + rim * 120; d[p + 3] = a * 255;
+  }
+  g.putImageData(im, 0, 0);
+  const rr = S.rng(seed + 9), spots = [];
+  for (let k = 0; k < 14; k++) { const a = rr() * TAU, rd = 0.5 + rr() * 0.4; spots.push({ x: Math.cos(a) * rd * 0.95, y: Math.sin(a) * rd * 0.62 - 0.05, r: 0.025 + rr() * 0.03, p: rr() * TAU }); }
+  return { c, cx, cy, eyes, mouth, spots };
+}
+
+class Alien {
+  constructor(hp) { this.maxHp = hp; this.hp = hp; this.t = 0; this.enter = 0; this.charge = 0; this.nextAttack = 3; this.hit = 0; this.blink = 0; this.nextBlink = 2; this.seed = (Math.random() * 1e6) | 0; this.target = null; this.layout(); }
+  layout() {
+    this.R = Math.min(W * 0.42, H) * 0.24; this.body = makeAlienBody(this.R, this.seed);
+    const r = S.rng(this.seed + 1); this.tents = [];
+    for (let i = 0; i < 8; i++) { const u = -0.78 + (1.56 * i) / 7; this.tents.push({ u, len: this.R * (1.1 + r() * 0.8), w: this.R * 0.2 * (1 - Math.abs(u) * 0.35), ph: r() * TAU, sp: 1 + r() * 0.6, front: i % 3 === 1 }); }
+  }
+  get x() { return W * 0.74 + Math.sin(this.t * 0.5) * W * 0.018; }
+  get y() { return H * 0.36 + Math.sin(this.t * 0.8) * H * 0.02; }
+  get sc() { const e = this.enter; return e >= 1 ? 1 : 1 - Math.pow(1 - e, 3); }
+  mouthPos() { const sc = this.sc; return [this.x + this.body.mouth.x * this.R * sc, this.y + this.body.mouth.y * this.R * sc]; }
+  update(dt) {
+    this.t += dt; if (this.enter < 1) this.enter = Math.min(1, this.enter + dt * 0.6);
+    this.hit = Math.max(0, this.hit - dt * 4);
+    this.nextBlink -= dt; if (this.nextBlink < 0) { this.blink = 1; this.nextBlink = 2 + Math.random() * 4; }
+    this.blink = Math.max(0, this.blink - dt * 6);
+    if (state !== 'fight' || !ships.length) return;
+    if (this.charge > 0) {
+      this.charge += dt / 1.3;
+      const [mx, my] = this.mouthPos();
+      if (Math.random() < 0.6) { const a = Math.random() * TAU, rd = this.R * 0.5; front.add({ x: mx + Math.cos(a) * rd, y: my + Math.sin(a) * rd, vx: -Math.cos(a) * rd * 2, vy: -Math.sin(a) * rd * 2, life: 0.45, size: 6, color: '#9dff4a' }); }
+      if (this.charge >= 1) { this.charge = 0; this.fire(); }
+    } else if ((this.nextAttack -= dt) <= 0) { this.charge = 0.001; this.nextAttack = 3.5 + Math.random() * 3; this.target = ships[(Math.random() * ships.length) | 0]; }
+  }
+  fire() {
+    const t = this.target && ships.includes(this.target) ? this.target : ships[(Math.random() * ships.length) | 0]; if (!t) return;
+    const [mx, my] = this.mouthPos(), dx = t.x - mx, dy = t.y - my, dl = Math.hypot(dx, dy) || 1, sp = 430;
+    plasmas.push({ x: mx, y: my, vx: dx / dl * sp, vy: dy / dl * sp, target: t, checked: false, willHit: Math.random() < 0.3, life: 5 });
+  }
+  drawTentacle(tn) {
+    const R = this.R, sc = this.sc, n = 22, seg = tn.len / n;
+    let px = tn.u * R, py = (this.body.mouth.y + 0.12) * R * (1 - Math.abs(tn.u) * 0.5) + R * 0.06, a = Math.PI / 2 + tn.u * 0.9;
+    const pts = [[px, py]];
+    for (let s = 1; s <= n; s++) { a += Math.sin(this.t * 1.4 * tn.sp + tn.ph + s * 0.33) * 0.085 + tn.u * 0.012; px += Math.cos(a) * seg; py += Math.sin(a) * seg; pts.push([px, py]); }
+    ctx.save(); ctx.translate(this.x, this.y); ctx.scale(sc, sc); ctx.lineCap = 'round';
+    for (let pass = 0; pass < 3; pass++) {
+      for (let s = 0; s < n; s++) {
+        const k = 1 - s / n, wd = tn.w * Math.pow(k, 0.8) + 1.5;
+        ctx.beginPath(); ctx.moveTo(pts[s][0], pts[s][1]); ctx.lineTo(pts[s + 1][0], pts[s + 1][1]);
+        if (pass === 0) { ctx.strokeStyle = '#140d19'; ctx.lineWidth = wd + 2; }
+        else if (pass === 1) { ctx.strokeStyle = '#3c2a4a'; ctx.lineWidth = wd; }
+        else { ctx.strokeStyle = 'rgba(150,190,140,.35)'; ctx.lineWidth = wd * 0.35; ctx.translate(-wd * 0.18, -wd * 0.18); ctx.stroke(); ctx.translate(wd * 0.18, wd * 0.18); continue; }
+        ctx.stroke();
+      }
+    }
+    ctx.fillStyle = 'rgba(220,180,200,.55)';
+    for (let s = 2; s < n - 2; s += 2) { const k = 1 - s / n, wd = tn.w * Math.pow(k, 0.8); ctx.beginPath(); ctx.arc(pts[s][0] + wd * 0.3, pts[s][1] + wd * 0.1, wd * 0.16 + 0.5, 0, TAU); ctx.fill(); }
+    ctx.restore();
+  }
+  draw() {
+    const b = this.body, sc = this.sc, R = this.R, x = this.x, y = this.y;
+    if (sc <= 0.01) return;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    S.drawGlow(ctx, '#3cff8a', x, y, R * 2.4 * sc, 0.12 + this.hit * 0.3);
+    ctx.restore();
+    this.tents.filter(t => !t.front).forEach(t => this.drawTentacle(t));
+    ctx.drawImage(b.c, x - b.cx * sc, y - b.cy * sc, b.c.width * sc, b.c.height * sc);
+    this.tents.filter(t => t.front).forEach(t => this.drawTentacle(t));
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    for (const s of b.spots) S.drawGlow(ctx, '#5effc8', x + s.x * R * sc, y + s.y * R * sc, s.r * R * 3 * sc, 0.35 + 0.35 * Math.sin(this.t * 2 + s.p));
+    const [mx, my] = this.mouthPos();
+    S.drawGlow(ctx, '#9dff4a', mx, my, R * (0.35 + this.charge * 0.9) * sc, 0.35 + this.charge * 0.6);
+    if (this.charge > 0) S.drawGlow(ctx, '#f4ffd8', mx, my, R * 0.25 * this.charge * sc, 1);
+    ctx.restore();
+    const tgt = this.target && ships.includes(this.target) ? this.target : ships[0];
+    for (const e of b.eyes) {
+      const ex = x + e.x * R * sc, ey = y + e.y * R * sc, er = e.r * R * sc;
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; S.drawGlow(ctx, '#c6ff3a', ex, ey, er * 2.6, 0.3 + this.charge * 0.5); ctx.restore();
+      ctx.save(); ctx.translate(ex, ey); ctx.scale(1, Math.max(0.06, 1 - this.blink));
+      const gr = ctx.createRadialGradient(-er * 0.25, -er * 0.25, er * 0.1, 0, 0, er);
+      gr.addColorStop(0, '#f6ffb0'); gr.addColorStop(0.45, '#b4f01e'); gr.addColorStop(0.85, '#3d6a00'); gr.addColorStop(1, '#152400');
+      ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(0, 0, er, 0, TAU); ctx.fill();
+      let ox = 0, oy = 0; if (tgt) { const a = Math.atan2(tgt.y - ey, tgt.x - ex); ox = Math.cos(a) * er * 0.38; oy = Math.sin(a) * er * 0.3; }
+      ctx.fillStyle = '#050805'; ctx.beginPath(); ctx.ellipse(ox, oy, er * (0.16 + this.charge * 0.1), er * 0.72, 0, 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.beginPath(); ctx.ellipse(-er * 0.38, -er * 0.4, er * 0.16, er * 0.1, -0.6, 0, TAU); ctx.fill();
+      ctx.restore();
+    }
+  }
+  hitPoint() { const a = Math.random() * TAU, rd = Math.sqrt(Math.random()) * 0.6; return [this.x + Math.cos(a) * rd * this.R * this.sc, this.y + Math.sin(a) * rd * this.R * 0.55 * this.sc]; }
+}
+
+/* ---------- layout ---------- */
+function layout() {
+  DPR = Math.min(window.devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight;
+  cv.width = W * DPR; cv.height = H * DPR; ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  bg = S.makeSpaceBackground(W, H, 4, { res: DPR, nebula: ['#3a1a6e', '#0c4a7a', '#8a2f55'] });
+  twk = S.makeTwinklers(W, H, 70, 9);
+  const er = Math.max(W, H) * 1.25, ecx = W * 0.36, ecy = H + er - H * 0.2;
+  earth = new S.Sphere(earthTex, er, { res: 0.6, bilinear: true, pitch: -1.15, light: [-0.35, -0.78, 0.5], crop: { x0: -ecx, x1: W - ecx, y0: -er, y1: H - ecy + 2 }, ambient: 0.015 });
+  earth.cx = ecx; earth.cy = ecy; earth.render(earthRot);
+  const mr = Math.max(14, H * 0.038);
+  moon = new S.Sphere(moonTex, mr, { res: DPR, light: [-0.5, -0.5, 0.7] }); moon.render(30);
+  if (alien) alien.layout();
+  ships.forEach(s => s.setHeight(shipH()));
+}
+const shipH = () => clamp(H * 0.1, 46, 120);
+let rT; addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(layout, 250); });
+layout();
+
+/* ---------- ships ---------- */
+function addShip(img, src) {
+  const s = new S.Ship(img, { height: shipH(), x: -120, y: H * (0.18 + Math.random() * 0.45), vx: 900 });
+  ships.push(s);
+  if (ships.length > 28) { const old = ships.shift(); old.leaving = true; }
+  countEl.textContent = ships.length;
+  ui.toast(`🚀 Hero ship #${s.id} has joined! · ยานฮีโร่ลำที่ ${s.id} มาช่วยแล้ว!`);
+  if (alien && state === 'fight') { alien.maxHp += 8; alien.hp += 8; }
+}
+function slot(i, n) {
+  const cols = Math.max(1, Math.ceil(Math.sqrt(n * 1.2))), rows = Math.ceil(n / cols), c = i % cols, r = (i / cols) | 0;
+  const x0 = W * 0.07, x1 = W * 0.5, y0 = H * 0.14, y1 = H * 0.68;
+  return [x0 + ((c + 0.5 + (r % 2) * 0.35) / cols) * (x1 - x0), y0 + ((r + 0.5) / rows) * (y1 - y0)];
+}
+function fireLaser(s) {
+  if (!alien) return;
+  const [nx, ny] = s.point(0.5), [hx, hy] = alien.hitPoint();
+  lasers.push({ x1: nx, y1: ny, x2: hx, y2: hy, life: 0.16, max: 0.16, c: s.laser, ship: s });
+  for (let k = 0; k < 10; k++) { const a = Math.random() * TAU, sp = 80 + Math.random() * 260; front.add({ x: hx, y: hy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0.25 + Math.random() * 0.35, size: 4 + Math.random() * 5, color: k % 2 ? '#fff1c0' : s.laser, drag: 3 }); }
+  front.add({ x: hx, y: hy, vx: 0, vy: 0, life: 0.25, size: 34, color: s.laser, grow: 0.6, alpha: 0.6 });
+  s.vx -= 50; alien.hit = 1; alien.hp = Math.max(0, alien.hp - 1);
+  if (alien.hp <= 0) boom();
+}
+function boom() {
+  const x = alien.x, y = alien.y, R = alien.R;
+  for (let k = 0; k < 420; k++) { const a = Math.random() * TAU, sp = Math.pow(Math.random(), 0.6) * 620; const cols = ['#fff3c4', '#ffcf6a', '#ff7a2a', '#ff3d1a', '#9dff4a'];
+    front.add({ x: x + Math.cos(a) * R * 0.3 * Math.random(), y: y + Math.sin(a) * R * 0.3 * Math.random(), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0.6 + Math.random() * 1.4, size: 8 + Math.random() * 22, color: cols[(Math.random() * cols.length) | 0], drag: 1.6, grow: 0.8 }); }
+  for (let k = 0; k < 46; k++) { const a = Math.random() * TAU, sp = 120 + Math.random() * 420; debris.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 60, r: R * (0.03 + Math.random() * 0.07), rot: Math.random() * TAU, vr: (Math.random() - 0.5) * 8, life: 3, pts: Array.from({ length: 6 }, (_, i) => [Math.cos(i / 6 * TAU) * (0.6 + Math.random() * 0.6), Math.sin(i / 6 * TAU) * (0.6 + Math.random() * 0.6)]) }); }
+  rings.push({ x, y, r: R * 0.4, life: 1.2, max: 1.2 }, { x, y, r: R * 0.2, life: 1.8, max: 1.8 });
+  flash = 1; shake = 26; alien = null; plasmas.length = 0; state = 'win'; stateT = 0;
+  ships.forEach((s, i) => setTimeout(() => s.doRoll(0.9, 1), 600 + i * 120));
+  bannerEl.innerHTML = 'Earth is safe! 🌍<small>โลกปลอดภัยแล้ว! เก่งมาก ฮีโร่ทุกคน</small>'; bannerEl.classList.add('on');
+}
+function newAlien() {
+  alien = new Alien(30 + ships.length * 10 + wave * 6); state = 'enter'; stateT = 0;
+  waveEl.textContent = wave > 1 ? `· wave ${wave}` : '';
+  rings.push({ x: W * 0.74, y: H * 0.36, r: 10, life: 1, max: 1, c: '#7dff9a' });
+  front.add({ x: W * 0.74, y: H * 0.36, vx: 0, vy: 0, life: 0.8, size: 160, color: '#7dff9a', grow: 1 });
+}
+
+/* ---------- main loop ---------- */
+let lastT = performance.now();
+function loop(now) {
+  const dt = clamp((now - lastT) / 1000, 0, 0.05); lastT = now; time += dt; frame++;
+  stateT += dt;
+  if (state === 'enter' && alien && alien.enter >= 1) { state = 'fight'; ui.toast('👾 Alien attack! Hero ships, fire! · เอเลี่ยนบุก! ยิงเลย!'); }
+  if (state === 'win') {
+    if (stateT > 4.5) bannerEl.classList.remove('on');
+    if (stateT > 6) { wave++; newAlien(); }
+  }
+  if (frame % 4 === 0) { earthRot += 0.5; earth.render(earthRot); }
+  if (alien) alien.update(dt);
+
+  ships.forEach((s, i) => {
+    s.update(dt);
+    let [tx, ty] = slot(i, ships.length);
+    tx += Math.sin(time * 0.7 + s.id * 1.3) * 34; ty += Math.cos(time * 0.55 + s.id * 2.1) * 26;
+    if (state === 'win') { tx += Math.cos(time * 2 + s.id) * 40; ty += Math.sin(time * 2 + s.id) * 40; }
+    const k = s.age < 1.2 ? 1.2 : 2.4, damp = s.age < 1.2 ? 1.4 : 2.2;
+    s.vx += ((tx - s.x) * k - s.vx * damp) * dt; s.vy += ((ty - s.y) * k - s.vy * damp) * dt;
+    s.x += s.vx * dt; s.y += s.vy * dt;
+    let aim = 0;
+    if (alien) aim = clamp(Math.atan2(alien.y - s.y, alien.x - s.x), -0.55, 0.55);
+    aim += clamp(s.vy * 0.0012, -0.25, 0.25);
+    s.angle += (aim - s.angle) * Math.min(1, dt * 4);
+    s.exhaust(back, s.age < 1 ? 2 : 1 + Math.min(1, Math.hypot(s.vx, s.vy) / 300));
+    if (s.age < 0.9) for (let q = 0; q < 2; q++) back.add({ x: s.x - s.w * 0.4, y: s.y + (Math.random() - 0.5) * s.h * 0.6, vx: -400, vy: 0, life: 0.35, size: 5, color: '#9fdcff' });
+    if (state === 'fight' && alien && s.age > 1.5 && s.roll <= 0 && (s.cool -= dt) <= 0) { fireLaser(s); s.cool = 0.9 + Math.random() * 1.8; }
+  });
+
+  for (let i = plasmas.length - 1; i >= 0; i--) {
+    const p = plasmas[i]; p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt;
+    back.add({ x: p.x, y: p.y, vx: (Math.random() - 0.5) * 40, vy: (Math.random() - 0.5) * 40, life: 0.5, size: 12, color: '#7dff3a', grow: -0.6, alpha: 0.7 });
+    const t = p.target;
+    if (t && ships.includes(t)) {
+      const d = Math.hypot(t.x - p.x, t.y - p.y);
+      if (!p.checked && d < 220) { p.checked = true; if (!p.willHit) { t.vy += (Math.random() < 0.5 ? -1 : 1) * 380; t.doRoll(0.7, 1); } }
+      if (p.willHit && d < t.h * 0.6) {
+        for (let k = 0; k < 30; k++) { const a = Math.random() * TAU, sp = 60 + Math.random() * 300; front.add({ x: p.x, y: p.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0.5 + Math.random() * 0.4, size: 6 + Math.random() * 8, color: k % 2 ? '#c8ff7a' : '#ffffff', drag: 2.5 }); }
+        t.vx -= 260; t.doRoll(1.1, 2); shake = Math.max(shake, 6); plasmas.splice(i, 1); continue;
+      }
+    }
+    if (p.life <= 0 || p.x < -100 || p.x > W + 100 || p.y < -100 || p.y > H + 100) plasmas.splice(i, 1);
+  }
+  for (let i = lasers.length - 1; i >= 0; i--) { lasers[i].life -= dt; if (lasers[i].life <= 0) lasers.splice(i, 1); }
+  for (let i = debris.length - 1; i >= 0; i--) { const d = debris[i]; d.x += d.vx * dt; d.y += d.vy * dt; d.vy += 40 * dt; d.rot += d.vr * dt; d.life -= dt; if (d.life <= 0) debris.splice(i, 1); }
+  for (let i = rings.length - 1; i >= 0; i--) { rings[i].life -= dt; if (rings[i].life <= 0) rings.splice(i, 1); }
+  back.update(dt); front.update(dt);
+
+  /* ---- render ---- */
+  ctx.save();
+  if (shake > 0.3) { ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake); shake *= Math.pow(0.02, dt); }
+  ctx.drawImage(bg, -30, -30, W + 60, H + 60);
+  S.drawTwinklers(ctx, twk, time);
+  moon.draw(ctx, W * 0.1, H * 0.15);
+  earth.draw(ctx, earth.cx, earth.cy);
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  const er = earth.r, g1 = ctx.createRadialGradient(earth.cx, earth.cy, er - 70, earth.cx, earth.cy, er + 46);
+  g1.addColorStop(0, 'rgba(70,140,255,0)'); g1.addColorStop(0.55, 'rgba(90,160,255,.22)'); g1.addColorStop(0.62, 'rgba(150,205,255,.55)'); g1.addColorStop(0.7, 'rgba(90,150,255,.25)'); g1.addColorStop(1, 'rgba(40,90,255,0)');
+  ctx.fillStyle = g1; ctx.fillRect(0, earth.cy - er - 60, W, H - (earth.cy - er - 60));
+  ctx.restore();
+  if (alien) alien.draw();
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (const p of plasmas) { S.drawGlow(ctx, '#7dff3a', p.x, p.y, 42, 0.9); S.drawGlow(ctx, '#f4ffd8', p.x, p.y, 14, 1); }
+  for (const l of lasers) {
+    const t = l.life / l.max; ctx.lineCap = 'round';
+    ctx.globalAlpha = 0.3 * t; ctx.strokeStyle = l.c; ctx.lineWidth = 12; ctx.beginPath(); ctx.moveTo(l.x1, l.y1); ctx.lineTo(l.x2, l.y2); ctx.stroke();
+    ctx.globalAlpha = 0.9 * t; ctx.lineWidth = 3.5; ctx.stroke();
+    ctx.globalAlpha = t; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.3; ctx.stroke();
+    S.drawGlow(ctx, l.c, l.x1, l.y1, 22, t);
+  }
+  ctx.restore();
+  back.draw(ctx);
+  ships.forEach(s => s.draw(ctx));
+  ctx.fillStyle = '#26331f';
+  for (const d of debris) {
+    ctx.save(); ctx.translate(d.x, d.y); ctx.rotate(d.rot); ctx.globalAlpha = Math.min(1, d.life);
+    ctx.beginPath(); d.pts.forEach(([px, py], i) => i ? ctx.lineTo(px * d.r, py * d.r) : ctx.moveTo(px * d.r, py * d.r)); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,170,80,.7)'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.restore();
+  }
+  front.draw(ctx);
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (const r of rings) { const t = r.life / r.max; ctx.globalAlpha = t * 0.8; ctx.strokeStyle = r.c || '#ffd9a0'; ctx.lineWidth = 6 * t + 1; ctx.beginPath(); ctx.arc(r.x, r.y, r.r + (1 - t) * Math.max(W, H) * 0.45, 0, TAU); ctx.stroke(); }
+  ctx.restore();
+  ctx.restore();
+  if (flash > 0) { ctx.fillStyle = `rgba(255,250,235,${flash})`; ctx.fillRect(0, 0, W, H); flash = Math.max(0, flash - dt * 1.6); }
+  hpEl.style.width = alien ? (alien.hp / alien.maxHp * 100) + '%' : '0%';
+  requestAnimationFrame(loop);
+}
+
+const ui = S.setupShipInput(addShip);
+newAlien();
+const demo = new URLSearchParams(location.search).get('demo') !== '0';
+if (demo) {
+  [400, 1300, 2200].forEach((t, i) => setTimeout(() => addShip(S.kidShip(101 + i * 17)), t));
+  let n = 0; const iv = setInterval(() => { if (++n > 4 || ships.length >= 8) return clearInterval(iv); addShip(S.kidShip(500 + n * 29)); }, 11000);
+}
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
