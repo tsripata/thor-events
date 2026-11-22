@@ -1,0 +1,70 @@
+{
+  "week_of": "2026-12-14",
+  "start": "2026-12-14",
+  "end": "2026-12-20",
+  "label": "December 14–20, 2026",
+  "intro": "School's out! Gingerbread building, giant Christmas lights and the countdown to Santa.",
+  "weekday_note": "Most schools break from Dec 14 — the Anytime Favorites (skating, museums, pottery) are perfect for free weekdays.",
+  "activities": [
+    {
+      "title": "Kimpton Maa-Lai gingerbread house workshop",
+      "section": "weekend",
+      "category": "workshop",
+      "date": "Saturday–Sunday December 19–20",
+      "time": "1pm–5pm",
+      "location": "Kimpton Maa-Lai Bangkok, Langsuan",
+      "price": "Check with hotel",
+      "why": "Hands-on building and decorating, and he takes the house home.",
+      "tip": "Book ahead — the pre-Christmas weekends fill fastest.",
+      "link": "https://www.timeout.com/bangkok/news/kimpton-maa-lai-bangkok-111126",
+      "image": null,
+      "video": null,
+      "pick": true
+    },
+    {
+      "title": "ICONSIAM Bangkok Illumination + Koh Kerd miniatures",
+      "section": "weekend",
+      "category": "outdoor",
+      "date": "Saturday–Sunday December 19–20 (runs to Dec 25)",
+      "time": "Light shows 6:30–9:30pm hourly",
+      "location": "ICONSIAM, Charoen Nakhon",
+      "price": "Free",
+      "why": "Giant tree light shows by the river plus the tiny handmade miniature worlds inside.",
+      "tip": "Arrive by boat from Saphan Taksin for extra adventure.",
+      "link": "https://www.timeout.com/bangkok/things-to-do/bangkok-illumination",
+      "image": null,
+      "video": null,
+      "pick": true
+    },
+    {
+      "title": "Onederous Christmas at One Bangkok — weekend performances",
+      "section": "weekend",
+      "category": "music",
+      "date": "Saturday–Sunday December 19–20",
+      "time": "6pm–10pm",
+      "location": "One Bangkok Park",
+      "price": "Free",
+      "why": "Live festive music — Thor can drum along on his knees!",
+      "tip": null,
+      "link": "https://www.nationthailand.com/pr-news/40073448",
+      "image": null,
+      "video": null,
+      "pick": false
+    },
+    {
+      "title": "Disney & Pixar at centralwOrld + The Rink",
+      "section": "weekday",
+      "category": "skating",
+      "date": "Any weekday (exhibit to Jan 3)",
+      "time": "Mall hours",
+      "location": "centralwOrld, Ratchaprasong",
+      "price": "Exhibit: check listing; skating from ~฿350",
+      "why": "Pixar characters, then ice skating in the same mall — two favourites in one trip.",
+      "tip": "Weekday mornings the rink is nearly empty — ideal for practice.",
+      "link": "https://www.timeout.com/bangkok/news/the-world-of-disney-and-pixar-animation-111126",
+      "image": null,
+      "video": null,
+      "pick": false
+    }
+  ]
+}
