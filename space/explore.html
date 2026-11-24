@@ -41,6 +41,7 @@
 <div class="fleet">🚀 <b id="count">0</b> explorers · นักสำรวจ</div>
 <a class="back" href="./">← Space Crayon</a>
 <script src="shared.js"></script>
+<script src="planets/planets.js"></script>
 <script>
 (() => {
 const S = SpaceCrayon, TAU = S.TAU, clamp = S.clamp;
@@ -58,6 +59,29 @@ const PL = [
 const TEX = {};
 PL.forEach((p, i) => TEX[p.key] = S.planetTexture(p.key, 512, 256, 20 + i * 7));
 const sunTex = S.planetTexture('sun', 512, 256, 3), moonTex = S.planetTexture('moon', 256, 128, 4);
+
+/* Blender-rendered planets (planets/*.webp sprite sheets, made by blender/render_planets.py).
+   Each sheet is one full spin; frames are cross-faded so the turn looks smooth.
+   Until a sheet loads (or if it is missing) the procedural sphere below is used. */
+class SpinSprite {
+  constructor(key, m) {
+    this.m = m; this.ok = false; this.cv = S.canvas(m.fw, m.fh); this.g = this.cv.getContext('2d');
+    this.img = new Image(); this.img.onload = () => { this.ok = true; }; this.img.src = `planets/${key}.webp`;
+  }
+  frame(i) { const m = this.m; this.g.drawImage(this.img, (i % m.cols) * m.fw, ((i / m.cols) | 0) * m.fh, m.fw, m.fh, 0, 0, m.fw, m.fh); }
+  render(pos) {
+    const n = this.m.frames, g = this.g; g.clearRect(0, 0, this.m.fw, this.m.fh);
+    pos = ((pos % n) + n) % n; const i = pos | 0, f = pos - i;
+    g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1 - f; this.frame(i);
+    if (f > 0.001) { g.globalCompositeOperation = 'lighter'; g.globalAlpha = f; this.frame((i + 1) % n); }
+    g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+  }
+  draw(ctx, x, y, r) { const k = r / this.m.r, w = this.m.fw * k, h = this.m.fh * k; ctx.drawImage(this.cv, x - w / 2, y - h / 2, w, h); }
+}
+const SPR = window.PLANET_SPRITES || {}, sprites = {};
+Object.keys(SPR).forEach(k => sprites[k] = new SpinSprite(k, SPR[k]));
+const SPIN = { jupiter: 16, saturn: 18 }; /* seconds per turn; others 30 */
+const spr = key => (sprites[key] && sprites[key].ok ? sprites[key] : null);
 const chipsEl = document.getElementById('chips'), seenEl = document.getElementById('seen'), countEl = document.getElementById('count');
 PL.forEach(p => { const c = document.createElement('div'); c.className = 'chip'; c.style.setProperty('--c', p.c); c.innerHTML = `<i></i>${p.th}`; chipsEl.appendChild(c); p.chip = c; p.visits = 0; });
 
@@ -105,7 +129,7 @@ function layout() {
     place(p, 0);
     const L = [(sx - p.x) / p.d, (sy - p.y) / p.d, 0.55];
     p.sphere = new S.Sphere(TEX[p.key], p.r, { res: DPR, light: L, tilt: p.ring ? 0.3 : p.key === 'uranus' ? 1.4 : 0.1, pitch: p.ring ? 0.26 : 0.12, ambient: 0.03 });
-    p.rot = Math.random() * 512; p.sphere.render(p.rot);
+    p.rot = Math.random() * 512; p.sphere.render(p.rot); p.spin0 = Math.random() * 96;
     if (p.ring) p.ringImg = makeRing(p.r, DPR);
     if (p.key === 'earth') { moon = new S.Sphere(moonTex, Math.max(4, p.r * 0.27), { res: DPR, light: L }); moon.render(10); }
   });
@@ -178,16 +202,18 @@ function drawRingHalf(p, front) {
   ctx.restore();
 }
 function drawPlanet(p) {
-  if (p.ring) drawRingHalf(p, false);
-  p.sphere.draw(ctx, p.x, p.y);
+  const sp = spr(p.key);
+  if (sp) sp.draw(ctx, p.x, p.y, p.r);   /* Blender sprite already includes Saturn's ring */
+  else { if (p.ring) drawRingHalf(p, false); p.sphere.draw(ctx, p.x, p.y); }
   if (p.key === 'earth' || p.key === 'neptune' || p.key === 'uranus' || p.key === 'venus') {
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
     const g = ctx.createRadialGradient(p.x, p.y, p.r * 0.92, p.x, p.y, p.r * 1.18);
     g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.35, p.key === 'venus' ? 'rgba(255,220,150,.35)' : 'rgba(110,170,255,.4)'); g.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 1.2, 0, TAU); ctx.fill(); ctx.restore();
   }
-  if (p.ring) drawRingHalf(p, true);
+  if (p.ring && !sp) drawRingHalf(p, true);
 }
+function drawMoon(x, y) { const sp = spr('moon'); if (sp) sp.draw(ctx, x, y, moon.r); else moon.draw(ctx, x, y); }
 function drawLabel(p) {
   const y = p.y + (p.ring ? p.r * 2.25 * 0.26 + p.r * 0.5 : p.r) + 18;
   ctx.save(); ctx.textAlign = 'center';
@@ -203,7 +229,13 @@ let lastT = performance.now();
 function loop(now) {
   const dt = clamp((now - lastT) / 1000, 0, 0.05); lastT = now; time += dt; frame++;
   if (frame % 3 === 0) sun.render(time * 6);
-  PL.forEach((p, i) => { place(p, time); if ((frame + i) % 2 === 0) { p.rot += (p.key === 'jupiter' || p.key === 'saturn' ? 1.2 : 0.6); p.sphere.render(p.rot); } });
+  PL.forEach((p, i) => {
+    place(p, time);
+    const sp = spr(p.key);
+    if (sp) sp.render(p.spin0 + time / (SPIN[p.key] || 30) * sp.m.frames);
+    else if ((frame + i) % 2 === 0) { p.rot += (p.key === 'jupiter' || p.key === 'saturn' ? 1.2 : 0.6); p.sphere.render(p.rot); }
+  });
+  if (spr('moon') && !spr('moon').done) { spr('moon').render(0); spr('moon').done = true; }
   ships.forEach(s => updateShip(s, dt));
   for (const a of asteroids) { a.th += a.w * dt; if (a.th > a.lim) a.th = -a.lim; a.rot += dt * 0.5; }
   if ((nextComet -= dt) <= 0 && !comet) { comet = { x: W + 40, y: H * (0.08 + Math.random() * 0.3), vx: -(220 + Math.random() * 80), vy: 60 + Math.random() * 60 }; nextComet = 25 + Math.random() * 15; }
@@ -233,7 +265,7 @@ function loop(now) {
     ships.forEach(s => { if (s.mode === 'orbit' && s.target === PL.indexOf(p) && s.behind) s.draw(ctx); });
     if (p.key === 'earth') {
       const ma = time * 0.35, mx = p.x + Math.cos(ma) * p.r * 2.1, my = p.y + Math.sin(ma) * p.r * 0.5;
-      if (Math.sin(ma) < 0) { moon.draw(ctx, mx, my); drawPlanet(p); } else { drawPlanet(p); moon.draw(ctx, mx, my); }
+      if (Math.sin(ma) < 0) { drawMoon(mx, my); drawPlanet(p); } else { drawPlanet(p); drawMoon(mx, my); }
     } else drawPlanet(p);
     ships.forEach(s => { if (s.mode === 'orbit' && s.target === PL.indexOf(p) && !s.behind) s.draw(ctx); });
     drawLabel(p);
